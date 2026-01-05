@@ -1,11 +1,11 @@
-<script setup></script>
-
 <template>
-  <h1>You did it!</h1>
-  <p>
-    Visit <a href="https://vuejs.org/" target="_blank" rel="noopener">vuejs.org</a> to read the
-    documentation
-  </p>
+  <AppLayout />
+  <ChatbotButton />
+  <ChatbotModal />
 </template>
 
-<style scoped></style>
+<script setup>
+import AppLayout from '@/components/layout/AppLayout.vue'
+import ChatbotButton from '@/components/chatbot/ChatbotButton.vue'
+import ChatbotModal from '@/components/chatbot/ChatbotModal.vue'
+</script>
