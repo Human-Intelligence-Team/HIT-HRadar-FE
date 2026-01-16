@@ -24,6 +24,7 @@
    Dark Theme (default)
 ===================================================== */
 :root {
+  --header-icon: #eaf0ff;
   --bg: #0b1220;
   --bg-gradient:
     radial-gradient(1200px 600px at 10% -10%, rgba(79,124,255,.25), transparent 60%),
@@ -54,6 +55,7 @@
    Light Theme
 ===================================================== */
 :root[data-theme="light"] {
+  --header-icon: #0f172a;
   --bg: #f6f8fc;
   --bg-gradient:
     linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
