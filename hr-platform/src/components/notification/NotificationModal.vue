@@ -64,7 +64,7 @@ async function go(n) {
     await store.read(n.id)
   }
   if (n.linkUrl) {
-    router.push(n.linkUrl)
+    await router.push(n.linkUrl)
   }
 }
 

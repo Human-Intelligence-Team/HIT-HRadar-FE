@@ -38,7 +38,6 @@ onMounted(async () => {
   await store.load()
 
   connectSSE((event) => {
-    console.log('🔥 SSE CALLBACK TO STORE', event)
     store.$patch((state) => {
       const idx = state.notifications.findIndex(n => n.id === event.id)
 

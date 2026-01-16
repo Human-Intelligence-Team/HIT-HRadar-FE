@@ -1,4 +1,3 @@
-// stores/notificationStore.js
 import { defineStore } from 'pinia'
 import {
   fetchNotifications,
@@ -6,6 +5,14 @@ import {
   deleteNotification,
   markAllNotificationsRead,
 } from '@/api/notificationApi'
+
+function normalizeNotification(n) {
+  return {
+    ...n,
+    read: n.read === true || n.read === 'Y',
+    linkUrl: n.linkUrl ?? null, // ✅ linkUrl 추가
+  }
+}
 
 export const useNotificationStore = defineStore('notification', {
   state: () => ({
@@ -24,25 +31,21 @@ export const useNotificationStore = defineStore('notification', {
       if (this.loaded) return
 
       const res = await fetchNotifications()
-      this.notifications = res.data.map(n => ({
-        ...n,
-        read: n.read === true || n.read === 'Y'
-      }))
+      this.notifications = res.data.map(normalizeNotification)
       this.loaded = true
     },
 
     push(notification) {
-      const normalized = {
-        ...notification,
-        read: notification.read === true || notification.read === 'Y'
-      }
+      const normalized = normalizeNotification(notification)
 
-      const idx = this.notifications.findIndex(n => n.id === normalized.id)
+      const idx = this.notifications.findIndex(
+        (n) => n.id === normalized.id
+      )
 
       if (idx !== -1) {
         this.notifications[idx] = {
           ...this.notifications[idx],
-          ...normalized
+          ...normalized,
         }
       } else {
         this.notifications.unshift(normalized)
@@ -52,7 +55,7 @@ export const useNotificationStore = defineStore('notification', {
     async read(id) {
       await markNotificationRead(id)
 
-      this.notifications = this.notifications.map(n =>
+      this.notifications = this.notifications.map((n) =>
         n.id === id ? { ...n, read: true } : n
       )
     },
@@ -72,9 +75,9 @@ export const useNotificationStore = defineStore('notification', {
 
       await markAllNotificationsRead()
 
-      this.notifications = this.notifications.map(n => ({
+      this.notifications = this.notifications.map((n) => ({
         ...n,
-        read: true
+        read: true,
       }))
     },
   },

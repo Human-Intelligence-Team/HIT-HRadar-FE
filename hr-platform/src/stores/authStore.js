@@ -39,8 +39,6 @@ export const useAuthStore = defineStore('auth', () => {
    * ---------------------------- */
   const isLoggedIn = computed(() => !!accessToken.value && !!user.value?.userId);
   const isAdmin = computed(() => (user.value?.role || '').toUpperCase() === 'ADMIN');
-  const name = computed(() => user.value?.name || '');
-  const userId = computed(() => user.value?.userId || '');
 
   /* ----------------------------
    * utils
@@ -62,7 +60,7 @@ export const useAuthStore = defineStore('auth', () => {
       const payload = jwtDecode(token)
       user.value = {
         userId: payload.sub,
-        role: payload.role,
+        role: (payload.role || '').toUpperCase(),
         companyId: payload.companyId,
       }
       localStorage.setItem('user', JSON.stringify(user.value))
@@ -189,8 +187,6 @@ export const useAuthStore = defineStore('auth', () => {
 
     isLoggedIn,
     isAdmin,
-    name,
-    userId,
 
     setAccessToken,
     resetUser,

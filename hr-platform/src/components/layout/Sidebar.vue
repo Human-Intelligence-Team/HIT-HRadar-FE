@@ -2,7 +2,7 @@
   <aside class="sidebar">
     <div class="navtitle">Menu</div>
 
-    <nav class="nav">
+    <nav class="nav" v-if="auth.isLoggedIn">
       <RouterLink v-if="can('POLICY_READ')" to="/policy">제도·규정</RouterLink>
       <RouterLink v-if="can('FAQ_MANAGE')" to="/faq">FAQ 관리</RouterLink>
       <RouterLink v-if="can('NOTICE_READ')" to="/notice">공지 관리</RouterLink>
@@ -26,14 +26,11 @@ import { useAuthStore } from '@/stores/authStore'
 const auth = useAuthStore()
 
 const can = (perm) => {
-  if (auth.isAdmin) return true
-
   const rolePermissions = {
     USER: ['POLICY_READ', 'FAQ_MANAGE', 'NOTICE_READ', 'ALERT_MANAGE'],
     ADMIN: ['POLICY_READ', 'FAQ_MANAGE', 'NOTICE_READ', 'ALERT_MANAGE'],
-  } // 추후 받아오는거로 변경
-
-  return rolePermissions[auth.user.role]?.includes(perm)
+  }
+  return rolePermissions[auth.user.role]?.includes(perm) ?? false
 }
 </script>
 
