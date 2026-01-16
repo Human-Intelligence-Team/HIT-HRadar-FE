@@ -11,8 +11,9 @@
     </div>
 
     <div class="header-right">
-      <div class="chip">Company <b>DemoCorp</b></div>
-      <div class="chip">User <b>{{ auth.user.name }}</b></div>
+      <NotificationBell />
+<!--      <div class="chip">User <b>{{ auth.profile.name }}</b></div>-->
+<!--      <div class="chip">Company <b>{{ auth.profile.companyName }}</b></div>-->
       <ThemeToggle />
       <button class="btn ghost" @click="logout">로그아웃</button>
     </div>
@@ -21,10 +22,14 @@
 
 <script setup>
 import ThemeToggle from '@/components/common/ThemeToggle.vue'
+import NotificationBell from '@/components/notification/NotificationBell.vue'
 import { useAuthStore } from '@/stores/authStore'
 const auth = useAuthStore()
 
-function logout() {
-  alert('로그아웃 (Mock)')
+const logout = async () => {
+  const confirmed = confirm('로그아웃 하시겠습니까?')
+  if (!confirmed) return
+
+  await auth.logout()
 }
 </script>

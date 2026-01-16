@@ -22,6 +22,18 @@
 
 <script setup>
 import { useAuthStore } from '@/stores/authStore'
+
 const auth = useAuthStore()
-const can = auth.hasPermission
+
+const can = (perm) => {
+  if (auth.isAdmin) return true
+
+  const rolePermissions = {
+    USER: ['POLICY_READ', 'FAQ_MANAGE', 'NOTICE_READ', 'ALERT_MANAGE'],
+    ADMIN: ['POLICY_READ', 'FAQ_MANAGE', 'NOTICE_READ', 'ALERT_MANAGE'],
+  } // 추후 받아오는거로 변경
+
+  return rolePermissions[auth.user.role]?.includes(perm)
+}
 </script>
+
