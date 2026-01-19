@@ -24,6 +24,7 @@ export const useAuthStore = defineStore('auth', () => {
     userId: null,
     role: '',
     companyId: null,
+    employeeId: null,
   })
 
   const user = ref(emptyUser())
@@ -62,6 +63,7 @@ export const useAuthStore = defineStore('auth', () => {
         userId: payload.sub,
         role: (payload.role || '').toUpperCase(),
         companyId: payload.companyId,
+        employeeId: payload.employeeId,
       }
       localStorage.setItem('user', JSON.stringify(user.value))
     } catch {

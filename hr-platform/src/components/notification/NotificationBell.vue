@@ -19,11 +19,10 @@
   </div>
 </template>
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import NotificationModal from './NotificationModal.vue'
 import { useNotificationStore } from '@/stores/notificationStore'
-import { connectSSE } from '@/api/notificationSse'
 
 const open = ref(false)
 const store = useNotificationStore()
@@ -34,28 +33,6 @@ function toggle() {
   open.value = !open.value
 }
 
-onMounted(async () => {
-  await store.load()
-
-  connectSSE((event) => {
-    store.$patch((state) => {
-      const idx = state.notifications.findIndex(n => n.id === event.id)
-
-      if (idx !== -1) {
-        state.notifications[idx] = {
-          ...state.notifications[idx],
-          ...event,
-          read: false
-        }
-      } else {
-        state.notifications.unshift({
-          ...event,
-          read: false
-        })
-      }
-    })
-  })
-})
 </script>
 
 
