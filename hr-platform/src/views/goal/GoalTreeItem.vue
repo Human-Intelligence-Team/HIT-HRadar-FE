@@ -64,14 +64,6 @@
           </span>
         </div>
 
-        <!-- ✅ 승인일 때만 -->
-        <button
-          v-if="isApproved"
-          class="btn-action"
-          @click="inputKpi(kpi)"
-        >
-          성과 입력
-        </button>
       </div>
     </div>
 
@@ -93,14 +85,6 @@
           </span>
         </div>
 
-        <!-- ✅ 승인일 때만 -->
-        <button
-          v-if="isApproved"
-          class="btn-action"
-          @click="inputOkr(okr)"
-        >
-          성과 입력
-        </button>
       </div>
     </div>
 
@@ -144,7 +128,6 @@ const statusLabel = computed(
 )
 
 /* 승인 여부 */
-const isApproved = computed(() => props.goal.approveStatus === 'APPROVED')
 
 const isOpen = ref(props.level === 1)
 const hasChildren = computed(() => props.goal.children?.length)
@@ -155,16 +138,9 @@ const toggle = () => {
 
 /* 액션 */
 const goDetail = () => {
-  router.push(`/goals/${props.goal.goalId}`)
+  router.push(`/goal/${props.goal.goalId}`)
 }
 
-const inputKpi = (kpi) => {
-  router.push(`/kpi/${kpi.kpiId}/progress`)
-}
-
-const inputOkr = (okr) => {
-  router.push(`/okr/${okr.keyResultId}/progress`)
-}
 </script>
 
 <style scoped>

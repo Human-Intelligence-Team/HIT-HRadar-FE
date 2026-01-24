@@ -11,15 +11,13 @@ import AuthLayout from '@/components/layout/AuthLayout.vue'
 import LoginView from '@/views/auth/LoginView.vue'
 import GoalListView from '@/views/goal/GoalListView.vue'
 import HRGoalDashboard from '@/views/goal/HRGoalDashboard.vue'
-
+import GoalDetailView from '@/views/goal/GoalDetailView.vue'
 
 const routes = [
   {
     path: '/login',
     component: AuthLayout,
-    children: [
-      { path: '', component: LoginView },
-    ],
+    children: [{ path: '', component: LoginView }],
   },
 
   {
@@ -34,9 +32,11 @@ const routes = [
 
       //성과평가-목표관리
       { path: 'goal', component: GoalListView },
-      { path: 'hr/goals', component: HRGoalDashboard}
+      { path: 'hr/goals', component: HRGoalDashboard },
+      { path: 'goal/:goalId', component: GoalDetailView}
     ],
-  },]
+  },
+]
 
 const router = createRouter({
   history: createWebHistory(),
