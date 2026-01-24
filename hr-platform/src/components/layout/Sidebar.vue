@@ -39,8 +39,9 @@
           <span class="arrow">›</span>
         </div>
         <div class="flyout">
-          <RouterLink to="/goal/kpi" class="flyout-item">KPI</RouterLink>
-          <RouterLink to="/goal/okr" class="flyout-item">OKR</RouterLink>
+          <RouterLink to="/goal" class="flyout-item">KPI/OKR</RouterLink>
+          <RouterLink to="/hr/goals" class="flyout-item">목표 전체 조회</RouterLink>
+
         </div>
       </div>
 
