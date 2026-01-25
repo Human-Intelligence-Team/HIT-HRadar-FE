@@ -1,23 +1,16 @@
-<!--TeamOwnerGoalListView-->
+<!-- TeamOwnerGoalListView.vue -->
 <template>
   <section>
     <!-- 헤더 -->
     <div class="section-title">
       <div>
-        <h1>인사팀 목표 관리</h1>
+        <h1> 목표 관리</h1>
         <div class="sub">조직별 KPI / OKR 현황 조회</div>
       </div>
     </div>
 
     <!-- 탭 -->
     <div class="tabs">
-      <button
-        class="tab"
-        :class="{ active: activeTab === 'selected' }"
-        @click="changeTab('selected')"
-      >
-        선택한 조직 목표
-      </button>
 
       <button
         class="tab"
@@ -36,7 +29,7 @@
       </button>
     </div>
 
-    <!--  검색 / 필터 -->
+    <!-- 🔍 검색 / 필터 -->
     <div class="toolbar">
       <!-- 조직 선택 -->
       <select
@@ -54,7 +47,6 @@
           {{ dept.name }}
         </option>
       </select>
-
 
       <!-- 제목 검색 -->
       <input
@@ -91,7 +83,11 @@
       </div>
 
       <div class="card-bd">
-        <GoalTree :goals="filteredGoals" />
+        <!-- ⭐️ 핵심: from="teamOwner" -->
+        <GoalTree
+          :goals="filteredGoals"
+          from="teamOwner"
+        />
       </div>
     </BaseCard>
   </section>
@@ -161,7 +157,7 @@ const onDeptChange = async () => {
   await loadGoals()
 }
 
-/* ===== 🔥 Tree 필터 핵심 로직 ===== */
+/* ===== 🔥 Tree 필터 ===== */
 const filterGoalTree = (goal) => {
   const matchTitle =
     !keyword.value ||
@@ -203,29 +199,6 @@ onMounted(loadGoals)
 </script>
 
 <style scoped>
-/* 필터 */
-/* 조직 필터 */
-.filter-card {
-  margin-bottom: 12px;
-}
-
-.filters {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.filters select {
-  padding: 6px 10px;
-  border-radius: 6px;
-  border: 1px solid #e5e7eb;
-}
-
-.hint {
-  font-size: 12px;
-  color: #6b7280;
-}
-
 /* 탭 */
 .tabs {
   display: flex;
@@ -275,7 +248,7 @@ onMounted(loadGoals)
   cursor: pointer;
 }
 
-/* 조직 선택 전용 */
+/* 조직 선택 */
 .select.dept {
   min-width: 100px;
   font-weight: 500;
@@ -284,13 +257,11 @@ onMounted(loadGoals)
 /* 검색 */
 .search {
   flex: 1;
-  max-width: 1400px;   /* ← 더 크게 */
-  min-width: 480px;    /* ← 너무 작아지지 않게 */
-  padding: 5px 14px;  /* 살짝 여유 */
-  font-size: 14px;     /* 가독성 ↑ */
+  max-width: 1400px;
+  min-width: 480px;
+  padding: 5px 14px;
+  font-size: 14px;
   border-radius: 8px;
   border: 1px solid #e5e7eb;
 }
-
-
 </style>

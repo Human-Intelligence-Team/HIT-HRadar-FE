@@ -63,7 +63,6 @@
             </span>
           </span>
         </div>
-
       </div>
     </div>
 
@@ -84,7 +83,6 @@
             </span>
           </span>
         </div>
-
       </div>
     </div>
 
@@ -95,6 +93,7 @@
         :key="child.goalId"
         :goal="child"
         :level="level + 1"
+        :from="from"
       />
     </div>
   </div>
@@ -105,9 +104,24 @@ import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import GoalTreeItem from './GoalTreeItem.vue'
 
+/* ===== Props ===== */
 const props = defineProps({
-  goal: Object,
-  level: Number,
+  goal: {
+    type: Object,
+    required: true,
+  },
+  level: {
+    type: Number,
+    required: true,
+  },
+  /**
+   * 어디서 왔는지 (선택)
+   * ex) 'teamOwner'
+   */
+  from: {
+    type: String,
+    default: null,
+  },
 })
 
 const router = useRouter()
@@ -127,8 +141,7 @@ const statusLabel = computed(
   () => STATUS_LABEL_MAP[props.goal.approveStatus] ?? props.goal.approveStatus
 )
 
-/* 승인 여부 */
-
+/* 트리 상태 */
 const isOpen = ref(props.level === 1)
 const hasChildren = computed(() => props.goal.children?.length)
 
@@ -136,11 +149,17 @@ const toggle = () => {
   if (hasChildren.value) isOpen.value = !isOpen.value
 }
 
-/* 액션 */
+/* ===== 상세 이동 ===== */
 const goDetail = () => {
-  router.push(`/goal/${props.goal.goalId}`)
+  if (props.from === 'teamOwner') {
+    router.push({
+      path: `/goal/${props.goal.goalId}`,
+      query: { from: 'teamOwner' },
+    })
+  } else {
+    router.push(`/goal/${props.goal.goalId}`)
+  }
 }
-
 </script>
 
 <style scoped>
@@ -195,9 +214,7 @@ const goDetail = () => {
 }
 
 /* 상태 */
-.status {
-  font-weight: 500;
-}
+.status { font-weight: 500; }
 .status.approved { color: #16a34a; }
 .status.submitted { color: #0284c7; }
 .status.draft { color: #ca8a04; }
@@ -247,20 +264,6 @@ const goDetail = () => {
 
 .btn-detail:hover {
   opacity: 0.9;
-}
-
-.btn-action {
-  padding: 4px 12px;
-  font-size: 12px;
-  border-radius: 999px;
-  background-color: #EFF6FF;
-  color: #2563EB;
-  border: 1px solid #2563EB;
-  cursor: pointer;
-}
-
-.btn-action:hover {
-  background-color: #DBEAFE;
 }
 
 /* ===== KPI / OKR ===== */

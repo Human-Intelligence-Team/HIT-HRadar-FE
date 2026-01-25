@@ -1,5 +1,5 @@
 import axios from './axios.js'
-
+/*goalApi.js*/
 //조직 Goal 트리 조회
 export const fetchOrganizationGoals = () => {
   return axios.get('/api/v1/goals')
@@ -19,3 +19,13 @@ export const fetchDepartmentGoals = (departmentId) =>
 export const fetchGoalDetail = (goalId) => {
   return axios.get(`/api/v1/goals/${goalId}/detail`)
 }
+
+// 승인
+export const approveGoal = (goalId) =>
+  axios.post(`/api/v1/goals/${goalId}/approve`)
+
+// 반려
+export const rejectGoal = (goalId, rejectReason) =>
+  axios.post(`/api/v1/goals/${goalId}/reject`, {
+    rejectReason,
+  })

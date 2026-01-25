@@ -15,11 +15,23 @@
         <!-- Header -->
         <div class="goal-header">
 
-          <div>
-            <h2 class="goal-title">{{ goal.title }}</h2>
+          <!-- LEFT: title/meta + actions -->
+          <div class="goal-left">
+            <div class="goal-title-row">
+              <h2 class="goal-title">{{ goal.title }}</h2>
+            </div>
+
             <div class="goal-meta">
               <span class="pill">{{ goal.scope }}</span>
               <span class="pill success">{{ goal.approveStatus }}</span>
+            </div>
+
+            <div
+              v-if="goal.approveStatus === 'REJECTED' && goal.rejectReason"
+              class="reject-banner"
+            >
+              <strong>반려 사유</strong>
+              <p>{{ goal.rejectReason }}</p>
             </div>
           </div>
 
@@ -138,6 +150,16 @@
             </div>
           </div>
         </template>
+        <!-- ===== 승인 / 반려 액션 영역 ===== -->
+        <div v-if="canDecide" class="decision-footer">
+          <button class="btn-reject" @click="openRejectModal">
+            반려
+          </button>
+          <button class="btn-approve" @click="openApproveModal">
+            승인
+          </button>
+        </div>
+
       </BaseCard>
 
       <!-- ================= RIGHT ================= -->
@@ -146,7 +168,7 @@
           {{ goal.type === 'KPI' ? 'KPI 상세' : 'OKR 상세' }}
 
           <button
-            v-if="selectedItem && goal.approveStatus === 'APPROVED'"
+            v-if="selectedItem && goal.approveStatus === 'APPROVED' "
             class="btn-record"
             @click="openModal"
           >
@@ -332,11 +354,69 @@
       </div>
     </div>
   </div>
+<!--반려 사유 입력 모달-->
+  <div v-if="showRejectModal" class="modal-backdrop">
+    <div class="modal decision-modal reject">
+
+      <div class="modal-header decision-header reject">
+        <h3>반려 사유 입력</h3>
+        <button class="btn-close" @click="closeRejectModal">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <p class="decision-desc">
+          목표가 반려됩니다. 사유를 명확히 작성해주세요.
+        </p>
+
+        <textarea
+          v-model="rejectReason"
+          rows="3"
+          class="reject-textarea"
+          :class="{ error: rejectError }"
+        />
+
+        <p v-if="rejectError" class="reject-error">
+          반려 사유를 입력하세요
+        </p>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-secondary" @click="closeRejectModal">취소</button>
+        <button class="btn-danger" @click="rejectGoalAction">반려</button>
+      </div>
+    </div>
+  </div>
+
+  <!--승인 확인 모달-->
+  <div v-if="showApproveModal" class="modal-backdrop">
+    <div class="modal decision-modal approve">
+
+      <div class="modal-header decision-header approve">
+        <h3>목표 승인</h3>
+      </div>
+
+      <div class="modal-body approve-body">
+        <div class="approve-icon">✔</div>
+        <p>해당 목표를 승인하시겠습니까?</p>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-secondary" @click="closeApproveModal">취소</button>
+        <button class="btn-success" @click="approveGoalAction">승인</button>
+      </div>
+    </div>
+  </div>
+
+
+  <div v-if="toast.show" class="toast">
+    {{ toast.message }}
+  </div>
 
 </template>
 
+
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter  } from 'vue-router'
 import BaseCard from '@/components/common/BaseCard.vue'
 
@@ -354,6 +434,9 @@ import {
 
 const route = useRoute()
 const router = useRouter()
+
+const isFromTeamOwner = computed(() => route.query.from === 'teamOwner')
+const canDecide = computed(() => isFromTeamOwner.value && goal.value.approveStatus === 'SUBMITTED')
 
 const goBack = () => {
   if (window.history.length > 1) {
@@ -506,6 +589,70 @@ onMounted(async () => {
     if (items.value.length) await selectOkr(items.value[0])
   }
 })
+
+/*반려, 승인 모달*/
+/* ===== 승인 / 반려 모달 ===== */
+const showRejectModal = ref(false)
+const showApproveModal = ref(false)
+const rejectReason = ref('')
+
+
+/* ===== Toast ===== */
+const toast = ref({
+  show: false,
+  message: '',
+})
+
+const openApproveModal = () => {
+  showApproveModal.value = true
+}
+
+const closeRejectModal = () => {
+  showRejectModal.value = false
+}
+
+const closeApproveModal = () => {
+  showApproveModal.value = false
+}
+
+const showToast = (message) => {
+  toast.value = { show: true, message }
+  setTimeout(() => (toast.value.show = false), 2500)
+}
+
+import {
+  approveGoal as approveGoalApi,
+  rejectGoal as rejectGoalApi,
+} from '@/api/goalApi'
+
+const approveGoalAction = async () => {
+  await approveGoalApi(route.params.goalId)
+  showApproveModal.value = false
+  showToast('승인 처리 되었습니다')
+  await reloadAll()
+}
+const rejectError = ref(false)
+
+const rejectGoalAction = async () => {
+  if (!rejectReason.value.trim()) {
+    rejectError.value = true
+    return
+  }
+
+  rejectError.value = false
+
+  await rejectGoalApi(route.params.goalId, rejectReason.value)
+  showRejectModal.value = false
+  showToast('반려 처리 완료되었습니다')
+  await reloadAll()
+}
+
+const openRejectModal = () => {
+  rejectReason.value = ''
+  rejectError.value = false
+  showRejectModal.value = true
+}
+
 
 
 </script>
@@ -725,22 +872,7 @@ th, td {
 .btn-record:hover {
   background: #4338ca;
 }
-.modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 50;
-}
 
-.modal {
-  background: #ffffff;
-  width: 360px;
-  padding: 24px;
-  border-radius: 16px;
-}
 
 .modal h3 {
   font-size: 16px;
@@ -778,10 +910,11 @@ th, td {
 
 /* ===== Modal Card ===== */
 .modal {
-  width: 420px;
+  width: 500px;
+  height: 500px;
   background: #ffffff;
-  border-radius: 20px;
-  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.25);
+  border-radius: 18px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
   overflow: hidden;
   animation: modalPop 0.25s ease-out;
 }
@@ -802,7 +935,7 @@ th, td {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  padding: 20px 24px;
+  padding: 14px 20px;
   border-bottom: 1px solid #e5e7eb;
 }
 
@@ -831,7 +964,7 @@ th, td {
 
 /* ===== Body ===== */
 .modal-body {
-  padding: 24px;
+  padding: 16px 20px;
   display: flex;
   flex-direction: column;
   gap: 18px;
@@ -874,7 +1007,7 @@ th, td {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
-  padding: 16px 24px;
+  padding: 12px 20px;
   background: #f9fafb;
   border-top: 1px solid #e5e7eb;
 }
@@ -945,5 +1078,195 @@ svg .progress {
   align-items: center;
   margin-bottom: 12px;
 }
+
+.goal-left {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.goal-title-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+
+
+/* 승인/반려 버튼 */
+.btn-approve {
+  padding: 6px 12px;
+  font-size: 12px;
+  border-radius: 999px;
+  border: 1px solid #16a34a;
+  background: #16a34a;
+  color: #fff;
+  cursor: pointer;
+}
+
+.btn-approve:hover {
+  opacity: 0.92;
+}
+
+.btn-reject {
+  padding: 6px 12px;
+  font-size: 12px;
+  border-radius: 999px;
+  border: 1px solid #dc2626;
+  background: #fff;
+  color: #dc2626;
+  cursor: pointer;
+}
+
+.btn-reject:hover {
+  background: #fef2f2;
+}
+
+.toast {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  background: rgba(17, 24, 39, 0.95);
+  backdrop-filter: blur(6px);
+  color: white;
+  padding: 14px 20px;
+  border-radius: 12px;
+  font-size: 13px;
+  z-index: 200;
+  animation: toastSlide 0.3s ease-out;
+}
+
+@keyframes toastSlide {
+  from {
+    transform: translateY(10px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.decision-footer {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px dashed #e5e7eb;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+/* ===== Reject Modal ===== */
+.decision-header.reject {
+  background: linear-gradient(135deg, #fee2e2, #fff);
+  border-bottom: 1px solid #fecaca;
+}
+
+.decision-header.reject h3 {
+  color: #b91c1c;
+}
+
+.decision-desc {
+  font-size: 13px;
+  color: #7f1d1d;
+  margin-bottom: 12px;
+}
+
+.reject-textarea {
+  width: 100%;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid #fecaca;
+  font-size: 14px;
+  resize: none;
+}
+
+.reject-textarea:focus {
+  outline: none;
+  border-color: #ef4444;
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
+}
+
+.btn-danger {
+  padding: 8px 18px;
+  border-radius: 10px;
+  background: #dc2626;
+  color: #fff;
+  border: none;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.btn-danger:hover {
+  background: #b91c1c;
+}
+
+/* ===== Approve Modal ===== */
+.decision-header.approve {
+  background: linear-gradient(135deg, #dcfce7, #fff);
+  border-bottom: 1px solid #bbf7d0;
+}
+
+.decision-header.approve h3 {
+  color: #166534;
+}
+
+.approve-body {
+  text-align: center;
+  font-size: 14px;
+  color: #065f46;
+}
+
+.approve-icon {
+  width: 48px;
+  height: 48px;
+  margin: 0 auto 12px;
+  border-radius: 50%;
+  background: #22c55e;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  font-weight: bold;
+}
+
+.btn-success {
+  padding: 8px 18px;
+  border-radius: 10px;
+  background: #16a34a;
+  color: #fff;
+  border: none;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.btn-success:hover {
+  background: #15803d;
+}
+
+/* ===== Reject Banner ===== */
+.reject-banner {
+  margin-top: 10px;
+  width: 400px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: #84877f;
+}
+
+.reject-banner strong {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #ffffff;
+  margin-bottom: 4px;
+}
+
+.reject-banner p {
+  font-size: 13px;
+  color: #ffffff;
+  margin: 0;
+}
+
 
 </style>

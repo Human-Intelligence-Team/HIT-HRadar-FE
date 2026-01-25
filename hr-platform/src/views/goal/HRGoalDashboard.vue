@@ -3,7 +3,7 @@
     <!-- 헤더 -->
     <div class="section-title">
       <div>
-        <h1>인사팀 목표 관리</h1>
+        <h1>목표 관리</h1>
         <div class="sub">조직별 KPI / OKR 현황 조회</div>
       </div>
     </div>

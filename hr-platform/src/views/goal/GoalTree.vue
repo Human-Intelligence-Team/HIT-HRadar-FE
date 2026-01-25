@@ -1,4 +1,3 @@
-<!-- GoalTree.vue -->
 <template>
   <div>
     <GoalTreeItem
@@ -6,6 +5,7 @@
       :key="goal.goalId"
       :goal="goal"
       :level="1"
+      :from="from"
     />
   </div>
 </template>
@@ -17,6 +17,10 @@ defineProps({
   goals: {
     type: Array,
     required: true,
+  },
+  from: {
+    type: String,
+    default: null,
   },
 })
 </script>
