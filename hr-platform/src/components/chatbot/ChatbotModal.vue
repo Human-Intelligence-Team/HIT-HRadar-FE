@@ -12,7 +12,7 @@
         </div>
       </div>
 
-      <QuickQuestions @pick="onPick" @selectCategory="onSelectCategory" />
+      <QuickQuestions @pick="onPick" @selectCategory="onSelectCategory" :selectedCategory="chat.selectedCategory" />
 
       <div class="modal-body" ref="bodyEl">
         <ChatMessage v-for="(m,i) in chat.messages" :key="i" :msg="m" />
@@ -71,7 +71,7 @@ function clearSelectedCategory() {
 
 function clearChat() {
   chat.clear();
-  chat.setSelectedCategory(null); // Clear category on full chat clear
+  // chat.setSelectedCategory(null); // Redundant, as chat.clear() in store already handles it
 }
 
 watch(

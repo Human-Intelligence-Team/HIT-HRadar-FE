@@ -1,6 +1,11 @@
 import { defineStore } from 'pinia'
 import { sendChatApi } from '@/api/chatApi'
 
+// Simple unique ID generator for sessionId
+function generateUniqueId() {
+  return Date.now().toString(36) + Math.random().toString(36).substring(2);
+}
+
 export const useChatbotStore = defineStore('chatbot', {
   state: () => ({
     opened: false,
@@ -9,7 +14,8 @@ export const useChatbotStore = defineStore('chatbot', {
       { from: 'bot', text: '먼저 카테고리를 선택하시면 더 정확한 답변을 얻을 수 있습니다.' },
       { from: 'bot', text: '※ 개인 인사정보는 “요약”만 제공하며 상세 수치는 노출하지 않습니다.' },
     ],
-    selectedCategory: null, // New state property for selected category
+    selectedCategory: null,
+    sessionId: generateUniqueId(), // Initialize sessionId
   }),
 
   actions: {
@@ -25,38 +31,33 @@ export const useChatbotStore = defineStore('chatbot', {
         { from: 'bot', text: '먼저 카테고리를 선택하시면 더 정확한 답변을 얻을 수 있습니다.' },
         { from: 'bot', text: '※ 개인 인사정보는 “요약”만 제공하며 상세 수치는 노출하지 않습니다.' },
       ]
-      this.selectedCategory = null // Clear category on chat reset
+      this.selectedCategory = null
+      this.sessionId = generateUniqueId() // Reset sessionId on chat clear
     },
-    sendUser(text, category = null) { // Modified to accept an optional category
+    async sendUser(text, category = null) {
       this.messages.push({ from: 'user', text })
-      const answer = this.mockAnswer(text, category) // Pass category to mockAnswer
-      this.messages.push({ from: 'bot', text: answer })
-      // Do not clear selectedCategory here, it's cleared by explicit action from ChatbotModal
+
+      let messageToSend = text;
+      if (category) {
+        messageToSend = `[${category}] ${text}`;
+      }
+
+      try {
+        const response = await sendChatApi({
+          message: messageToSend,
+          sessionId: this.sessionId,
+        });
+        this.messages.push({ from: 'bot', text: response.data.response }); // Assuming API returns { response: "bot message" }
+      } catch (error) {
+        console.error('Error sending chat message:', error);
+        this.messages.push({ from: 'bot', text: '죄송합니다. 메시지를 보내는 데 실패했습니다. 다시 시도해 주세요.' });
+      }
     },
-    setSelectedCategory(category) { // New action to set the selected category
+    setSelectedCategory(category) {
       this.selectedCategory = category
-      if (category) { // Only push message if a category is actually selected
+      if (category) {
         this.messages.push({ from: 'bot', text: `카테고리 [${category}]를 선택했습니다. 질문을 입력해주세요.` });
       }
-    },
-    mockAnswer(q, category) { // Modified to accept category
-      // const s = useMockStore() // Use this if you have mockStore
-      // For now, using a simplified mock
-      const t = q.trim()
-
-      let responsePrefix = category ? `[${category} 관련] ` : '';
-
-      if (t.includes('연차') && (t.includes('이월') || t.includes('기준') || t.includes('몇'))) {
-        return responsePrefix + '연차는 최대 1년까지 이월될 수 있습니다.\n(‘연차유급휴가 운영 규정’ 제4조 기준)'
-      }
-      if (t.includes('평가') && (t.includes('결과') || t.includes('확인'))) {
-        return responsePrefix + '평가 결과는 확정 후 알림으로 안내되며, 요약 등급만 제공됩니다.\n상세 점수는 제공되지 않습니다.'
-      }
-      if (t.includes('공지')) {
-        // return responsePrefix + `현재 공지 ${s.notices.length}건이 있습니다.\n가장 최근: ${s.notices[0]?.title || '-'}`.trim()
-        return responsePrefix + `현재 3건의 공지가 있습니다.\n가장 최근: 2024년 1월 1일 신년 휴무 안내`.trim() // Simplified mock
-      }
-      return responsePrefix + '해당 질문에 대한 정확한 안내가 어렵습니다.\n인사팀에 문의해 주세요.'
     },
   },
 })
