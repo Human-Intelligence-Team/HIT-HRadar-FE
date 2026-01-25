@@ -41,6 +41,7 @@
         <div class="flyout">
           <RouterLink to="/goal" class="flyout-item">KPI/OKR</RouterLink>
           <RouterLink to="/hr/goals" class="flyout-item">목표 전체 조회</RouterLink>
+          <RouterLink to="/to/goals" class="flyout-item">팀장 목표 전체 조회</RouterLink>
 
         </div>
       </div>

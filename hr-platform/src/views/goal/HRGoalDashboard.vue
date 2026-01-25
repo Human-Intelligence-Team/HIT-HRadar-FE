@@ -8,29 +8,8 @@
       </div>
     </div>
 
-    <!-- 조직 선택 -->
-    <BaseCard class="filter-card">
-      <div class="filters">
-        <select v-model="selectedDeptId" @change="onDeptChange">
-          <option value="">조직 선택</option>
-          <option
-            v-for="dept in departments"
-            :key="dept.id"
-            :value="dept.id"
-          >
-            {{ dept.name }}
-          </option>
-        </select>
-
-        <span class="hint">
-          ※ 인사팀은 모든 조직의 목표를 조회할 수 있습니다.
-        </span>
-      </div>
-    </BaseCard>
-
     <!-- 탭 -->
     <div class="tabs">
-
       <button
         class="tab"
         :class="{ active: activeTab === 'selected' }"
@@ -56,6 +35,50 @@
       </button>
     </div>
 
+    <!--  검색 / 필터 -->
+    <div class="toolbar">
+      <!-- 조직 선택 -->
+      <select
+        v-if="activeTab === 'selected'"
+        v-model="selectedDeptId"
+        class="select dept"
+        @change="onDeptChange"
+      >
+        <option value="">조직 전체</option>
+        <option
+          v-for="dept in departments"
+          :key="dept.id"
+          :value="dept.id"
+        >
+          {{ dept.name }}
+        </option>
+      </select>
+
+
+      <!-- 제목 검색 -->
+      <input
+        v-model="keyword"
+        class="search"
+        placeholder="목표 제목 검색"
+      />
+
+      <!-- 상태 필터 -->
+      <select v-model="statusFilter" class="select">
+        <option value="ALL">전체 상태</option>
+        <option value="APPROVED">승인</option>
+        <option value="SUBMITTED">제출</option>
+        <option value="REJECTED">반려</option>
+        <option value="DRAFT">작성중</option>
+      </select>
+
+      <!-- 유형 필터 -->
+      <select v-model="typeFilter" class="select">
+        <option value="ALL">전체 유형</option>
+        <option value="KPI">KPI만</option>
+        <option value="OKR">OKR만</option>
+      </select>
+    </div>
+
     <!-- Goal Tree -->
     <BaseCard>
       <div class="card-hd goal-hd">
@@ -67,13 +90,14 @@
       </div>
 
       <div class="card-bd">
-        <GoalTree :goals="goals" />
+        <GoalTree :goals="filteredGoals" />
       </div>
     </BaseCard>
   </section>
 </template>
+
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import BaseCard from '@/components/common/BaseCard.vue'
 import GoalTree from '@/views/goal/GoalTree.vue'
 import {
@@ -82,21 +106,26 @@ import {
   fetchDepartmentGoals,
 } from '@/api/goalApi.js'
 
-/* 탭 상태 */
+/* ===== 탭 상태 ===== */
 const activeTab = ref('myDept') // selected | myDept | me
 
-/* 데이터 */
+/* ===== 데이터 ===== */
 const goals = ref([])
 const selectedDeptId = ref('')
 
-/* TODO:임시 조직 목록 (나중에 API로 교체) */
+/* ===== 필터 상태 ===== */
+const keyword = ref('')
+const statusFilter = ref('ALL') // ALL | APPROVED | SUBMITTED | REJECTED | DRAFT
+const typeFilter = ref('ALL')   // ALL | KPI | OKR
+
+/* 임시 조직 목록 */
 const departments = ref([
   { id: 10, name: '개발팀' },
   { id: 20, name: '기획팀' },
   { id: 30, name: '영업팀' },
 ])
 
-/* 조회 */
+/* ===== 조회 ===== */
 const loadGoals = async () => {
   let res
 
@@ -119,22 +148,62 @@ const loadGoals = async () => {
   goals.value = res?.data?.data ?? []
 }
 
-/* 탭 변경 */
+/* ===== 탭 변경 ===== */
 const changeTab = async (tab) => {
   activeTab.value = tab
   await loadGoals()
 }
 
-/* 조직 변경 */
+/* ===== 조직 변경 ===== */
 const onDeptChange = async () => {
   activeTab.value = 'selected'
   await loadGoals()
 }
 
+/* ===== 🔥 Tree 필터 핵심 로직 ===== */
+const filterGoalTree = (goal) => {
+  const matchTitle =
+    !keyword.value ||
+    goal.title.toLowerCase().includes(keyword.value.toLowerCase())
+
+  const matchStatus =
+    statusFilter.value === 'ALL' ||
+    goal.approveStatus === statusFilter.value
+
+  const matchType =
+    typeFilter.value === 'ALL' ||
+    goal.type === typeFilter.value
+
+  const filteredChildren = (goal.children || [])
+    .map(filterGoalTree)
+    .filter(Boolean)
+
+  if (
+    (matchTitle && matchStatus && matchType) ||
+    filteredChildren.length
+  ) {
+    return {
+      ...goal,
+      children: filteredChildren,
+    }
+  }
+
+  return null
+}
+
+/* ===== 렌더링용 ===== */
+const filteredGoals = computed(() =>
+  goals.value
+    .map(filterGoalTree)
+    .filter(Boolean)
+)
+
 onMounted(loadGoals)
 </script>
+
 <style scoped>
 /* 필터 */
+/* 조직 필터 */
 .filter-card {
   margin-bottom: 12px;
 }
@@ -145,7 +214,7 @@ onMounted(loadGoals)
   gap: 12px;
 }
 
-select {
+.filters select {
   padding: 6px 10px;
   border-radius: 6px;
   border: 1px solid #e5e7eb;
@@ -185,4 +254,42 @@ select {
   font-size: 13px;
   color: #6b7280;
 }
+
+/* Toolbar */
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+/* 공통 select */
+.select {
+  height: 32px;
+  font-size: 12px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  cursor: pointer;
+}
+
+/* 조직 선택 전용 */
+.select.dept {
+  min-width: 100px;
+  font-weight: 500;
+}
+
+/* 검색 */
+.search {
+  flex: 1;
+  max-width: 1400px;   /* ← 더 크게 */
+  min-width: 480px;    /* ← 너무 작아지지 않게 */
+  padding: 5px 14px;  /* 살짝 여유 */
+  font-size: 14px;     /* 가독성 ↑ */
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+
 </style>

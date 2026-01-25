@@ -12,6 +12,7 @@ import LoginView from '@/views/auth/LoginView.vue'
 import GoalListView from '@/views/goal/GoalListView.vue'
 import HRGoalDashboard from '@/views/goal/HRGoalDashboard.vue'
 import GoalDetailView from '@/views/goal/GoalDetailView.vue'
+import TeamOwnerGoalListView from '@/views/goal/TeamOwnerGoalListView.vue'
 
 const routes = [
   {
@@ -33,7 +34,8 @@ const routes = [
       //성과평가-목표관리
       { path: 'goal', component: GoalListView },
       { path: 'hr/goals', component: HRGoalDashboard },
-      { path: 'goal/:goalId', component: GoalDetailView}
+      { path: 'goal/:goalId', component: GoalDetailView},
+      { path:'to/goals',component: TeamOwnerGoalListView}
     ],
   },
 ]

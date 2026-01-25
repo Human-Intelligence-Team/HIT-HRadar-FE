@@ -1,9 +1,7 @@
+<!--GoalDetailView-->
+
 <template>
   <section class="goal-detail">
-<!--     breadcrumb
-    <div class="breadcrumb">
-      Dashboard <span>/</span> Goals <span>/</span> Detail
-    </div>-->
 
     <div class="layout">
 

@@ -1,18 +1,11 @@
-<!-- GoalListView.vue -->
+<!--TeamOwnerGoalListView-->
 <template>
   <section>
-    <!-- 타이틀 + 탭 -->
+    <!-- 헤더 -->
     <div class="section-title">
       <div>
-        <h1>목표 관리</h1>
-        <div class="sub">
-          {{ activeTab === 'org' ? '조직 전체 목표' : '내 목표' }}
-        </div>
-      </div>
-
-      <div class="right-actions">
-        <button class="btn primary">+ KPI 목표 등록</button>
-        <button class="btn outline">+ OKR 목표 등록</button>
+        <h1>인사팀 목표 관리</h1>
+        <div class="sub">조직별 KPI / OKR 현황 조회</div>
       </div>
     </div>
 
@@ -20,11 +13,20 @@
     <div class="tabs">
       <button
         class="tab"
-        :class="{ active: activeTab === 'org' }"
-        @click="changeTab('org')"
+        :class="{ active: activeTab === 'selected' }"
+        @click="changeTab('selected')"
       >
-        조직 목표
+        선택한 조직 목표
       </button>
+
+      <button
+        class="tab"
+        :class="{ active: activeTab === 'myDept' }"
+        @click="changeTab('myDept')"
+      >
+        내 소속 조직 목표
+      </button>
+
       <button
         class="tab"
         :class="{ active: activeTab === 'me' }"
@@ -34,9 +36,27 @@
       </button>
     </div>
 
-    <!-- 🔍 검색 / 필터 -->
+    <!--  검색 / 필터 -->
     <div class="toolbar">
-      <!-- 검색 -->
+      <!-- 조직 선택 -->
+      <select
+        v-if="activeTab === 'selected'"
+        v-model="selectedDeptId"
+        class="select dept"
+        @change="onDeptChange"
+      >
+        <option value="">조직 전체</option>
+        <option
+          v-for="dept in departments"
+          :key="dept.id"
+          :value="dept.id"
+        >
+          {{ dept.name }}
+        </option>
+      </select>
+
+
+      <!-- 제목 검색 -->
       <input
         v-model="keyword"
         class="search"
@@ -60,7 +80,7 @@
       </select>
     </div>
 
-    <!-- 리스트 -->
+    <!-- Goal Tree -->
     <BaseCard>
       <div class="card-hd goal-hd">
         <span>목표명</span>
@@ -80,60 +100,85 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import BaseCard from '@/components/common/BaseCard.vue'
-import GoalTree from './GoalTree.vue'
+import GoalTree from '@/views/goal/GoalTree.vue'
 import {
   fetchOrganizationGoals,
   fetchMyGoals,
-} from '@/api/goalApi'
+  fetchDepartmentGoals,
+} from '@/api/goalApi.js'
 
-/* ===== 상태 ===== */
+/* ===== 탭 상태 ===== */
+const activeTab = ref('myDept') // selected | myDept | me
+
+/* ===== 데이터 ===== */
 const goals = ref([])
-const activeTab = ref('org') // 'org' | 'me'
+const selectedDeptId = ref('')
 
+/* ===== 필터 상태 ===== */
 const keyword = ref('')
 const statusFilter = ref('ALL') // ALL | APPROVED | SUBMITTED | REJECTED | DRAFT
 const typeFilter = ref('ALL')   // ALL | KPI | OKR
 
-/* ===== 데이터 로딩 ===== */
-const loadGoals = async () => {
-  const res =
-    activeTab.value === 'org'
-      ? await fetchOrganizationGoals()
-      : await fetchMyGoals()
+/* 임시 조직 목록 */
+const departments = ref([
+  { id: 10, name: '개발팀' },
+  { id: 20, name: '기획팀' },
+  { id: 30, name: '영업팀' },
+])
 
-  goals.value = res.data.data
+/* ===== 조회 ===== */
+const loadGoals = async () => {
+  let res
+
+  if (activeTab.value === 'selected') {
+    if (!selectedDeptId.value) {
+      goals.value = []
+      return
+    }
+    res = await fetchDepartmentGoals(selectedDeptId.value)
+  }
+
+  if (activeTab.value === 'myDept') {
+    res = await fetchOrganizationGoals()
+  }
+
+  if (activeTab.value === 'me') {
+    res = await fetchMyGoals()
+  }
+
+  goals.value = res?.data?.data ?? []
 }
 
+/* ===== 탭 변경 ===== */
 const changeTab = async (tab) => {
-  if (activeTab.value === tab) return
   activeTab.value = tab
-  goals.value = []
+  await loadGoals()
+}
+
+/* ===== 조직 변경 ===== */
+const onDeptChange = async () => {
+  activeTab.value = 'selected'
   await loadGoals()
 }
 
 /* ===== 🔥 Tree 필터 핵심 로직 ===== */
 const filterGoalTree = (goal) => {
-  /* 제목 검색 */
   const matchTitle =
     !keyword.value ||
     goal.title.toLowerCase().includes(keyword.value.toLowerCase())
 
-  /* 상태 필터 */
   const matchStatus =
     statusFilter.value === 'ALL' ||
     goal.approveStatus === statusFilter.value
 
-  /* 유형 필터 */
   const matchType =
     typeFilter.value === 'ALL' ||
     goal.type === typeFilter.value
 
-  /* 자식 재귀 필터 */
   const filteredChildren = (goal.children || [])
     .map(filterGoalTree)
     .filter(Boolean)
 
-  /* 본인 or 자식 중 하나라도 통과하면 노출 */
   if (
     (matchTitle && matchStatus && matchType) ||
     filteredChildren.length
@@ -147,7 +192,7 @@ const filterGoalTree = (goal) => {
   return null
 }
 
-/* ===== 최종 렌더링용 목표 ===== */
+/* ===== 렌더링용 ===== */
 const filteredGoals = computed(() =>
   goals.value
     .map(filterGoalTree)
@@ -158,24 +203,34 @@ onMounted(loadGoals)
 </script>
 
 <style scoped>
-/* ===== Header ===== */
-.goal-hd {
-  display: grid;
-  grid-template-columns: 1fr 90px 120px 100px 220px;
-  font-size: 13px;
+/* 필터 */
+/* 조직 필터 */
+.filter-card {
+  margin-bottom: 12px;
+}
+
+.filters {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.filters select {
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+}
+
+.hint {
+  font-size: 12px;
   color: #6b7280;
 }
 
-.right-actions {
-  display: flex;
-  gap: 8px;
-}
-
-/* ===== Tabs ===== */
+/* 탭 */
 .tabs {
   display: flex;
   gap: 8px;
-  margin: 16px 0 12px;
+  margin: 16px 0;
 }
 
 .tab {
@@ -183,50 +238,59 @@ onMounted(loadGoals)
   font-size: 13px;
   border-radius: 999px;
   border: 1px solid #e5e7eb;
-  background: #ffffff;
-  color: #374151;
+  background: white;
   cursor: pointer;
 }
 
 .tab.active {
   background: #2563EB;
-  color: #ffffff;
+  color: white;
   border-color: #2563EB;
 }
 
-/* ===== Toolbar ===== */
+/* 헤더 */
+.goal-hd {
+  display: grid;
+  grid-template-columns: 1fr 90px 120px 100px 220px;
+  font-size: 13px;
+  color: #6b7280;
+}
+
+/* Toolbar */
 .toolbar {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   margin-bottom: 12px;
 }
 
-.search {
-  width: 5000px;
-  padding: 8px 12px;
-  font-size: 13px;
-  border-radius: 8px;
-  border: 1px solid #e5e7eb;
-}
-
-.search:focus {
-  outline: none;
-  border-color: #2563EB;
-  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
-}
-
+/* 공통 select */
 .select {
-  padding: 8px 10px;
-  font-size: 13px;
+  height: 32px;
+  font-size: 12px;
+  padding: 6px 8px;
   border-radius: 8px;
   border: 1px solid #e5e7eb;
   background: #ffffff;
   cursor: pointer;
 }
 
-.select:focus {
-  outline: none;
-  border-color: #2563EB;
+/* 조직 선택 전용 */
+.select.dept {
+  min-width: 100px;
+  font-weight: 500;
 }
+
+/* 검색 */
+.search {
+  flex: 1;
+  max-width: 1400px;   /* ← 더 크게 */
+  min-width: 480px;    /* ← 너무 작아지지 않게 */
+  padding: 5px 14px;  /* 살짝 여유 */
+  font-size: 14px;     /* 가독성 ↑ */
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+
 </style>
