@@ -7,7 +7,6 @@
     </div>
     <div class="questions-section-wrapper" v-if="selectedCategory && filteredQuick.length > 0">
       <div class="questions-section quick"> <!-- Apply quick styles here as well -->
-        <h3>{{ selectedCategory }} 관련 질문</h3>
         <button class="quick-btn" v-for="q in filteredQuick" :key="q.text" @click="$emit('pick', q.text)">
           {{ q.text }}
         </button>

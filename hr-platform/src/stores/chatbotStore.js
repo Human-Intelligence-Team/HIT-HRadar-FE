@@ -47,7 +47,7 @@ export const useChatbotStore = defineStore('chatbot', {
           message: messageToSend,
           sessionId: this.sessionId,
         });
-        this.messages.push({ from: 'bot', text: response.data.response }); // Assuming API returns { response: "bot message" }
+        this.messages.push({ from: 'bot', text: response.data.answer });
       } catch (error) {
         console.error('Error sending chat message:', error);
         this.messages.push({ from: 'bot', text: '죄송합니다. 메시지를 보내는 데 실패했습니다. 다시 시도해 주세요.' });
