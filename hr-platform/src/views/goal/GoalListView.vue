@@ -10,10 +10,9 @@
         </div>
       </div>
 
-      <div class="right-actions">
-        <button class="btn primary">+ KPI 목표 등록</button>
-        <button class="btn outline">+ OKR 목표 등록</button>
-      </div>
+      <button class="btn-create" @click="goCreateGoal">
+        + 목표 등록
+      </button>
     </div>
 
     <!-- 탭 -->
@@ -79,6 +78,7 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import BaseCard from '@/components/common/BaseCard.vue'
 import GoalTree from './GoalTree.vue'
 import {
@@ -86,6 +86,11 @@ import {
   fetchMyGoals,
 } from '@/api/goalApi'
 
+//목표 생성
+const router = useRouter()
+const goCreateGoal = () => {
+  router.push('/goal/create')
+}
 /* ===== 상태 ===== */
 const goals = ref([])
 const activeTab = ref('org') // 'org' | 'me'
@@ -166,10 +171,26 @@ onMounted(loadGoals)
   color: #6b7280;
 }
 
-.right-actions {
+.section-title {
   display: flex;
-  gap: 8px;
+  justify-content: space-between;
+  align-items: center;
 }
+
+.btn-create {
+  padding: 8px 16px;
+  border-radius: 10px;
+  background: #2563EB;
+  color: #fff;
+  border: none;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.btn-create:hover {
+  background: #1d4ed8;
+}
+
 
 /* ===== Tabs ===== */
 .tabs {

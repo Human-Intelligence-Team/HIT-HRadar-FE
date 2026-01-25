@@ -7,6 +7,10 @@
         <h1> 목표 관리</h1>
         <div class="sub">조직별 KPI / OKR 현황 조회</div>
       </div>
+
+      <button class="btn-create" @click="goCreateGoal">
+        + 목표 등록
+      </button>
     </div>
 
     <!-- 탭 -->
@@ -102,6 +106,13 @@ import {
   fetchMyGoals,
   fetchDepartmentGoals,
 } from '@/api/goalApi.js'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+
+const goCreateGoal = () => {
+  router.push('/goal/create')
+}
 
 /* ===== 탭 상태 ===== */
 const activeTab = ref('myDept') // selected | myDept | me
@@ -264,4 +275,26 @@ onMounted(loadGoals)
   border-radius: 8px;
   border: 1px solid #e5e7eb;
 }
+.section-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.btn-create {
+  padding: 8px 16px;
+  border-radius: 10px;
+  background: #2563EB;
+  color: #ffffff;
+  border: none;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.btn-create:hover {
+  background: #1d4ed8;
+}
+
+
 </style>

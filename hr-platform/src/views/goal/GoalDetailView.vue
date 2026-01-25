@@ -150,6 +150,15 @@
             </div>
           </div>
         </template>
+
+        <div v-if="canEdit" class="goal-actions">
+          <button class="btn-edit" @click="openEditModal">
+            수정
+          </button>
+          <button class="btn-delete" @click="openDeleteModal">
+            삭제
+          </button>
+        </div>
         <!-- ===== 승인 / 반려 액션 영역 ===== -->
         <div v-if="canDecide" class="decision-footer">
           <button class="btn-reject" @click="openRejectModal">
@@ -412,6 +421,76 @@
     {{ toast.message }}
   </div>
 
+  <!-- ===== 삭제 확인 모달 ===== -->
+  <div v-if="showDeleteModal" class="modal-backdrop">
+    <div class="modal decision-modal reject">
+
+      <div class="modal-header decision-header reject">
+        <h3>목표 삭제</h3>
+        <button class="btn-close" @click="closeDeleteModal">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <p class="decision-desc">
+          이 목표를 삭제하면 복구할 수 없습니다.<br />
+          정말 삭제하시겠습니까?
+        </p>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-secondary" @click="closeDeleteModal">취소</button>
+        <button class="btn-danger" @click="deleteGoalAction">삭제</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 목표 수정 모달 ===== -->
+  <div v-if="showEditModal" class="modal-backdrop">
+    <div class="modal">
+
+      <div class="modal-header">
+        <h3>목표 수정</h3>
+        <button class="btn-close" @click="closeEditModal">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="field">
+          <label>목표명</label>
+          <input v-model="editForm.title" />
+        </div>
+
+        <div class="field">
+          <label>설명</label>
+          <input v-model="editForm.description" />
+        </div>
+
+        <div class="field">
+          <label>시작일</label>
+          <input type="date" v-model="editForm.startDate" />
+        </div>
+
+        <div class="field">
+          <label>종료일</label>
+          <input type="date" v-model="editForm.endDate" />
+        </div>
+
+        <div class="field">
+          <label>목표 범위</label>
+          <select v-model="editForm.scope">
+            <option value="TEAM">TEAM</option>
+            <option value="PERSONAL">PERSONAL</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-secondary" @click="closeEditModal">취소</button>
+        <button class="btn-primary" @click="submitEdit">저장</button>
+      </div>
+
+    </div>
+  </div>
+
 </template>
 
 
@@ -652,6 +731,68 @@ const openRejectModal = () => {
   rejectError.value = false
   showRejectModal.value = true
 }
+
+import { useAuthStore } from '@/stores/authStore'
+const auth = useAuthStore()
+
+const isOwner = computed(() => {
+  if (!goal.value?.ownerId || !auth.user?.employeeId) return false
+
+  return Number(goal.value.ownerId) === Number(auth.user.employeeId)
+})
+const canEdit = computed(() => {
+  return (
+    isOwner.value &&
+    goal.value.approveStatus !== 'APPROVED'
+  )
+})
+const showEditModal = ref(false)
+
+const editForm = ref({
+  title: '',
+  description: '',
+  startDate: '',
+  endDate: '',
+  scope: '',
+})
+const openEditModal = () => {
+  editForm.value = {
+    title: goal.value.title,
+    description: goal.value.description,
+    startDate: goal.value.startDate,
+    endDate: goal.value.endDate,
+    scope: goal.value.scope,
+  }
+  showEditModal.value = true
+}
+
+const closeEditModal = () => {
+  showEditModal.value = false
+}
+import { updateGoal, deleteGoal } from '@/api/goalApi'
+
+const submitEdit = async () => {
+  await updateGoal(route.params.goalId, editForm.value)
+  showToast('목표가 수정되었습니다')
+  showEditModal.value = false
+  await reloadAll()
+}
+
+const showDeleteModal = ref(false)
+
+const openDeleteModal = () => {
+  showDeleteModal.value = true
+}
+
+const closeDeleteModal = () => {
+  showDeleteModal.value = false
+}
+const deleteGoalAction = async () => {
+  await deleteGoal(route.params.goalId)
+  showToast('목표가 삭제되었습니다')
+  router.push('/goal')
+}
+
 
 
 
@@ -1266,6 +1407,34 @@ svg .progress {
   font-size: 13px;
   color: #ffffff;
   margin: 0;
+}
+
+.goal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.btn-edit {
+  margin-top: 10px;
+  padding: 4px 12px;
+  font-size: 12px;
+  border-radius: 999px;
+  border: 1px solid #6366f1;
+  background: #eef2ff;
+  color: #4338ca;
+  cursor: pointer;
+}
+
+.btn-delete {
+  margin-top: 10px;
+  padding: 4px 12px;
+  font-size: 12px;
+  border-radius: 999px;
+  border: 1px solid #dc2626;
+  background: #fff;
+  color: #dc2626;
+  cursor: pointer;
 }
 
 

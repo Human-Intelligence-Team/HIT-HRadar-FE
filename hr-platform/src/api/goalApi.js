@@ -29,3 +29,14 @@ export const rejectGoal = (goalId, rejectReason) =>
   axios.post(`/api/v1/goals/${goalId}/reject`, {
     rejectReason,
   })
+
+//목표 등록
+export const createGoal = (data) =>
+  axios.post('/api/v1/goals', data)
+
+//수정
+export const updateGoal = (goalId, data) =>
+  axios.patch(`/api/v1/goals/${goalId}`, data)
+//삭제
+export const deleteGoal = (goalId) =>
+  axios.delete(`/api/v1/goals/${goalId}`)
