@@ -1,15 +1,17 @@
 <template>
-  <div class="quick">
-    <div class="category-section">
+  <div class="quick-container"> <!-- Changed class name to avoid conflict with global .quick -->
+    <div class="category-section quick"> <!-- Apply quick styles here -->
       <button class="quick-btn" v-for="category in categories" :key="category" @click="$emit('selectCategory', category)">
         {{ category }}
       </button>
     </div>
-    <div class="questions-section" v-if="selectedCategory && filteredQuick.length > 0">
-      <h3>{{ selectedCategory }} 관련 질문</h3>
-      <button class="quick-btn" v-for="q in filteredQuick" :key="q.text" @click="$emit('pick', q.text)">
-        {{ q.text }}
-      </button>
+    <div class="questions-section-wrapper" v-if="selectedCategory && filteredQuick.length > 0">
+      <div class="questions-section quick"> <!-- Apply quick styles here as well -->
+        <h3>{{ selectedCategory }} 관련 질문</h3>
+        <button class="quick-btn" v-for="q in filteredQuick" :key="q.text" @click="$emit('pick', q.text)">
+          {{ q.text }}
+        </button>
+      </div>
     </div>
   </div>
 </template>
@@ -47,10 +49,22 @@ const filteredQuick = computed(() => {
 </script>
 
 <style scoped>
-.questions-section {
-  margin-top: 15px;
-  padding-top: 15px;
-  border-top: 1px solid #eee;
+.quick-container {
+  /* This container helps stack the sections vertically */
+  display: flex;
+  flex-direction: column;
+  padding: 12px 14px; /* Apply overall padding here */
+  border-bottom: 1px solid var(--border);
+}
+
+.category-section {
+  margin-bottom: 10px; /* Space between category buttons and questions */
+}
+
+.questions-section-wrapper {
+  margin-top: 10px; /* Space above questions section */
+  padding-top: 10px; /* Internal padding */
+  border-top: 1px solid #eee; /* Separator line */
 }
 
 .questions-section h3 {
@@ -58,4 +72,5 @@ const filteredQuick = computed(() => {
   font-size: 1em;
   color: #555;
 }
+/* No need for .quick styles here as they are now applied to category-section and questions-section in the template */
 </style>
