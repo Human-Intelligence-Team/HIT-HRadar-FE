@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { useMockStore } from '@/stores/mockStore'
+import { sendChatApi } from '@/api/chatApi'
 
 export const useChatbotStore = defineStore('chatbot', {
   state: () => ({
@@ -10,10 +10,14 @@ export const useChatbotStore = defineStore('chatbot', {
     ],
     selectedCategory: null, // New state property for selected category
   }),
+
   actions: {
-    open() { this.opened = true },
-    close() { this.opened = false },
-    toggle() { this.opened = !this.opened },
+    toggle() {
+      this.opened = !this.opened
+    },
+    close() {
+      this.opened = false
+    },
     clear() {
       this.messages = [
         { from: 'bot', text: '안녕하세요! 인사 제도/규정 관련해서 무엇을 도와드릴까요?' },
