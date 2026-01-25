@@ -1,12 +1,21 @@
 import { defineStore } from 'pinia'
 import { sendChatApi } from '@/api/chatApi'
 
+// Simple unique ID generator for sessionId
+function generateUniqueId() {
+  return Date.now().toString(36) + Math.random().toString(36).substring(2);
+}
+
 export const useChatbotStore = defineStore('chatbot', {
   state: () => ({
     opened: false,
-    messages: [],
-    sessionId: crypto.randomUUID(),
-    loading: false,
+    messages: [
+      { from: 'bot', text: '안녕하세요! 인사 제도/규정 관련해서 무엇을 도와드릴까요?' },
+      { from: 'bot', text: '먼저 카테고리를 선택하시면 더 정확한 답변을 얻을 수 있습니다.' },
+      { from: 'bot', text: '※ 개인 인사정보는 “요약”만 제공하며 상세 수치는 노출하지 않습니다.' },
+    ],
+    selectedCategory: null,
+    sessionId: generateUniqueId(), // Initialize sessionId
   }),
 
   actions: {
@@ -17,32 +26,37 @@ export const useChatbotStore = defineStore('chatbot', {
       this.opened = false
     },
     clear() {
-      this.messages = []
-      this.sessionId = crypto.randomUUID()
+      this.messages = [
+        { from: 'bot', text: '안녕하세요! 인사 제도/규정 관련해서 무엇을 도와드릴까요?' },
+        { from: 'bot', text: '먼저 카테고리를 선택하시면 더 정확한 답변을 얻을 수 있습니다.' },
+        { from: 'bot', text: '※ 개인 인사정보는 “요약”만 제공하며 상세 수치는 노출하지 않습니다.' },
+      ]
+      this.selectedCategory = null
+      this.sessionId = generateUniqueId() // Reset sessionId on chat clear
     },
-
-    async sendUser(text) {
-      // 사용자 메시지 즉시 표시
+    async sendUser(text, category = null) {
       this.messages.push({ from: 'user', text })
-      this.loading = true
+
+      let messageToSend = text;
+      if (category) {
+        messageToSend = `[${category}] ${text}`;
+      }
 
       try {
-        const res = await sendChatApi({
-          message: text,
+        const response = await sendChatApi({
+          message: messageToSend,
           sessionId: this.sessionId,
-        })
-
-        this.messages.push({
-          from: 'bot',
-          text: res.data.answer,
-        })
-      } catch (e) {
-        this.messages.push({
-          from: 'bot',
-          text: '서버 오류가 발생했습니다.',
-        })
-      } finally {
-        this.loading = false
+        });
+        this.messages.push({ from: 'bot', text: response.data.answer });
+      } catch (error) {
+        console.error('Error sending chat message:', error);
+        this.messages.push({ from: 'bot', text: '죄송합니다. 메시지를 보내는 데 실패했습니다. 다시 시도해 주세요.' });
+      }
+    },
+    setSelectedCategory(category) {
+      this.selectedCategory = category
+      if (category) {
+        this.messages.push({ from: 'bot', text: `카테고리 [${category}]를 선택했습니다. 질문을 입력해주세요.` });
       }
     },
   },
