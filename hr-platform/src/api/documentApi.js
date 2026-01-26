@@ -20,8 +20,19 @@ export async function previewDocumentCsv(file) {
   return res.data
 }
 
-export async function commitDocument(payload) {
-  await axios.post('/api/v1/docs/commit', payload)
+export async function createDocument(payload) {
+  const res = await axios.post('/api/v1/docs', payload)
+  return res.data
+}
+
+export async function updateDocument(id, payload) {
+  const res = await axios.put(`/api/v1/docs/${id}`, payload)
+  return res.data
+}
+
+export async function deleteDocument(id) {
+  const res = await axios.delete(`/api/v1/docs/${id}`)
+  return res.data
 }
 
 export async function downloadDocumentTemplate() {
