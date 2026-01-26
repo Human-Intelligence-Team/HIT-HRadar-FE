@@ -237,8 +237,8 @@
 .modal-actions{display:flex;gap:8px;align-items:center;}
 .quick{
   display:flex; gap:8px; flex-wrap:wrap;
-  padding: 12px 14px;
-  border-bottom:1px solid var(--border);
+  /* padding: 12px 14px; */ /* Removed */
+  /* border-bottom:1px solid var(--border); */ /* Removed */
 }
 .quick-btn{
   padding:8px 10px;

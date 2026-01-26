@@ -39,14 +39,17 @@ import CompetencyReportEmployeeAllListView
 import CompetencyReportDetailView
   from '@/views/report/CompetencyReportDetailView.vue'
 import TagModalView from '@/views/contents/tag/TagModalView.vue'
+import GoalListView from '@/views/goal/GoalListView.vue'
+import HRGoalDashboard from '@/views/goal/HRGoalDashboard.vue'
+import GoalDetailView from '@/views/goal/GoalDetailView.vue'
+import TeamOwnerGoalListView from '@/views/goal/TeamOwnerGoalListView.vue'
+import GoalCreateView from '@/views/goal/GoalCreateView.vue'
 
 const routes = [
   {
     path: '/login',
     component: AuthLayout,
-    children: [
-      { path: '', component: LoginView },
-    ],
+    children: [{ path: '', component: LoginView }],
   },
 
   {
@@ -58,6 +61,13 @@ const routes = [
       { path: 'faq', component: FaqView },
       { path: 'notice', component: NoticeView },
       { path: 'alert', component: AlertView },
+
+      //성과평가-목표관리
+      { path: 'goal', component: GoalListView },
+      { path: 'hr/goals', component: HRGoalDashboard },
+      { path: 'goal/:goalId', component: GoalDetailView},
+      { path:'to/goals',component: TeamOwnerGoalListView},
+      { path: '/goal/create', component: GoalCreateView},
       { path: 'report', component: CompetencyReportView ,
         children: [
           { path: '/all/competency/report', component: CompetencyReportAllListView },
@@ -99,7 +109,8 @@ const routes = [
         ]
       },
     ],
-  },]
+  },
+]
 
 const router = createRouter({
   history: createWebHistory(),
