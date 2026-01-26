@@ -17,6 +17,9 @@ import GoalCreateView from '@/views/goal/GoalCreateView.vue'
 import CycleManageView from '@/views/cycle/CycleManageView.vue'
 import CycleDetailPage from '@/views/cycle/CycleDetailPage.vue'
 import CycleEditPage from '@/views/cycle/CycleEditPage.vue'
+import CycleAdminManageView from '@/views/cycle/CycleAdminManageView.vue'
+import CycleAdminDetailPage from '@/views/cycle/CycleAdminDetailPage.vue'
+import CycleAdminEditPage from '@/views/cycle/CycleAdminEditPage.vue'
 
 const routes = [
   {
@@ -48,6 +51,12 @@ const routes = [
       { path: 'cycles/:cycleId',
         name: 'CycleDetail',
         component: CycleDetailPage},
+      { path: 'hr/cycles', component: CycleAdminManageView},
+      { path: 'hr/cycles/:cycleId', component: CycleAdminDetailPage},
+      {
+        path: '/hr/cycles/:cycleId/edit',
+        component: CycleAdminEditPage,
+      }
     ],
   },
 ]

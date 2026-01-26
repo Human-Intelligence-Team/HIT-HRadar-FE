@@ -53,6 +53,7 @@
         </div>
         <div class="flyout">
           <RouterLink to="/cycles" class="flyout-item">회차 등록/조회</RouterLink>
+          <RouterLink to="/hr/cycles" class="flyout-item">회차 등록/조회</RouterLink>
         </div>
       </div>
 

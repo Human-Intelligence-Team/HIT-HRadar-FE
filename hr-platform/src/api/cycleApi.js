@@ -25,3 +25,13 @@ export const updateCycle = (cycleId, data) => {
 export const deleteCycle = (cycleId) => {
   return axios.delete(`/api/v1/evaluation-cycles/${cycleId}/delete`)
 }
+
+// 회차 승인
+export const approveCycle = (cycleId) => {
+  return axios.put(`/api/v1/evaluation-cycles/${cycleId}/approve`)
+}
+
+// 회차 강제 종료
+export const forceCloseCycle = (cycleId) => {
+  return axios.post(`/api/v1/evaluation-cycles/${cycleId}/close`)
+}

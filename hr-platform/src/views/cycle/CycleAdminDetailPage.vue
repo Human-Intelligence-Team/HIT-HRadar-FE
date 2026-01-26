@@ -1,21 +1,35 @@
-<!-- CycleDetailPage.vue -->
 <template>
-  <section class="cycle-detail-page">
+  <section class="cycle-detail-page" v-if="cycle">
     <!-- Back Button -->
     <button class="btn-back" @click="goBack">
       ← 뒤로 가기
     </button>
+    <h2 class="page-title">평가 회차 상세 (관리자)</h2>
 
-    <h2 class="page-title">평가 회차 상세</h2>
-
-    <!-- 수정 / 삭제 버튼 (조건부 노출) -->
-    <div class="header-actions" v-if="canEdit">
+    <!-- ================== 관리자 액션 ================== -->
+    <div class="header-actions">
       <button class="btn-outline" @click="goEdit">수정</button>
       <button class="btn-danger" @click="onDelete">삭제</button>
+
+      <button
+        class="btn-primary"
+        @click="onApprove"
+        :disabled="cycle.status === 'APPROVED'"
+      >
+        승인
+      </button>
+
+      <button
+        class="btn-danger"
+        v-if="cycle.status === 'IN_PROGRESS'"
+        @click="onForceClose"
+      >
+        강제 종료
+      </button>
     </div>
 
     <!-- ================== 회차 정보 ================== -->
-    <BaseCard v-if="cycle">
+    <BaseCard>
       <h4 class="section-title">회차 정보</h4>
 
       <div class="detail-grid">
@@ -59,7 +73,7 @@
     </BaseCard>
 
     <!-- ================== 평가 유형 ================== -->
-    <BaseCard class="mt" v-if="cycle">
+    <BaseCard class="mt">
       <h4 class="section-title">평가 유형</h4>
 
       <ul class="eval-types" v-if="cycle.evaluationTypes?.length">
@@ -74,11 +88,22 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useAuthStore } from '@/stores/authStore.js'
 import BaseCard from '@/components/common/BaseCard.vue'
-import { fetchCycleDetail, deleteCycle } from '@/api/cycleApi'
+import {
+  fetchCycleDetail,
+  deleteCycle,
+  approveCycle,
+  forceCloseCycle,
+} from '@/api/cycleApi'
+
+const route = useRoute()
+const router = useRouter()
+
+const cycleId = route.params.cycleId
+const cycle = ref(null)
+
 const goBack = () => {
   if (window.history.length > 1) {
     router.back()
@@ -88,37 +113,18 @@ const goBack = () => {
 }
 
 /* ----------------------------
- * router / store
+ * load
  * ---------------------------- */
-const route = useRoute()
-const router = useRouter()
-const authStore = useAuthStore()
-
-
-/* ----------------------------
- * state
- * ---------------------------- */
-const cycleId = route.params.cycleId
-const cycle = ref(null)
-
-/* ----------------------------
- * 권한 체크
- * ---------------------------- */
-const canEdit = computed(() => {
-  if (!cycle.value) return false
-
-  return (
-    cycle.value.status === 'DRAFT' &&
-    Number(authStore.user?.employeeId) === Number(cycle.value.empId)
-  )
-})
-
+const loadCycle = async () => {
+  const res = await fetchCycleDetail(cycleId)
+  cycle.value = res.data
+}
 
 /* ----------------------------
  * actions
  * ---------------------------- */
 const goEdit = () => {
-  router.push(`/cycles/${cycleId}/edit`)
+  router.push(`/hr/cycles/${cycleId}/edit`)
 }
 
 const onDelete = async () => {
@@ -126,20 +132,30 @@ const onDelete = async () => {
 
   await deleteCycle(cycleId)
   alert('회차가 삭제되었습니다.')
-  router.push('/cycles')
+  router.push('/hr/cycles')
 }
 
-const loadCycleDetail = async () => {
-  const res = await fetchCycleDetail(cycleId)
-  cycle.value = res.data
+const onApprove = async () => {
+  if (!confirm('이 회차를 승인하시겠습니까?')) return
+
+  await approveCycle(cycleId)
+  alert('회차가 승인되었습니다.')
+  loadCycle()
+}
+
+const onForceClose = async () => {
+  if (!confirm('이 회차를 강제 종료하시겠습니까?')) return
+
+  await forceCloseCycle(cycleId)
+  alert('회차가 강제 종료되었습니다.')
+  loadCycle()
 }
 
 /* ----------------------------
  * utils
  * ---------------------------- */
-const formatDate = (dateTime) => {
-  return dateTime.replace('T', ' ').slice(0, 16)
-}
+const formatDate = (dateTime) =>
+  dateTime.replace('T', ' ').slice(0, 16)
 
 const statusLabel = (status) => {
   switch (status) {
@@ -161,41 +177,98 @@ const statusClass = (status) => {
   }
 }
 
-const quarterLabel = (quarter) => {
-  switch (quarter) {
+const quarterLabel = (q) => {
+  switch (q) {
     case 'Q1': return '1분기'
     case 'Q2': return '2분기'
     case 'Q3': return '3분기'
     case 'Q4': return '4분기'
-    default: return quarter
+    default: return q
   }
 }
 
-/* ----------------------------
- * lifecycle
- * ---------------------------- */
-onMounted(loadCycleDetail)
+onMounted(loadCycle)
 </script>
 
-<style scoped>
-.page-title {
-  font-size: 20px;
-  font-weight: 700;
-  margin-bottom: 16px;
-}
 
-.section-title {
-  font-size: 14px;
-  font-weight: 700;
-  margin: 15px auto;
+<style scoped>
+/* ===== Page ===== */
+.cycle-detail-page {
+  max-width: 1080px;
+  margin: 0 auto 24px;
   padding: 0 24px;
 }
 
+/* ===== Title ===== */
+.page-title {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 5px;
+}
+
+/* ===== Header Actions ===== */
+.header-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+/* ===== Buttons ===== */
+button {
+  transition: all 0.18s ease;
+  font-family: inherit;
+}
+
+.btn-outline {
+  padding: 8px 16px;
+  border-radius: 12px;
+  border: 1px solid #d1d5db;
+  background: white;
+  color: #374151;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.btn-outline:hover {
+  background: #f3f4f6;
+}
+
+.btn-danger {
+  background: transparent;
+  color: #b91c1c;
+  padding: 8px 16px;
+  border-radius: 12px;
+  border: 1px solid #fecaca;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.btn-danger:hover {
+  background: #fee2e2;
+}
+
+/* ===== Card ===== */
+:deep(.base-card) {
+  background: white;
+  border-radius: 18px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+  padding: 20px 0;
+}
+
+/* ===== Section Title ===== */
+.section-title {
+  font-size: 15px;
+  font-weight: 700;
+  margin: 15px 24px 16px;
+}
+
+/* ===== Detail Grid ===== */
 .detail-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 18px;
-  padding: 0 24px 16px;
+  gap: 22px;
+  padding: 0 24px 12px;
 }
 
 .item {
@@ -206,26 +279,27 @@ onMounted(loadCycleDetail)
 
 .item label {
   font-size: 12px;
-  color: #6b7280;
+  color: #9ca3af;
 }
 
 .item p {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
   color: #111827;
 }
 
+/* ===== Badge ===== */
 .badge {
   width: fit-content;
-  padding: 5px 12px;
+  padding: 6px 14px;
   border-radius: 999px;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .badge.draft {
   background: #f3f4f6;
-  color: #374151;
+  color: #6b7280;
 }
 
 .badge.in-progress {
@@ -243,6 +317,7 @@ onMounted(loadCycleDetail)
   color: #3730a3;
 }
 
+/* ===== Eval Types ===== */
 .eval-types {
   list-style: none;
   padding: 0 24px 16px;
@@ -252,48 +327,24 @@ onMounted(loadCycleDetail)
 }
 
 .eval-types li {
-  background: #f3f4f6;
+  background: #f1f5f9;
   padding: 6px 14px;
   border-radius: 999px;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
+  color: #334155;
 }
 
+/* ===== Spacing ===== */
 .mt {
   margin-top: 20px;
 }
 
+/* ===== Hint ===== */
 .hint {
-  padding: 16px 24px;
+  padding: 0 24px 16px;
   font-size: 13px;
-  color: #6b7280;
-}
-
-.header-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-  margin-bottom: 12px;
-}
-
-.btn-outline {
-  padding: 6px 14px;
-  border-radius: 10px;
-  border: 1px solid #4f46e5;
-  background: white;
-  color: #4f46e5;
-  font-size: 13px;
-  cursor: pointer;
-}
-
-.btn-danger {
-  padding: 6px 14px;
-  border-radius: 10px;
-  border: none;
-  background: #ef4444;
-  color: white;
-  font-size: 13px;
-  cursor: pointer;
+  color: #9ca3af;
 }
 /* ===== Back Button ===== */
 .btn-back {
@@ -310,4 +361,5 @@ onMounted(loadCycleDetail)
 .btn-back:hover {
   text-decoration: underline;
 }
+
 </style>
