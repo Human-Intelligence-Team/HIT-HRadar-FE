@@ -1,8 +1,15 @@
-<!--CycleDetailPage.vue-->
+<!-- CycleDetailPage.vue -->
 <template>
   <section class="cycle-detail-page">
     <h2 class="page-title">평가 회차 상세</h2>
 
+    <!-- 수정 / 삭제 버튼 (조건부 노출) -->
+    <div class="header-actions" v-if="canEdit">
+      <button class="btn-outline" @click="goEdit">수정</button>
+      <button class="btn-danger" @click="onDelete">삭제</button>
+    </div>
+
+    <!-- ================== 회차 정보 ================== -->
     <BaseCard v-if="cycle">
       <h4 class="section-title">회차 정보</h4>
 
@@ -46,6 +53,7 @@
       </div>
     </BaseCard>
 
+    <!-- ================== 평가 유형 ================== -->
     <BaseCard class="mt" v-if="cycle">
       <h4 class="section-title">평가 유형</h4>
 
@@ -61,21 +69,62 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { ref, onMounted, computed } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/authStore.js'
 import BaseCard from '@/components/common/BaseCard.vue'
-import { fetchCycleDetail } from '@/api/cycleApi'
+import { fetchCycleDetail, deleteCycle } from '@/api/cycleApi'
 
+/* ----------------------------
+ * router / store
+ * ---------------------------- */
 const route = useRoute()
-const cycleId = route.params.cycleId
+const router = useRouter()
+const authStore = useAuthStore()
 
+
+/* ----------------------------
+ * state
+ * ---------------------------- */
+const cycleId = route.params.cycleId
 const cycle = ref(null)
+
+/* ----------------------------
+ * 권한 체크
+ * ---------------------------- */
+const canEdit = computed(() => {
+  if (!cycle.value) return false
+
+  return (
+    cycle.value.status === 'DRAFT' &&
+    Number(authStore.user?.employeeId) === Number(cycle.value.empId)
+  )
+})
+
+
+/* ----------------------------
+ * actions
+ * ---------------------------- */
+const goEdit = () => {
+  router.push(`/cycles/${cycleId}/edit`)
+}
+
+const onDelete = async () => {
+  if (!confirm('정말 이 회차를 삭제하시겠습니까?')) return
+
+  await deleteCycle(cycleId)
+  alert('회차가 삭제되었습니다.')
+  router.push('/cycles')
+}
 
 const loadCycleDetail = async () => {
   const res = await fetchCycleDetail(cycleId)
   cycle.value = res.data
 }
 
+/* ----------------------------
+ * utils
+ * ---------------------------- */
 const formatDate = (dateTime) => {
   return dateTime.replace('T', ' ').slice(0, 16)
 }
@@ -110,6 +159,9 @@ const quarterLabel = (quarter) => {
   }
 }
 
+/* ----------------------------
+ * lifecycle
+ * ---------------------------- */
 onMounted(loadCycleDetail)
 </script>
 
@@ -203,5 +255,32 @@ onMounted(loadCycleDetail)
   padding: 16px 24px;
   font-size: 13px;
   color: #6b7280;
+}
+
+.header-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.btn-outline {
+  padding: 6px 14px;
+  border-radius: 10px;
+  border: 1px solid #4f46e5;
+  background: white;
+  color: #4f46e5;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.btn-danger {
+  padding: 6px 14px;
+  border-radius: 10px;
+  border: none;
+  background: #ef4444;
+  color: white;
+  font-size: 13px;
+  cursor: pointer;
 }
 </style>

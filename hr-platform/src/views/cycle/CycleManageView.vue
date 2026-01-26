@@ -78,7 +78,7 @@
         <tbody>
         <tr v-for="cycle in filteredCycles" :key="cycle.cycleId"
             class="row-click"
-            @click="router.push(`/evaluation-cycles/${cycle.cycleId}`)">
+            @click="router.push(`/cycles/${cycle.cycleId}`)">
           <td class="cycle-name">{{ cycle.cycleName }}</td>
           <td>
             {{ formatDate(cycle.startDate) }} ~

@@ -16,6 +16,7 @@ import TeamOwnerGoalListView from '@/views/goal/TeamOwnerGoalListView.vue'
 import GoalCreateView from '@/views/goal/GoalCreateView.vue'
 import CycleManageView from '@/views/cycle/CycleManageView.vue'
 import CycleDetailPage from '@/views/cycle/CycleDetailPage.vue'
+import CycleEditPage from '@/views/cycle/CycleEditPage.vue'
 
 const routes = [
   {
@@ -41,12 +42,12 @@ const routes = [
       { path:'to/goals',component: TeamOwnerGoalListView},
       { path: '/goal/create', component: GoalCreateView},
 
-      //회차 생성
+      //회차
       { path: 'cycles', component: CycleManageView},
-      { path: '/evaluation-cycles/:cycleId',
+      { path: 'cycles/:cycleId/edit', component: CycleEditPage },
+      { path: 'cycles/:cycleId',
         name: 'CycleDetail',
         component: CycleDetailPage},
-
     ],
   },
 ]
