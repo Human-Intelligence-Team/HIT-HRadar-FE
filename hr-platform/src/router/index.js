@@ -14,6 +14,8 @@ import HRGoalDashboard from '@/views/goal/HRGoalDashboard.vue'
 import GoalDetailView from '@/views/goal/GoalDetailView.vue'
 import TeamOwnerGoalListView from '@/views/goal/TeamOwnerGoalListView.vue'
 import GoalCreateView from '@/views/goal/GoalCreateView.vue'
+import CycleManageView from '@/views/cycle/CycleManageView.vue'
+import CycleDetailPage from '@/views/cycle/CycleDetailPage.vue'
 
 const routes = [
   {
@@ -38,6 +40,13 @@ const routes = [
       { path: 'goal/:goalId', component: GoalDetailView},
       { path:'to/goals',component: TeamOwnerGoalListView},
       { path: '/goal/create', component: GoalCreateView},
+
+      //회차 생성
+      { path: 'cycles', component: CycleManageView},
+      { path: '/evaluation-cycles/:cycleId',
+        name: 'CycleDetail',
+        component: CycleDetailPage},
+
     ],
   },
 ]

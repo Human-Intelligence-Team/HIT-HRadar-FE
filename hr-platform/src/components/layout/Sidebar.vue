@@ -52,8 +52,7 @@
           <span class="arrow">›</span>
         </div>
         <div class="flyout">
-          <RouterLink to="/review/self" class="flyout-item">자기 평가</RouterLink>
-          <RouterLink to="/review/peer" class="flyout-item">동료 평가</RouterLink>
+          <RouterLink to="/cycles" class="flyout-item">회차 등록/조회</RouterLink>
         </div>
       </div>
 
