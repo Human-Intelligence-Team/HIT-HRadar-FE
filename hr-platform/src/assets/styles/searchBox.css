@@ -1,0 +1,43 @@
+.card {
+  padding: 15px;
+  margin-top: 10px;
+}
+/* 한 줄 */
+.card-head {
+
+  display: flex;
+  align-items: center;
+  gap: 20px;
+
+}
+
+.card-head + .card-head {
+  margin-top: 12px;
+}
+
+/* 검색 아이템 */
+.search-section {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
+
+.label {
+  font-size: 14px;
+  color: #374151;
+  min-width: 80px;
+  font-weight: bold;
+  text-align: center;
+}
+
+select, input {
+  width: 200px;
+  height: 40px;
+}
+
+/* 버튼 영역 */
+.search-btn {
+  margin-left: auto; /* 오른쪽 밀기 */
+  display: flex;
+  gap: 8px;
+}
