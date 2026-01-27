@@ -16,9 +16,13 @@
         <!-- Body -->
         <div class="card-bd">
           <div v-if="isEditMode">
+            <div class="category-selection">
+              <label class="label">문서 카테고리</label>
+              <input class="input" type="text" v-model="docType" placeholder="카테고리를 입력하세요" required />
+            </div>
             <div class="doc-title-box">
               <label class="label">문서 제목</label>
-              <input class="input title-input" v-model="editedDocument.docTitle" />
+              <input class="input title-input" v-model="editedDocument.docTitle" required />
             </div>
 
             <div v-for="(c, i) in editedDocument.chunks" :key="i" class="chunk-card">
@@ -44,9 +48,9 @@
 
             <div class="actions-row">
               <button class="btn ghost" @click="addChunk">
-                + 청크 추가
+                + 리스트 추가
               </button>
-              <button class="btn primary" @click="saveDocument">
+              <button class="btn primary" @click="saveDocument" :disabled="isSaveDisabled">
                 저장
               </button>
             </div>
@@ -105,6 +109,8 @@ const editedDocument = reactive({
   chunks: []
 })
 
+const docType = ref('') // Default to empty string
+
 const isEditMode = computed(() => props.mode === 'edit')
 
 // Watch for changes in props.document to update editedDocument
@@ -113,13 +119,19 @@ watch(() => props.document, (newDoc) => {
     editedDocument.id = newDoc.id
     editedDocument.docTitle = newDoc.title // assuming 'title' for display
     editedDocument.chunks = newDoc.chunks ? JSON.parse(JSON.stringify(newDoc.chunks)) : []
+    docType.value = newDoc.category || '' // Initialize docType from category, default to empty
   } else {
     // Reset for create mode or if document is cleared
     editedDocument.id = null
     editedDocument.docTitle = ''
     editedDocument.chunks = []
+    docType.value = '' // Reset docType to empty
   }
 }, { immediate: true })
+
+const isSaveDisabled = computed(() => {
+  return !docType.value.trim() || !editedDocument.docTitle.trim();
+})
 
 
 function close() {
@@ -143,7 +155,8 @@ async function saveDocument() {
   try {
     const payload = {
       docTitle: editedDocument.docTitle,
-      chunks: editedDocument.chunks
+      chunks: editedDocument.chunks,
+      category: docType.value // Add selected category to payload
     }
     await store.updateDocument(editedDocument.id, payload)
     alert('문서가 성공적으로 수정되었습니다.')
@@ -273,5 +286,15 @@ async function downloadTemplate() {
   justify-content: flex-end;
   gap: 10px;
   margin-top: 20px;
+}
+
+.category-selection {
+  margin-bottom: 20px;
+}
+
+.category-selection .label {
+  display: block; /* Re-add block display */
+  margin-bottom: 8px; /* Re-add margin */
+  font-weight: 600;
 }
 </style>
