@@ -63,8 +63,7 @@
           <span class="arrow">›</span>
         </div>
         <div class="flyout">
-<!--          <RouterLink to="/dashboard" class="flyout-item">대시보드</RouterLink>
-          <RouterLink to="/report" class="flyout-item">리포트</RouterLink>-->
+          <RouterLink to="/grade/setting" class="flyout-item">등급 설정</RouterLink>
         </div>
       </div>
 

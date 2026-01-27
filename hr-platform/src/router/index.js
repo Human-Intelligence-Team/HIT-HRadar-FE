@@ -20,6 +20,7 @@ import CycleEditPage from '@/views/cycle/CycleEditPage.vue'
 import CycleAdminManageView from '@/views/cycle/CycleAdminManageView.vue'
 import CycleAdminDetailPage from '@/views/cycle/CycleAdminDetailPage.vue'
 import CycleAdminEditPage from '@/views/cycle/CycleAdminEditPage.vue'
+import CompanyGradeSettingPage from '@/views/grading/CompanyGradeSettingPage.vue'
 
 const routes = [
   {
@@ -53,10 +54,11 @@ const routes = [
         component: CycleDetailPage},
       { path: 'hr/cycles', component: CycleAdminManageView},
       { path: 'hr/cycles/:cycleId', component: CycleAdminDetailPage},
-      {
-        path: '/hr/cycles/:cycleId/edit',
-        component: CycleAdminEditPage,
-      }
+      { path: '/hr/cycles/:cycleId/edit', component: CycleAdminEditPage},
+
+      //등급
+      { path: 'grade/setting', component: CompanyGradeSettingPage},
+
     ],
   },
 ]
