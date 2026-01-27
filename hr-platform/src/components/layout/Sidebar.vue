@@ -77,6 +77,7 @@
           <RouterLink to="/all/competency/report" class="flyout-item">리포트(인사팀)</RouterLink>
           <RouterLink to="/dept/competency/report" class="flyout-item">리포트(팀장)</RouterLink>
           <RouterLink to="/me/competency/report" class="flyout-item">리포트(개인)</RouterLink>
+          <RouterLink to="/all/contents" class="flyout-item">학습컨텐츠 관리</RouterLink>
         </div>
       </div>
 
@@ -97,27 +98,17 @@
       <div class="section-title">연봉 관리</div>
 
       <div class="nav-group has-flyout">
-        <RouterLink to="/salary/dashboard" class="nav-item">
-          <span>대시보드</span>
-        </RouterLink>
 
-        <!--
-        <RouterLink to="/all/salary/basic" class="nav-item">
-          <span>기본급관리(인사팀)</span>
-        </RouterLink>
--->
         <div class="nav-item">
-          <span>기본급관리</span>
+          <span>연봉관리</span>
           <span class="arrow">›</span>
         </div>
         <div class="flyout">
           <RouterLink to="/all/salary/basic" class="flyout-item">기본급관리(인사팀)</RouterLink>
           <RouterLink to="/me/salary/basic" class="flyout-item">기본급관리(본인)</RouterLink>
+          <RouterLink to="/all/salary/compensation" class="flyout-item">변동보상관리</RouterLink>
         </div>
       </div>
-      <RouterLink to="/all/salary/compensation" class="nav-item">
-        <span>변동보상관리</span>
-      </RouterLink>
       <!-- 챗봇 관리 -->
       <div class="section-title">챗봇 관리</div>
 
@@ -155,15 +146,6 @@
         알림 관리
       </RouterLink>
 
-      <div class="nav-group has-flyout">
-        <div class="nav-item">
-          <span>학습 컨텐츠 관리</span>
-          <span class="arrow">›</span>
-        </div>
-        <div class="flyout">
-          <RouterLink to="/all/contents" class="flyout-item">학습컨텐츠 관리</RouterLink>
-        </div>
-      </div>
     </nav>
   </aside>
 </template>

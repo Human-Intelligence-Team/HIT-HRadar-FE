@@ -42,3 +42,14 @@ select, input {
   display: flex;
   gap: 8px;
 }
+
+.table th {
+  text-align: center;
+  vertical-align: middle;
+  background-color: #eaf0ff;
+}
+
+.table td {
+  text-align: center;
+  vertical-align: middle;
+}

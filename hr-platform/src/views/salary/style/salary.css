@@ -41,12 +41,12 @@
 }
 
 .dashboard-box .dashboard-box-body .amount-box .content-font {
-  font-size: 38px;
+  font-size: 20px;
   font-weight: bold;
 }
 
 .dashboard-box .dashboard-box-body .compensation-box .content-font {
-  font-size: 30px;
+  font-size: 18px;
   font-weight: bold;
   color: #777777;
 }
@@ -81,4 +81,14 @@
 
 .search-input-box .search-section {
   width : 423px;
+}
+.table th {
+  text-align: center;
+  vertical-align: middle;
+  background-color: #eaf0ff;
+}
+
+.table td {
+  text-align: center;
+  vertical-align: middle;
 }

@@ -84,6 +84,8 @@ const goDetailPage = (compensationId) => {
 @import "@/views/salary/style/salary.css";
 
 .card {
-  margin-bottom: 25px;
+  margin-top: 10px;
+  padding : 20px;
 }
+
 </style>
