@@ -21,8 +21,6 @@ const goDetailPage = (basicId) => {
           </select>
         </div>
 
-
-
         <div class="search-btn">
           <button class="btn reset">초기화</button>
           <button class="btn primary search">검색</button>
@@ -32,7 +30,7 @@ const goDetailPage = (basicId) => {
     </div>
   </div>
 
-  <div class="card-bd">
+  <div class="card">
     <table class="table">
       <thead class="tbl-hd">
       <tr>

@@ -12,7 +12,6 @@ const goDetailPage = (competencyReportId) => {
 <template>
   <div class="sub">역량강화 리포트 조회(팀장)</div>
 
-  <div class="grid">
     <div class="card">
       <div class="card-head">
         <div class="search-section">
@@ -59,9 +58,8 @@ const goDetailPage = (competencyReportId) => {
 
       </div>
     </div>
-  </div>
 
-  <div class="card-bd">
+  <div class="card">
     <table class="table">
       <thead class="tbl-hd">
       <tr>

@@ -20,6 +20,7 @@
 }
 .side-box {
   padding: 20px;
+  border:1px solid var(--border);
 }
 
 .side-box .side-header {
@@ -39,8 +40,7 @@
   display: flex;
   justify-content: space-between;
   border-radius: 16px;
-  border: 1px solid #9aa1ad;
-  background-color: #f8fafc;
+  border: 1px solid var(--border);
 
 }
 
