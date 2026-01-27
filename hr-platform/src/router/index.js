@@ -2,9 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
 
 import PolicyView from '@/views/policy/PolicyView.vue'
-import FaqView from '@/views/faq/FaqView.vue'
 import NoticeView from '@/views/notice/NoticeView.vue'
-import AlertView from '@/views/alert/AlertView.vue'
 
 import AppLayout from '@/components/layout/AppLayout.vue'
 import AuthLayout from '@/components/layout/AuthLayout.vue'
@@ -58,9 +56,7 @@ const routes = [
     children: [
       { path: '', redirect: '/policy' },
       { path: 'policy', component: PolicyView },
-      { path: 'faq', component: FaqView },
       { path: 'notice', component: NoticeView },
-      { path: 'alert', component: AlertView },
 
       //성과평가-목표관리
       { path: 'goal', component: GoalListView },

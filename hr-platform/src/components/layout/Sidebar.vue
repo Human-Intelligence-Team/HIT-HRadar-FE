@@ -121,10 +121,6 @@
         제도 · 규정
       </RouterLink>
 
-      <RouterLink v-if="can('FAQ_MANAGE')" to="/faq" class="nav-item link" active-class="active">
-        FAQ
-      </RouterLink>
-
       <!-- 기타 -->
       <div class="section-title">기타</div>
 
@@ -145,7 +141,6 @@
       >
         알림 관리
       </RouterLink>
-
     </nav>
   </aside>
 </template>
@@ -157,8 +152,8 @@ const auth = useAuthStore()
 
 const can = (perm) => {
   const permissions = {
-    USER: ['POLICY_READ', 'FAQ_MANAGE', 'NOTICE_READ', 'ALERT_MANAGE'],
-    ADMIN: ['POLICY_READ', 'FAQ_MANAGE', 'NOTICE_READ', 'ALERT_MANAGE'],
+    USER: ['POLICY_READ', 'NOTICE_READ', 'ALERT_MANAGE'],
+    ADMIN: ['POLICY_READ', 'NOTICE_READ', 'ALERT_MANAGE'],
   }
   return permissions[auth.user.role]?.includes(perm) ?? false
 }
