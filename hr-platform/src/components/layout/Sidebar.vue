@@ -162,7 +162,6 @@
         </div>
         <div class="flyout">
           <RouterLink to="/all/contents" class="flyout-item">학습컨텐츠 관리</RouterLink>
-          <RouterLink to="/all/contents/tag" class="flyout-item">태그 관리</RouterLink>
         </div>
       </div>
     </nav>

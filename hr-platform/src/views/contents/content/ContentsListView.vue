@@ -21,9 +21,6 @@ const isModalOpen = () => {
 
 <template>
   <div class="sub">학습컨텐츠 조회</div>
-  <div class="section-btn">
-    <button class="btn primary" @click="goCreatePage()" type="button">등록</button>
-  </div>
 
   <div class="grid">
     <div class="card">
@@ -77,41 +74,50 @@ const isModalOpen = () => {
     </div>
   </div>
 
-  <div class="section-tag">
-    <button class="btn primary" type="button" @click="isModalOpen">태그 관리</button>
+  <div class="grid">
+      <div class="card">
+
+        <div class="section-tag">
+          <button class="btn primary" type="button" @click="isModalOpen">태그 관리</button>
+        </div>
+
+        <div class="card-bd">
+        <table class="table">
+          <thead class="tbl-hd">
+          <tr>
+            <th style="width:30%;">콘텐츠 명</th>
+            <th style="width:10%;">유형</th>
+            <th style ="width:10%;">난이도</th>
+            <th style="width:10%;">학습시간</th>
+            <th style="width:30%;">태그</th>
+            <th style="width:10%;">사용여부</th>
+          </tr>
+          </thead>
+          <tbody class="tbl-bd">
+          <tr @click="goDetailPage(1)">
+            <td >영업을 위한 학습 컨텐츠</td>
+            <td>도서</td>
+            <td>하</td>
+            <td>3시간</td>
+            <td>#영업, #신입 </td>
+            <td>Y</td>
+          </tr>
+          <tr @click="goDetailPage(1)">
+            <td>영업을 위한 학습 컨텐츠</td>
+            <td>도서</td>
+            <td>하</td>
+            <td>3시간</td>
+            <td>#영업, #신입 </td>
+            <td>Y</td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
   </div>
 
-  <div class="card-bd">
-    <table class="table">
-      <thead class="tbl-hd">
-      <tr>
-        <th style="width:30%;">콘텐츠 명</th>
-        <th style="width:10%;">유형</th>
-        <th style="width:10%;">난이도</th>
-        <th style="width:10%;">학습시간</th>
-        <th style="width:30%;">태그</th>
-        <th style="width:10%;">사용여부</th>
-      </tr>
-      </thead>
-      <tbody class="tbl-bd">
-      <tr @click="goDetailPage(1)">
-        <td >영업을 위한 학습 컨텐츠</td>
-        <td>도서</td>
-        <td>하</td>
-        <td>3시간</td>
-        <td>#영업, #신입 </td>
-        <td>Y</td>
-      </tr>
-      <tr @click="goDetailPage(1)">
-        <td>영업을 위한 학습 컨텐츠</td>
-        <td>도서</td>
-        <td>하</td>
-        <td>3시간</td>
-        <td>#영업, #신입 </td>
-        <td>Y</td>
-      </tr>
-      </tbody>
-    </table>
+  <div class="section-btn">
+    <button class="btn primary" @click="goCreatePage()" type="button">등록</button>
   </div>
 
   <TagModalView
@@ -126,7 +132,7 @@ const isModalOpen = () => {
 .section-btn {
   display: flex;
   justify-content: flex-end;
-  padding: 5px;
+  padding: 10px;
 }
 
 .section-tag {

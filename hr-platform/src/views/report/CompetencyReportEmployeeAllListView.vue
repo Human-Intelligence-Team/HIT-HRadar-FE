@@ -59,7 +59,7 @@ const goListPage = () => {
     </div>
   </div>
 
-  <div class="card-bd">
+  <div class="card">
     <table class="table">
       <thead class="tbl-hd">
       <tr>

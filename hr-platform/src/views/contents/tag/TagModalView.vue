@@ -1,6 +1,7 @@
 <script setup>
-const emit = defineEmits(['close'])
+import { ref } from 'vue'
 
+const emit = defineEmits(['close'])
 const isModalOpen = () => {
   emit('close')
 }
