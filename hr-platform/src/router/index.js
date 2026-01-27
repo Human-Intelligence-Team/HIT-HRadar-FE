@@ -42,6 +42,11 @@ import HRGoalDashboard from '@/views/goal/HRGoalDashboard.vue'
 import GoalDetailView from '@/views/goal/GoalDetailView.vue'
 import TeamOwnerGoalListView from '@/views/goal/TeamOwnerGoalListView.vue'
 import GoalCreateView from '@/views/goal/GoalCreateView.vue'
+import ApprovalMyListView from '@/views/approval/ApprovalMyListView.vue'
+import ApprovalInboxListView from '@/views/approval/ApprovalInboxListView.vue'
+import ApprovalRejectedListView from '@/views/approval/ApprovalRejectedListView.vue'
+import ApprovalAllListView from '@/views/approval/ApprovalAllListView.vue'
+import ApprovalCreateView from '@/views/approval/ApprovalCreateView.vue'
 
 const routes = [
   {
@@ -104,6 +109,18 @@ const routes = [
           { path: '/all/contents/tag', component: TagModalView },
         ]
       },
+
+      {
+        path: 'approval',
+        children: [
+          { path: 'my', component: ApprovalMyListView },          // 내 문서함
+          { path: 'inbox', component: ApprovalInboxListView },    // 결재 문서함
+          { path: 'rejected', component: ApprovalRejectedListView }, // 반려 문서함
+          { path: 'all', component: ApprovalAllListView },
+          { path: 'create', component: ApprovalCreateView },     // 전체 문서함(인사팀)
+        ],
+      },
+
     ],
   },
 ]

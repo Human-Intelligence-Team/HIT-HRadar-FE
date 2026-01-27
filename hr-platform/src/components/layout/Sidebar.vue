@@ -82,6 +82,7 @@
       </div>
 
       <!-- 결재 관리 -->
+      <!-- 결재 관리 -->
       <div class="section-title">결재 관리</div>
 
       <div class="nav-group has-flyout">
@@ -90,7 +91,17 @@
           <span class="arrow">›</span>
         </div>
         <div class="flyout">
-          <!-- 확장 -->
+          <RouterLink to="/approval/create" class="flyout-item">결재 문서 등록</RouterLink>
+          <RouterLink to="/approval/my" class="flyout-item">내 문서함</RouterLink>
+          <RouterLink to="/approval/inbox" class="flyout-item">결재 문서함</RouterLink>
+          <RouterLink to="/approval/rejected" class="flyout-item">반려 문서함</RouterLink>
+          <RouterLink
+            v-if="auth.user.role === 'ADMIN'"
+            to="/approval/all"
+            class="flyout-item"
+          >
+            전체 문서함
+          </RouterLink>
         </div>
       </div>
 
