@@ -47,6 +47,7 @@ import ApprovalInboxListView from '@/views/approval/ApprovalInboxListView.vue'
 import ApprovalRejectedListView from '@/views/approval/ApprovalRejectedListView.vue'
 import ApprovalAllListView from '@/views/approval/ApprovalAllListView.vue'
 import ApprovalCreateView from '@/views/approval/ApprovalCreateView.vue'
+import ApprovalAdminView from '@/views/approval/ApprovalAdminView.vue'
 
 const routes = [
   {
@@ -118,6 +119,7 @@ const routes = [
           { path: 'rejected', component: ApprovalRejectedListView }, // 반려 문서함
           { path: 'all', component: ApprovalAllListView },
           { path: 'create', component: ApprovalCreateView },     // 전체 문서함(인사팀)
+          { path: 'admin', component: ApprovalAdminView, meta: { requiresAdmin: true } }, // 결재 관리(인사팀)
         ],
       },
 
@@ -136,6 +138,12 @@ router.beforeEach((to) => {
   // 로그인 안 했는데 보호 페이지 접근
   if (!auth.isLoggedIn && to.path !== '/login') {
     return '/login'
+  }
+
+  // 로그인 했는데, 관리자 페이지에 권한 없이 접근
+  if (to.meta.requiresAdmin && !auth.isAdmin) {
+    alert('접근 권한이 없습니다.');
+    return '/notice'; // 혹은 권한 없음 페이지로
   }
 
   // 로그인 했는데 로그인 페이지 접근

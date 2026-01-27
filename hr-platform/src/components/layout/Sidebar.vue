@@ -102,6 +102,13 @@
           >
             전체 문서함
           </RouterLink>
+          <RouterLink
+            v-if="auth.user.role === 'ADMIN'"
+            to="/approval/admin"
+            class="flyout-item"
+          >
+            결재 관리(인사팀)
+          </RouterLink>
         </div>
       </div>
 
