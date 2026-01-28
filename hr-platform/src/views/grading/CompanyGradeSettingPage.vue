@@ -240,7 +240,6 @@ const saveAllPolicies = async () => {
     return
   }
 
-  // 1️⃣ 검증 단계 (한 번에)
   for (const row of policyRows.value) {
     if (!row.memberGradeId) continue
 
@@ -254,7 +253,6 @@ const saveAllPolicies = async () => {
     }
   }
 
-  // 2️⃣ 저장 단계 (한 건씩)
   for (const row of policyRows.value) {
     if (!row.memberGradeId) continue
 

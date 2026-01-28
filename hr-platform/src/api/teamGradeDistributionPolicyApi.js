@@ -5,7 +5,7 @@ export const createDistributionPolicy = (teamGradeId, data) => {
   return axios.post(
     `/api/v1/distribution-policies/${teamGradeId}`,
     {
-      memberGradeId: data.memberGradeId, // 🔥 핵심
+      memberGradeId: data.memberGradeId,
       minRatio: data.minRatio,
       maxRatio: data.maxRatio,
     }

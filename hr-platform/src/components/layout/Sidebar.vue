@@ -64,6 +64,12 @@
         </div>
         <div class="flyout">
           <RouterLink to="/grade/setting" class="flyout-item">등급 설정</RouterLink>
+          <RouterLink to="/grading/list" class="flyout-item"> 부서 등급 부여 현황</RouterLink>
+          <RouterLink to="/hr/grading/list" class="flyout-item">부서 등급 부여 현황(승인)</RouterLink>
+          <RouterLink to="/to/grading/list" class="flyout-item">부서원 등급 부여</RouterLink>
+          <RouterLink to="/hr/grading/list/approve" class="flyout-item">부서원 등급 부여 및 승인</RouterLink>
+          <RouterLink to="/my/grading" class="flyout-item">부여된 등급 조회</RouterLink>
+          <RouterLink to="/to/grading/objection" class="flyout-item">이의 제기 관리</RouterLink>
         </div>
       </div>
 
