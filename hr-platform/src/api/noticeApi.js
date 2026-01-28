@@ -25,6 +25,31 @@ export const fetchNoticeCategories = () => {
 }
 
 /**
+ * 공지 카테고리 생성
+ * POST /api/v1/notices/categories
+ */
+export const createNoticeCategory = (categoryName) => {
+  return axios.post('/api/v1/notices/categories', { name: categoryName })
+}
+
+/**
+ * 공지 카테고리 수정
+ * PUT /api/v1/notices/categories/{id}
+ */
+export const updateNoticeCategory = (id, categoryName) => {
+  return axios.put(`/api/v1/notices/categories/${id}`, { name: categoryName })
+}
+
+/**
+ * 공지 카테고리 삭제
+ * DELETE /api/v1/notices/categories/{id}
+ */
+export const deleteNoticeCategory = (id) => {
+  return axios.delete(`/api/v1/notices/categories/${id}`)
+}
+
+
+/**
  * 공지 상세 조회
  * GET /notices/{id}
  * (아직 백엔드 없음 스펙만 고정)
@@ -54,10 +79,21 @@ export const createNotice = (notice, files) => {
 
 /**
  * 공지 수정
- * PUT /notices/{id}
+ * PUT /notices/{id} (multipart)
  */
-export const updateNotice = (id, notice) => {
-  return axios.put(`/api/v1/notices/${id}`, notice)
+export const updateNotice = (id, notice, files) => {
+  const formData = new FormData()
+  formData.append(
+    'request',
+    new Blob([JSON.stringify(notice)], { type: 'application/json' })
+  )
+  if (files?.length) {
+    files.forEach((f) => formData.append('files', f))
+  }
+
+  return axios.put(`/api/v1/notices/${id}`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  })
 }
 
 /**
@@ -65,8 +101,8 @@ export const updateNotice = (id, notice) => {
  * DELETE /notices/{id}
  */
 export const deleteNotice = (id) => {
-  return axios.delete(`/api/v1/notices/${id}`)
-}
+  return axios.delete(`/api/v1/notices/${id}`);
+};
 
 /**
  * 본문 이미지 업로드

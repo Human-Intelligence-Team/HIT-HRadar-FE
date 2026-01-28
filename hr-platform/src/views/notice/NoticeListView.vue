@@ -2,7 +2,10 @@
   <div class="page-container">
     <div class="header">
       <h1 class="title">공지사항</h1>
-      <button class="btn primary" @click="goToCreate">새 공지 작성</button>
+      <div class="header-actions">
+        <button class="btn secondary" @click="showCategoryModal = true">카테고리 관리</button>
+        <button class="btn primary" @click="goToCreate">새 공지 작성</button>
+      </div>
     </div>
 
     <!-- Search and Filter Controls -->
@@ -49,8 +52,9 @@
           <tr>
             <th style="width: 10%;">번호</th>
             <th style="width: 20%;">카테고리</th>
-            <th style="width: 50%;">제목</th>
-            <th style="width: 20%;">작성일</th>
+            <th style="width: 40%;">제목</th>
+            <th style="width: 15%;">작성자</th>
+            <th style="width: 15%;">작성일</th>
           </tr>
         </thead>
         <tbody class="tbl-bd">
@@ -60,6 +64,7 @@
               <span class="category-badge">{{ notice.categoryName }}</span>
             </td>
             <td class="title-cell">{{ notice.title }}</td>
+            <td>{{ notice.createdByName }}</td>
             <td>{{ formatDate(notice.createdAt) }}</td>
           </tr>
         </tbody>
@@ -67,15 +72,24 @@
     </div>
 
     <!-- Pagination -->
-    <div v-if="page" class="pagination-container">
-      <button @click="changePage(page.page - 1)" :disabled="page.page <= 1" class="btn page-btn">
+    <div v-if="totalPages > 0" class="pagination-container">
+      <button @click="changePage(1)" :disabled="currentPage <= 1" class="btn page-btn">
+        처음으로 이동
+      </button>
+      <button @click="changePage(currentPage - 1)" :disabled="currentPage <= 1" class="btn page-btn">
         이전
       </button>
-      <span class="page-info"> {{ page.page }} / {{ page.totalPages }} </span>
-      <button @click="changePage(page.page + 1)" :disabled="page.page >= page.totalPages" class="btn page-btn">
+      <span class="page-info"> {{ currentPage }} / {{ totalPages }} </span>
+      <button @click="changePage(currentPage + 1)" :disabled="currentPage >= totalPages" class="btn page-btn">
         다음
       </button>
+      <button @click="changePage(totalPages)" :disabled="currentPage >= totalPages" class="btn page-btn">
+        마지막으로 이동
+      </button>
     </div>
+
+    <!-- Category Management Modal -->
+    <NoticeCategoryModal :show="showCategoryModal" @close="showCategoryModal = false" />
   </div>
 </template>
 
@@ -83,37 +97,43 @@
 import { onMounted, computed, ref, watch } from 'vue'
 import { useNoticeStore } from '@/stores/noticeStore'
 import { useRouter } from 'vue-router'
+import NoticeCategoryModal from '@/components/notice/NoticeCategoryModal.vue'
 
 const store = useNoticeStore()
 const router = useRouter()
 
 // Computed properties from store
 const notices = computed(() => store.data?.items)
-const page = computed(() => store.data?.page)
+const totalPages = computed(() => store.data?.totalPages)
+const currentPage = computed(() => store.searchCond.page)
 const loading = computed(() => store.loading)
 const searchCond = computed(() => store.searchCond)
 const categories = computed(() => store.categories)
 
-// Local state for UI controls
+// Local state for UI controls, synced with store's searchCond
 const keyword = ref(searchCond.value.keyword)
 const categoryId = ref(searchCond.value.categoryId)
 const sortDir = ref(searchCond.value.sortDir)
 
-// Sync local state with store state
+// Modal visibility state
+const showCategoryModal = ref(false)
+
+// Sync local state with store state when it changes (e.g. browser back/forward)
 watch(searchCond, (newCond) => {
   keyword.value = newCond.keyword
   categoryId.value = newCond.categoryId
   sortDir.value = newCond.sortDir
-})
+}, { deep: true })
 
 // Fetch initial data on mount
 onMounted(() => {
   store.fetchCategories()
-  store.searchNotices(1)
+  store.searchNotices()
 })
 
-function updateSearch() {
-  store.setSearchCond({
+// Called when filters are changed
+function updateFilters() {
+  store.setFilters({
     keyword: keyword.value,
     categoryId: categoryId.value,
     sortDir: sortDir.value,
@@ -121,16 +141,17 @@ function updateSearch() {
 }
 
 function handleSearch() {
-  updateSearch()
+  updateFilters()
 }
 
 function handleFilterChange() {
-  updateSearch()
+  updateFilters()
 }
 
+// Called when page is changed
 function changePage(newPage) {
-  if (newPage > 0 && newPage <= page.value.totalPages) {
-    store.searchNotices(newPage)
+  if (newPage > 0 && newPage <= totalPages.value) {
+    store.setPage(newPage)
   }
 }
 
@@ -153,7 +174,7 @@ function formatDate(dateString) {
 </script>
 
 <style scoped>
-/* Global styles are used, with some local overrides and additions */
+/* Styles remain the same */
 .page-container {
   padding: 20px;
 }
@@ -163,6 +184,11 @@ function formatDate(dateString) {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
+}
+
+.header-actions {
+  display: flex;
+  gap: 10px;
 }
 
 .title {
@@ -304,4 +330,14 @@ function formatDate(dateString) {
 .btn.primary:hover {
     background-color: var(--primary-dark);
 }
+
+.btn.secondary {
+  background-color: var(--panel);
+  color: var(--text-main);
+  border: 1px solid var(--border);
+}
+.btn.secondary:hover {
+    background-color: var(--primary-soft);
+}
+
 </style>
