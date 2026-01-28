@@ -90,7 +90,7 @@ import { fetchCycles } from '@/api/cycleApi.js'
 import { fetchMyDeptGrade } from '@/api/DeptGradeApi.js'
 import { fetchMyIndividualGrade } from '@/api/individualGradeApi.js'
 import { registerGradeObjection, fetchGradeObjectionsByIndividualGrade } from '@/api/gradeObjectionApi.js'
-import GradeObjectionModal from '@/views/grading/GradeObjectionModal.vue'
+import GradeObjectionModal from '@/views/grading/gradeObjection/GradeObjectionModal.vue'
 
 //상태 관리
 //현재 진행중인 평가 회차

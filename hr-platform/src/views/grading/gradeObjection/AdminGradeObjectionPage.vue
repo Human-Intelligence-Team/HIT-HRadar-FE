@@ -122,21 +122,21 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 
-import GradeObjectionApproveModal from '@/views/grading/GradeObjectionApproveModal.vue'
+import GradeObjectionApproveModal from '@/views/grading/gradeObjection/GradeObjectionApproveModal.vue'
 
-import { fetchCycles } from '@/api/cycleApi'
+import { fetchCycles } from '@/api/cycleApi.js'
 import {
   fetchGradeObjectionsByDepartment,
   acceptGradeObjection,
   rejectGradeObjection,
-} from '@/api/gradeObjectionApi'
+} from '@/api/gradeObjectionApi.js'
 import {
   fetchEmployeeGradeStatusList,
   approveIndividualGradeByObjection,
-} from '@/api/individualGradeApi'
-import { fetchCompanyGrades } from '@/api/gradeApi'
-import { fetchDistributionPolicies } from '@/api/teamGradeDistributionPolicyApi'
-import { fetchMyDeptGrade } from '@/api/DeptGradeApi'
+} from '@/api/individualGradeApi.js'
+import { fetchCompanyGrades } from '@/api/gradeApi.js'
+import { fetchDistributionPolicies } from '@/api/teamGradeDistributionPolicyApi.js'
+import { fetchMyDeptGrade } from '@/api/DeptGradeApi.js'
 
 import { useRouter } from 'vue-router'
 const router = useRouter()

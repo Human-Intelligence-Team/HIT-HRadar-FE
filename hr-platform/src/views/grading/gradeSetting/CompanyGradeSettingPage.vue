@@ -226,13 +226,13 @@ import {
   createCompanyGrade,
   updateCompanyGrade,
   deleteCompanyGrade,
-} from '@/api/gradeApi'
+} from '@/api/gradeApi.js'
 import {
   fetchDistributionPolicies,
   createDistributionPolicy,
   updateDistributionPolicy,
   deleteDistributionPolicy,
-} from '@/api/teamGradeDistributionPolicyApi'
+} from '@/api/teamGradeDistributionPolicyApi.js'
 
 const saveAllPolicies = async () => {
   if (!teamGradeId.value) {
