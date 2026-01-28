@@ -42,6 +42,10 @@ import HRGoalDashboard from '@/views/goal/HRGoalDashboard.vue'
 import GoalDetailView from '@/views/goal/GoalDetailView.vue'
 import TeamOwnerGoalListView from '@/views/goal/TeamOwnerGoalListView.vue'
 import GoalCreateView from '@/views/goal/GoalCreateView.vue'
+import NoticeListView from '@/views/notice/NoticeListView.vue'
+import NoticeDetailView from '@/views/notice/NoticeDetailView.vue'
+import NoticeCreateView from '@/views/notice/NoticeCreateView.vue'
+import NoticeEditView from '@/views/notice/NoticeEditView.vue'
 
 const routes = [
   {
@@ -56,7 +60,16 @@ const routes = [
     children: [
       { path: '', redirect: '/policy' },
       { path: 'policy', component: PolicyView },
-      { path: 'notice', component: NoticeView },
+      {
+        path: 'notice',
+        component: NoticeView,
+        children: [
+          { path: '', name: 'notice-list', component: NoticeListView },
+          { path: 'create', name: 'notice-create', component: NoticeCreateView },
+          { path: ':id', name: 'notice-detail', component: NoticeDetailView, props: true },
+          { path: ':id/edit', name: 'notice-edit', component: NoticeEditView, props: true },
+        ]
+      },
 
       //성과평가-목표관리
       { path: 'goal', component: GoalListView },
