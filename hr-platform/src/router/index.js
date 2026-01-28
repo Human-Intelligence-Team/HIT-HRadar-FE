@@ -56,6 +56,12 @@ import IndividualGradeApprovePage from '@/views/grading/IndividualGradeApprovePa
 import MygradePage from '@/views/grading/MygradePage.vue'
 import AdminGradeObjectionPage from '@/views/grading/AdminGradeObjectionPage.vue'
 import AdminGradeObjectionDetailPage from '@/views/grading/AdminGradeObjectionDetailPage.vue'
+import ApprovalMyListView from '@/views/approval/ApprovalMyListView.vue'
+import ApprovalInboxListView from '@/views/approval/ApprovalInboxListView.vue'
+import ApprovalRejectedListView from '@/views/approval/ApprovalRejectedListView.vue'
+import ApprovalAllListView from '@/views/approval/ApprovalAllListView.vue'
+import ApprovalCreateView from '@/views/approval/ApprovalCreateView.vue'
+import ApprovalAdminView from '@/views/approval/ApprovalAdminView.vue'
 
 const routes = [
   {
@@ -137,7 +143,21 @@ const routes = [
       { path: '/hr/grading/list/approve', component: IndividualGradeApprovePage },
       { path: '/my/grading', component: MygradePage },
       { path: '/to/grading/objection', component: AdminGradeObjectionPage},
-      { path: '/hr/objections/:objectionId', name: 'AdminGradeObjectionDetailPage',component:AdminGradeObjectionDetailPage }
+      { path: '/hr/objections/:objectionId', name: 'AdminGradeObjectionDetailPage',component:AdminGradeObjectionDetailPage },
+
+
+      {
+        path: 'approval',
+        children: [
+          { path: 'my', component: ApprovalMyListView },          // 내 문서함
+          { path: 'inbox', component: ApprovalInboxListView },    // 결재 문서함
+          { path: 'rejected', component: ApprovalRejectedListView }, // 반려 문서함
+          { path: 'all', component: ApprovalAllListView },
+          { path: 'create', component: ApprovalCreateView },     // 전체 문서함(인사팀)
+          { path: 'admin', component: ApprovalAdminView, meta: { requiresAdmin: true } }, // 결재 관리(인사팀)
+        ],
+      },
+
     ],
   },
 ]
@@ -153,6 +173,12 @@ router.beforeEach((to) => {
   // 로그인 안 했는데 보호 페이지 접근
   if (!auth.isLoggedIn && to.path !== '/login') {
     return '/login'
+  }
+
+  // 로그인 했는데, 관리자 페이지에 권한 없이 접근
+  if (to.meta.requiresAdmin && !auth.isAdmin) {
+    alert('접근 권한이 없습니다.');
+    return '/notice'; // 혹은 권한 없음 페이지로
   }
 
   // 로그인 했는데 로그인 페이지 접근
