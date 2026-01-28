@@ -42,6 +42,20 @@ import HRGoalDashboard from '@/views/goal/HRGoalDashboard.vue'
 import GoalDetailView from '@/views/goal/GoalDetailView.vue'
 import TeamOwnerGoalListView from '@/views/goal/TeamOwnerGoalListView.vue'
 import GoalCreateView from '@/views/goal/GoalCreateView.vue'
+import CycleManageView from '@/views/cycle/CycleManageView.vue'
+import CycleDetailPage from '@/views/cycle/CycleDetailPage.vue'
+import CycleEditPage from '@/views/cycle/CycleEditPage.vue'
+import CycleAdminManageView from '@/views/cycle/CycleAdminManageView.vue'
+import CycleAdminDetailPage from '@/views/cycle/CycleAdminDetailPage.vue'
+import CycleAdminEditPage from '@/views/cycle/CycleAdminEditPage.vue'
+import CompanyGradeSettingPage from '@/views/grading/CompanyGradeSettingPage.vue'
+import DeptGradeStatusPage from '@/views/grading/DeptGradeStatusPage.vue'
+import AdminDeptGradeStatusPage from '@/views/grading/AdminDeptGradeStatusPage.vue'
+import IndividualGradePage from '@/views/grading/IndividualGradePage.vue'
+import IndividualGradeApprovePage from '@/views/grading/IndividualGradeApprovePage.vue'
+import MygradePage from '@/views/grading/MygradePage.vue'
+import AdminGradeObjectionPage from '@/views/grading/AdminGradeObjectionPage.vue'
+import AdminGradeObjectionDetailPage from '@/views/grading/AdminGradeObjectionDetailPage.vue'
 import NoticeListView from '@/views/notice/NoticeListView.vue'
 import NoticeDetailView from '@/views/notice/NoticeDetailView.vue'
 import NoticeCreateView from '@/views/notice/NoticeCreateView.vue'
@@ -117,6 +131,26 @@ const routes = [
           { path: '/all/contents/tag', component: TagModalView },
         ]
       },
+
+      //회차
+      { path: 'cycles', component: CycleManageView},
+      { path: 'cycles/:cycleId/edit', component: CycleEditPage },
+      { path: 'cycles/:cycleId',
+        name: 'CycleDetail',
+        component: CycleDetailPage},
+      { path: 'hr/cycles', component: CycleAdminManageView},
+      { path: 'hr/cycles/:cycleId', component: CycleAdminDetailPage},
+      { path: '/hr/cycles/:cycleId/edit', component: CycleAdminEditPage},
+
+      //등급
+      { path: 'grade/setting', component: CompanyGradeSettingPage},
+      { path: 'grading/list', component: DeptGradeStatusPage},
+      { path: '/hr/grading/list', component: AdminDeptGradeStatusPage },
+      { path: '/to/grading/list', component: IndividualGradePage },
+      { path: '/hr/grading/list/approve', component: IndividualGradeApprovePage },
+      { path: '/my/grading', component: MygradePage },
+      { path: '/to/grading/objection', component: AdminGradeObjectionPage},
+      { path: '/hr/objections/:objectionId', name: 'AdminGradeObjectionDetailPage',component:AdminGradeObjectionDetailPage }
     ],
   },
 ]
