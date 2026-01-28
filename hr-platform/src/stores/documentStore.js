@@ -3,8 +3,10 @@ import { defineStore } from 'pinia'
 import {
   fetchDocuments,
   previewDocumentCsv,
-  commitDocument,
+  createDocument as createDocumentApi, // Renamed for clarity
   fetchDocumentDetail,
+  updateDocument as updateDocumentApi,
+  deleteDocument as deleteDocumentApi,
 } from '@/api/documentApi'
 
 export const useDocumentStore = defineStore('document', {
@@ -25,6 +27,34 @@ export const useDocumentStore = defineStore('document', {
     async select(doc) {
       const detail = await fetchDocumentDetail(doc.id)
       this.selected = detail
+    },
+
+    setDocument(document) {
+      this.selected = document
+    },
+
+    /* =========================
+       CRUD operations
+    ========================= */
+    async createDocument(payload) {
+      await createDocumentApi(payload)
+      await this.loadDocuments() // Refresh list after creation
+    },
+
+    async updateDocument(id, payload) {
+      await updateDocumentApi(id, payload)
+      await this.loadDocuments() // Refresh list after update
+      if (this.selected && this.selected.id === id) {
+        this.selected = { ...this.selected, ...payload } // Update selected if it's the one being edited
+      }
+    },
+
+    async deleteDocument(id) {
+      await deleteDocumentApi(id)
+      await this.loadDocuments() // Refresh list after deletion
+      if (this.selected && this.selected.id === id) {
+        this.selected = null // Clear selected if it was deleted
+      }
     },
 
     /* =========================
@@ -64,13 +94,14 @@ export const useDocumentStore = defineStore('document', {
     /* =========================
        최종 등록
     ========================= */
-    async commitPreview() {
+    async commitPreview(category) {
       if (!this.preview) return
 
-      await commitDocument(this.preview)
+      this.preview.category = category // Assign category from argument
+
+      await this.createDocument(this.preview) // Use the new createDocument action
 
       // 등록 후 처리
-      await this.loadDocuments()
       this.preview = null
     }
   }

@@ -10,26 +10,31 @@
         v-for="n in store.notifications"
         :key="n.id"
         :class="{ unread: !n.read }"
+        @click="go(n)"
       >
-        <div class="content" @click="go(n)">
+        <div class="content">
           <div class="title">{{ n.title }}</div>
           <div class="msg">{{ n.message }}</div>
           <div class="time">{{ formatTime(n.createdAt) }}</div>
         </div>
 
-        <div class="actions">
+        <div class="actions" @click.stop>
           <button
             v-if="!n.read"
             class="read"
-            @click.stop="store.read(n.id)"
+            @click="store.read(n.id)"
           >
-            읽음
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+            </svg>
           </button>
           <button
             class="remove"
-            @click.stop="store.remove(n.id)"
+            @click="store.remove(n.id)"
           >
-            삭제
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.134-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.067-2.09 1.02-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+            </svg>
           </button>
         </div>
       </li>
@@ -79,6 +84,11 @@ function formatTime(iso) {
 
 <style scoped>
 .modal {
+  height: auto;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+
   position: absolute;
   right: 0;
   top: 36px;
@@ -112,7 +122,7 @@ function formatTime(iso) {
 }
 
 .list {
-  max-height: 420px;
+  flex: 1;
   overflow-y: auto;
 
   padding: 0;
@@ -122,11 +132,10 @@ function formatTime(iso) {
 
 li {
   position: relative;
-  display: flex;
-  gap: 12px;
   padding: 14px 16px;
   border-bottom: 1px solid #f1f5f9;
   background: #fff;
+  cursor: pointer;
 }
 
 /* unread 배경 레이어 */
@@ -154,7 +163,7 @@ li.unread {
 
 .content {
   flex: 1;
-  cursor: pointer;
+  padding-right: 60px; /* 아이콘 버튼 공간 확보 */
 }
 
 .title {
@@ -178,22 +187,34 @@ li.unread {
 }
 
 .actions {
+  position: absolute;
+  top: 14px;
+  right: 16px;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   gap: 6px;
-  align-items: flex-end;
+  align-items: center;
 }
 
 /* 버튼 스타일 */
 .actions button {
-  font-size: 11px;
-  padding: 4px 10px;
-  border-radius: 999px;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border-radius: 50%;
   cursor: pointer;
   border: 1px solid transparent;
   background: #f8fafc;
   color: #334155;
   transition: all .15s ease;
+}
+
+.actions button svg {
+  width: 14px;
+  height: 14px;
 }
 
 /* 읽음 버튼 */

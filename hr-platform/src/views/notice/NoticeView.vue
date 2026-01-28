@@ -78,10 +78,8 @@
 <script setup>
 import { ref } from 'vue'
 import BaseCard from '@/components/common/BaseCard.vue'
-import { useMockStore } from '@/stores/mockStore'
 import { useAuthStore } from '@/stores/authStore'
 
-const s = useMockStore()
 const auth = useAuthStore()
 
 const selected = ref(null)
@@ -97,12 +95,7 @@ function save() {
     alert('제목/내용을 입력해 주세요.')
     return
   }
-  s.createNotice({
-    title: form.value.title.trim(),
-    body: form.value.body.trim(),
-    date: new Date().toISOString().slice(0, 10),
-    author: '인사팀',
-  })
+
   form.value = { title: '', body: '' }
   showCreate.value = false
   alert('저장되었습니다. (Mock)')

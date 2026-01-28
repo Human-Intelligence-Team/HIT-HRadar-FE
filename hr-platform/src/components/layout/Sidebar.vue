@@ -1,7 +1,6 @@
 <template>
   <aside class="sidebar">
     <nav class="nav">
-
       <!-- 인사 관리 -->
       <div class="section-title">인사 관리</div>
 
@@ -70,6 +69,8 @@
           <RouterLink to="/hr/grading/list/approve" class="flyout-item">부서원 등급 부여 및 승인</RouterLink>
           <RouterLink to="/my/grading" class="flyout-item">부여된 등급 조회</RouterLink>
           <RouterLink to="/to/grading/objection" class="flyout-item">이의 제기 관리</RouterLink>
+          <!--          <RouterLink to="/dashboard" class="flyout-item">대시보드</RouterLink>
+          <RouterLink to="/report" class="flyout-item">리포트</RouterLink>-->
         </div>
       </div>
 
@@ -80,7 +81,10 @@
         </div>
         <div class="flyout">
           <RouterLink to="/dashboard" class="flyout-item">대시보드</RouterLink>
-          <RouterLink to="/report" class="flyout-item">리포트</RouterLink>
+          <RouterLink to="/all/competency/report" class="flyout-item">리포트(인사팀)</RouterLink>
+          <RouterLink to="/dept/competency/report" class="flyout-item">리포트(팀장)</RouterLink>
+          <RouterLink to="/me/competency/report" class="flyout-item">리포트(개인)</RouterLink>
+          <RouterLink to="/all/contents" class="flyout-item">학습컨텐츠 관리</RouterLink>
         </div>
       </div>
 
@@ -97,6 +101,21 @@
         </div>
       </div>
 
+      <!-- 연봉 관리 -->
+      <div class="section-title">연봉 관리</div>
+
+      <div class="nav-group has-flyout">
+
+        <div class="nav-item">
+          <span>연봉관리</span>
+          <span class="arrow">›</span>
+        </div>
+        <div class="flyout">
+          <RouterLink to="/all/salary/basic" class="flyout-item">기본급관리(인사팀)</RouterLink>
+          <RouterLink to="/me/salary/basic" class="flyout-item">기본급관리(본인)</RouterLink>
+          <RouterLink to="/all/salary/compensation" class="flyout-item">변동보상관리</RouterLink>
+        </div>
+      </div>
       <!-- 챗봇 관리 -->
       <div class="section-title">챗봇 관리</div>
 
@@ -107,15 +126,6 @@
         active-class="active"
       >
         제도 · 규정
-      </RouterLink>
-
-      <RouterLink
-        v-if="can('FAQ_MANAGE')"
-        to="/faq"
-        class="nav-item link"
-        active-class="active"
-      >
-        FAQ
       </RouterLink>
 
       <!-- 기타 -->
@@ -138,7 +148,6 @@
       >
         알림 관리
       </RouterLink>
-
     </nav>
   </aside>
 </template>
@@ -150,8 +159,8 @@ const auth = useAuthStore()
 
 const can = (perm) => {
   const permissions = {
-    USER: ['POLICY_READ', 'FAQ_MANAGE', 'NOTICE_READ', 'ALERT_MANAGE'],
-    ADMIN: ['POLICY_READ', 'FAQ_MANAGE', 'NOTICE_READ', 'ALERT_MANAGE'],
+    USER: ['POLICY_READ', 'NOTICE_READ', 'ALERT_MANAGE'],
+    ADMIN: ['POLICY_READ', 'NOTICE_READ', 'ALERT_MANAGE'],
   }
   return permissions[auth.user.role]?.includes(perm) ?? false
 }
@@ -164,7 +173,11 @@ const can = (perm) => {
   background: #ffffff;
   border-right: 1px solid #e6e8ec;
   padding: 14px 10px;
-  font-family: Pretendard, -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family:
+    Pretendard,
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
 }
 
 /* ===== Layout ===== */
@@ -198,7 +211,9 @@ const can = (perm) => {
   justify-content: space-between;
   align-items: center;
   cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
 }
 
 .nav-item:hover {
@@ -237,7 +252,9 @@ const can = (perm) => {
   color: #2f343d;
   text-decoration: none;
   display: block;
-  transition: background 0.15s ease, color 0.15s ease;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
 }
 
 .flyout-item:hover {
