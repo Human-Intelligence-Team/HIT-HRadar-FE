@@ -502,15 +502,15 @@ function commit() {
 .category-selection {
   display: flex;
   align-items: center;
-  gap: 10px;
 }
 
 .category-selection .label {
   font-weight: 600;
   font-size: 0.85em;
   writing-mode: horizontal-tb;
-  min-width: 100px; /* Increased min-width for the label */
+  min-width: 85px; /* Increased min-width for the label */
   flex-shrink: 0;
+  margin : 0;
 }
 
 .radio-group {
