@@ -51,8 +51,8 @@
           <span class="arrow">›</span>
         </div>
         <div class="flyout">
-          <RouterLink to="/review/self" class="flyout-item">자기 평가</RouterLink>
-          <RouterLink to="/review/peer" class="flyout-item">동료 평가</RouterLink>
+          <RouterLink to="/cycles" class="flyout-item">회차 등록/조회</RouterLink>
+          <RouterLink to="/hr/cycles" class="flyout-item">회차 등록/조회</RouterLink>
         </div>
       </div>
 
@@ -62,6 +62,13 @@
           <span class="arrow">›</span>
         </div>
         <div class="flyout">
+          <RouterLink to="/grade/setting" class="flyout-item">등급 설정</RouterLink>
+          <RouterLink to="/grading/list" class="flyout-item"> 부서 등급 부여 현황</RouterLink>
+          <RouterLink to="/hr/grading/list" class="flyout-item">부서 등급 부여 현황(승인)</RouterLink>
+          <RouterLink to="/to/grading/list" class="flyout-item">부서원 등급 부여</RouterLink>
+          <RouterLink to="/hr/grading/list/approve" class="flyout-item">부서원 등급 부여 및 승인</RouterLink>
+          <RouterLink to="/my/grading" class="flyout-item">부여된 등급 조회</RouterLink>
+          <RouterLink to="/to/grading/objection" class="flyout-item">이의 제기 관리</RouterLink>
           <!--          <RouterLink to="/dashboard" class="flyout-item">대시보드</RouterLink>
           <RouterLink to="/report" class="flyout-item">리포트</RouterLink>-->
         </div>
