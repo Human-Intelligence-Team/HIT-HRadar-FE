@@ -52,3 +52,14 @@ export const fetchMyIndividualGrade = (cycleId) => {
     },
   })
 }
+
+// 이의제기 승인 + 등급 수정
+export const approveIndividualGradeByObjection = (individualGradeId, data) => {
+  return axios.post(
+    `/api/v1/individual-grades/${individualGradeId}/approve-by-objection`,
+    {
+      gradeId: data.gradeId,
+      gradeReason: data.gradeReason,
+    }
+  )
+}

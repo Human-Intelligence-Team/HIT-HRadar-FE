@@ -1,6 +1,5 @@
 <template>
   <section class="page">
-    <!-- ===== Header ===== -->
     <div class="header">
       <h2 class="title">이의제기 관리</h2>
       <p class="sub">
@@ -8,7 +7,6 @@
       </p>
     </div>
 
-    <!-- ===== Cycle Select ===== -->
     <div class="card">
       <h4 class="card-title">평가 회차 선택</h4>
       <select v-model="selectedCycleId" @change="loadAllData">
@@ -23,7 +21,6 @@
       </select>
     </div>
 
-    <!-- ===== Objection List ===== -->
     <div class="card" v-if="selectedCycleId">
       <h4 class="card-title">이의제기 목록</h4>
 
@@ -46,18 +43,15 @@
           v-for="obj in objections"
           :key="obj.objectionId"
           class="row-click"
-          @click="goDetail(obj)"
+          @click="goDetail(obj.objectionId)"
         >
           <td>{{ obj.objectionId }}</td>
           <td>{{ obj.employeeName }}</td>
-
           <td>
             <span class="grade-badge">{{ obj.gradeName }}</span>
           </td>
-
           <td class="reason">{{ obj.gradeReason }}</td>
           <td class="reason">{{ obj.objectionReason }}</td>
-
           <td>
             <span
               class="status"
@@ -66,21 +60,18 @@
               {{ statusText(obj.objectionStatus) }}
             </span>
           </td>
-
           <td>
             <span v-if="obj.objectionResult">{{ obj.objectionResult }}</span>
             <span v-else class="muted">-</span>
           </td>
-
           <td class="actions">
             <template v-if="obj.objectionStatus === 'REVIEWING'">
               <button
                 class="btn approve"
-                @click.stop="openAssignModal(obj)"
+                @click.stop="openApproveModal(obj)"
               >
                 승인
               </button>
-
               <button
                 class="btn reject"
                 @click.stop="openRejectModal(obj)"
@@ -88,7 +79,6 @@
                 반려
               </button>
             </template>
-
             <span v-else class="muted">처리 완료</span>
           </td>
         </tr>
@@ -103,17 +93,14 @@
     </div>
   </section>
 
-  <!-- ===== 반려 Modal ===== -->
   <div v-if="showRejectModal" class="modal-backdrop">
     <div class="modal">
       <h4 class="modal-title">이의제기 반려</h4>
-
       <textarea
         v-model="rejectReason"
         class="textarea"
         placeholder="반려 사유를 입력하세요"
       />
-
       <div class="modal-actions">
         <button class="btn ghost" @click="closeRejectModal">취소</button>
         <button class="btn primary" @click="submitReject">반려 처리</button>
@@ -121,69 +108,78 @@
     </div>
   </div>
 
-  <!-- ===== 승인(등급 재부여) Modal ===== -->
-  <IndividualGradeAssignModal
-    v-if="showAssignModal"
+  <GradeObjectionApproveModal
+    v-if="showApproveModal"
     :employee="selectedEmployee"
     :grades="grades"
     :rules="gradeRules"
     :employees="employees"
-    @submitted="handleApproveSubmit"
-    @close="showAssignModal = false"
+    @submit="handleApproveSubmit"
+    @close="showApproveModal = false"
   />
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
 
-import IndividualGradeAssignModal from '@/views/grading/IndividualGradeAssignModal.vue'
+import GradeObjectionApproveModal from '@/views/grading/GradeObjectionApproveModal.vue'
 
-import { fetchCycles } from '@/api/cycleApi.js'
+import { fetchCycles } from '@/api/cycleApi'
 import {
   fetchGradeObjectionsByDepartment,
   acceptGradeObjection,
   rejectGradeObjection,
-} from '@/api/gradeObjectionApi.js'
-import { fetchEmployeeGradeStatusList } from '@/api/individualGradeApi.js'
-import { updateIndividualGrade } from '@/api/individualGradeApi.js'
+} from '@/api/gradeObjectionApi'
+import {
+  fetchEmployeeGradeStatusList,
+  approveIndividualGradeByObjection,
+} from '@/api/individualGradeApi'
 import { fetchCompanyGrades } from '@/api/gradeApi'
 import { fetchDistributionPolicies } from '@/api/teamGradeDistributionPolicyApi'
 import { fetchMyDeptGrade } from '@/api/DeptGradeApi'
 
-/* ================= 상태 ================= */
+import { useRouter } from 'vue-router'
+const router = useRouter()
+const goDetail = (objectionId) => {
+  router.push(`/hr/objections/${objectionId}`)
+}
 const cycles = ref([])
 const selectedCycleId = ref('')
 const objections = ref([])
+const employees = ref([])
 const gradeMap = ref(new Map())
 
-const router = useRouter()
-
-/* ===== 반려 ===== */
-const showRejectModal = ref(false)
-const rejectReason = ref('')
+const showApproveModal = ref(false)
+const selectedEmployee = ref(null)
 const selectedObjection = ref(null)
 
-/* ===== 승인 ===== */
-const showAssignModal = ref(false)
-const selectedEmployee = ref(null)
+const showRejectModal = ref(false)
+const rejectReason = ref('')
 
 const grades = ref([])
 const gradeRules = ref([])
 const teamGradeId = ref(null)
-const employees = ref([])
-const loadCompanyGrades = async () => {
-  const res = await fetchCompanyGrades()
+
+const loadCycles = async () => {
+  const res = await fetchCycles()
   const list = res.data.data ?? res.data
 
-  grades.value = list
-    .sort((a, b) => a.gradeOrder - b.gradeOrder)
-    .map(g => ({
-      gradeId: g.gradeId,
-      gradeName: g.gradeName,
-    }))
+  cycles.value = list
+
+  if (list.length > 0) {
+    selectedCycleId.value = list[list.length - 1].cycleId
+    await loadAllData()
+  }
 }
-const loadMyDeptGradeAndRules = async () => {
+
+const loadCompanyGrades = async () => {
+  const res = await fetchCompanyGrades()
+  grades.value = (res.data.data ?? res.data)
+    .sort((a, b) => a.gradeOrder - b.gradeOrder)
+    .map(g => ({ gradeId: g.gradeId, gradeName: g.gradeName }))
+}
+
+const loadDeptGradeRules = async () => {
   const deptRes = await fetchMyDeptGrade()
   teamGradeId.value = deptRes.data.data.gradeId
 
@@ -195,26 +191,17 @@ const loadMyDeptGradeAndRules = async () => {
     return {
       gradeId: g.gradeId,
       gradeName: g.gradeName,
-      minRatio: p?.minRatio ?? null,
       maxRatio: p?.maxRatio ?? null,
     }
   })
 }
 
-/* ================= 로딩 ================= */
-const loadCycles = async () => {
-  const res = await fetchCycles()
-  cycles.value = res.data.data ?? res.data
-}
-
-const loadIndividualGrades = async () => {
+const loadEmployees = async () => {
   const res = await fetchEmployeeGradeStatusList(selectedCycleId.value)
-  const list = res.data.data ?? res.data
+  employees.value = res.data.data ?? res.data
 
   gradeMap.value.clear()
-  employees.value = list
-
-  list.forEach(e => {
+  employees.value.forEach(e => {
     if (e.individualGradeId) {
       gradeMap.value.set(e.individualGradeId, e)
     }
@@ -238,12 +225,11 @@ const loadObjections = async () => {
 
 const loadAllData = async () => {
   if (!selectedCycleId.value) return
-  await loadIndividualGrades()
+  await loadEmployees()
   await loadObjections()
 }
 
-/* ================= Actions ================= */
-const openAssignModal = (obj) => {
+const openApproveModal = (obj) => {
   selectedObjection.value = obj
   selectedEmployee.value = {
     empId: obj.employeeId,
@@ -252,28 +238,32 @@ const openAssignModal = (obj) => {
     gradeReason: obj.gradeReason,
     individualGradeId: obj.individualGradeId,
   }
-  showAssignModal.value = true
+  showApproveModal.value = true
 }
 
-const handleApproveSubmit = async ({ empId, gradeId, gradeReason }) => {
-  await updateIndividualGrade({
-    empId,
-    gradeId,
-    gradeReason,
-    cycleId: selectedCycleId.value,
-  })
+const handleApproveSubmit = async ({ gradeId, gradeReason }) => {
+  try {
+    const individualGradeId = selectedEmployee.value.individualGradeId
 
-  await acceptGradeObjection(
-    selectedObjection.value.objectionId,
-    gradeReason
-  )
+    await approveIndividualGradeByObjection(
+      individualGradeId,
+      { gradeId, gradeReason }
+    )
 
-  alert('이의제기가 승인되고 등급이 변경되었습니다.')
-  showAssignModal.value = false
-  await loadObjections()
+    await acceptGradeObjection(
+      selectedObjection.value.objectionId,
+      gradeReason
+    )
+
+    alert('이의제기가 승인되고 등급이 변경되었습니다.')
+    showApproveModal.value = false
+    await loadAllData()
+  } catch (e) {
+    console.error(e)
+    alert('처리 중 오류가 발생했습니다.')
+  }
 }
 
-/* ===== 반려 ===== */
 const openRejectModal = (obj) => {
   selectedObjection.value = obj
   rejectReason.value = ''
@@ -300,26 +290,17 @@ const submitReject = async () => {
   await loadObjections()
 }
 
-/* ================= Utils ================= */
-const statusText = (status) => ({
+const statusText = (s) => ({
   REVIEWING: '검토 중',
   ACCEPTED: '승인됨',
   REJECTED: '반려됨',
-}[status] ?? status)
-
-const goDetail = (obj) => {
-  router.push({
-    name: 'AdminGradeObjectionDetailPage',
-    params: { objectionId: obj.objectionId },
-  })
-}
+}[s] ?? s)
 
 onMounted(async () => {
   await loadCycles()
   await loadCompanyGrades()
-  await loadMyDeptGradeAndRules()
+  await loadDeptGradeRules()
 })
-
 </script>
 
 

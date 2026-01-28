@@ -2,11 +2,17 @@
   <section class="page"  v-if="detail">
     <!-- ===== Header ===== -->
     <div class="header">
+      <button class="btn-back" @click="goBack">
+        ← 뒤로가기
+      </button>
+
       <h2 class="title">이의제기 상세</h2>
+
       <p class="sub">
         사원 개인 등급 이의제기 상세 내용 및 처리 화면입니다.
       </p>
     </div>
+
 
     <!-- ===== Basic Info ===== -->
     <div class="card">
@@ -64,25 +70,7 @@
       </p>
     </div>
 
-    <!-- ===== Actions ===== -->
-    <div
-      v-if="detail.objectionStatus === 'REVIEWING'"
-      class="action-bar"
-    >
-      <button
-        class="btn approve"
-        @click="openResolveModal('ACCEPT')"
-      >
-        승인
-      </button>
 
-      <button
-        class="btn reject"
-        @click="openResolveModal('REJECT')"
-      >
-        반려
-      </button>
-    </div>
   </section>
 
   <!-- ===== Resolve Modal ===== -->
@@ -166,13 +154,6 @@ const loadDetail = async () => {
   }
 }
 
-// 모달 제어
-const openResolveModal = (type) => {
-  resolveType.value = type
-  resolveResult.value = ''
-  showResolveModal.value = true
-}
-
 const closeResolveModal = () => {
   showResolveModal.value = false
 }
@@ -196,6 +177,11 @@ const submitResolve = async () => {
 
 // Lifecycle
 onMounted(loadDetail)
+
+//뒤로가기
+const goBack = () => {
+  router.back()
+}
 </script>
 
 
@@ -205,11 +191,8 @@ onMounted(loadDetail)
   padding: 24px;
 }
 
+
 /* ===== Header ===== */
-.header {
-  border-radius: 18px;
-  margin-bottom: 20px;
-}
 
 .title {
   font-size: 20px;
@@ -356,4 +339,43 @@ onMounted(loadDetail)
   border: 1px solid #e5e7eb;
   padding: 10px;
 }
+
+.header {
+  display: flex;
+  border-radius: 18px;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+
+/* 뒤로가기 */
+.btn-back {
+  border: none;
+  background: none;
+  color: #4f46e5;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 10px;   /* ← 제목과 간격 */
+}
+
+.btn-back:hover {
+  text-decoration: underline;
+}
+
+/* 제목 */
+.title {
+  font-size: 20px;
+  font-weight: 800;
+  margin: 0;
+}
+
+/* 설명 */
+.sub {
+  margin-top: 6px;
+  font-size: 13px;
+  color: #6b7280;
+}
+
+
 </style>
