@@ -1,15 +1,11 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
-
 import PolicyView from '@/views/policy/PolicyView.vue'
 import FaqView from '@/views/faq/FaqView.vue'
 import NoticeView from '@/views/notice/NoticeView.vue'
 import AlertView from '@/views/alert/AlertView.vue'
-
 import AppLayout from '@/components/layout/AppLayout.vue'
 import AuthLayout from '@/components/layout/AuthLayout.vue'
-import LoginView from '@/views/auth/LoginView.vue'
-
 import TagView from '@/views/contents/tag/TagView.vue'
 import ContentsView from '@/views/contents/content/ContentsView.vue'
 import SalaryDashboardView from '@/views/salary/SalaryDashboardView.vue'
@@ -44,17 +40,18 @@ import HRGoalDashboard from '@/views/goal/HRGoalDashboard.vue'
 import GoalDetailView from '@/views/goal/GoalDetailView.vue'
 import TeamOwnerGoalListView from '@/views/goal/TeamOwnerGoalListView.vue'
 import GoalCreateView from '@/views/goal/GoalCreateView.vue'
+import HomeView from '@/views/auth/HomeView.vue'
 
 const routes = [
-  {
-    path: '/login',
-    component: AuthLayout,
-    children: [{ path: '', component: LoginView }],
-  },
+
 
   {
-    path: '/',
-    component: AppLayout,
+    path: '/home',
+    component: AuthLayout,
+    children: [{ path: '', component: HomeView }],
+  },
+
+  { path: '/', component: AppLayout,
     children: [
       { path: '', redirect: '/policy' },
       { path: 'policy', component: PolicyView },
@@ -120,14 +117,22 @@ const router = createRouter({
 router.beforeEach((to) => {
   const auth = useAuthStore()
 
+  const publicPaths = ['/home']
+  const isPublic = publicPaths.includes(to.path)
+
   // 로그인 안 했는데 보호 페이지 접근
-  if (!auth.isLoggedIn && to.path !== '/login') {
-    return '/login'
+  if (!auth.isLoggedIn && !isPublic) {
+    return { path: '/home', query: { redirect: to.fullPath } }
   }
 
-  // 로그인 했는데 로그인 페이지 접근
-  if (auth.isLoggedIn && to.path === '/login') {
-    return auth.firstAccessiblePath() || '/'
+  // 로그인 했는데 /home 접근하면 첫 접근 가능 페이지로 보냄
+  if (auth.isLoggedIn && isPublic) {
+    const next = auth.firstAccessiblePath?.()
+    // next가 '/', '/home', '' 같은 값이면 루프 나기 쉬우니 안전값 강제
+    const safeNext =
+      next && next !== '/' && next !== '/home' ? next : '/policy'
+
+    return safeNext
   }
 })
 
