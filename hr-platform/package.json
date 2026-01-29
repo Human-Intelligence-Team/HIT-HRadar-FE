@@ -15,12 +15,16 @@
     "format": "prettier --write --experimental-cli src/"
   },
   "dependencies": {
+    "@fullcalendar/bootstrap5": "^6.1.20",
+    "@fullcalendar/daygrid": "^6.1.20",
+    "@fullcalendar/interaction": "^6.1.20",
+    "@fullcalendar/vue3": "^6.1.20",
     "axios": "^1.13.2",
-    "pinia": "^3.0.4",
+    "event-source-polyfill": "^1.0.31",
     "jwt-decode": "^4.0.0",
+    "pinia": "^3.0.4",
     "vue": "^3.5.26",
-    "vue-router": "^4.6.4",
-    "event-source-polyfill": "^1.0.31"
+    "vue-router": "^4.6.4"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",

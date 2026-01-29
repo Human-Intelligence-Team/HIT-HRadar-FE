@@ -63,6 +63,12 @@ import ApprovalRejectedListView from '@/views/approval/ApprovalRejectedListView.
 import ApprovalAllListView from '@/views/approval/ApprovalAllListView.vue'
 import ApprovalCreateView from '@/views/approval/ApprovalCreateView.vue'
 import ApprovalAdminView from '@/views/approval/ApprovalAdminView.vue'
+import AttendanceIpPolicyView from '@/views/attendance/AttendanceIpPolicyView.vue'
+import AttendanceCommuteView from '@/views/attendance/AttendanceCommuteView.vue'
+import AttendanceDepartmentView from '@/views/attendance/AttendanceDepartmentView.vue'
+import MyAttendanceCalendarView from '@/views/attendance/MyAttendanceCalendarView.vue'
+import DepartmentAttendanceCalendarView from '@/views/attendance/DepartmentAttendanceCalendarView.vue'
+import AttendanceEmployeeDetailView from '@/views/attendance/AttendanceEmployeeDetailView.vue'
 
 const routes = [
 
@@ -177,6 +183,22 @@ const routes = [
         ],
       },
 
+      { path: '/to/grading/objection', component: AdminGradeObjectionPage },
+      { path: '/hr/objections/:objectionId', name: 'AdminGradeObjectionDetailPage', component: AdminGradeObjectionDetailPage },
+
+      // 근태 관리
+      {
+        path: 'attendance',
+        redirect: '/attendance/commute', // 기본적으로 사원 출퇴근 관리 페이지로 리디렉션
+        children: [
+          { path: 'commute', component: AttendanceCommuteView }, // 사원 출퇴근 관리
+          { path: 'ip-policy', component: AttendanceIpPolicyView, meta: { requiresAdmin: true } }, // 인사팀 IP 정책 관리
+          { path: 'department', component: AttendanceDepartmentView, meta: { requiresAdmin: true } }, // 인사팀 부서 출퇴근 관리
+          { path: 'my-calendar', component: MyAttendanceCalendarView }, // 나의 근태 캘린더
+          { path: 'department-calendar', component: DepartmentAttendanceCalendarView, meta: { requiresAdmin: true } }, // 부서별 근태 캘린더 (인사팀)
+          { path: 'employee-detail/:employeeId/:workDate', name: 'AttendanceEmployeeDetail', component: AttendanceEmployeeDetailView, props: true }, // 사원 근태 상세 조회
+        ],
+      },
     ],
   },
 ]
