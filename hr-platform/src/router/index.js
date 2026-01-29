@@ -2,8 +2,6 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
 import PolicyView from '@/views/policy/PolicyView.vue'
 import NoticeView from '@/views/notice/NoticeView.vue'
-
-import AlertView from '@/views/alert/AlertView.vue'
 import AppLayout from '@/components/layout/AppLayout.vue'
 import AuthLayout from '@/components/layout/AuthLayout.vue'
 import TagView from '@/views/contents/tag/TagView.vue'
@@ -69,7 +67,8 @@ const routes = [
     children: [{ path: '', component: HomeView }],
   },
 
-  { path: '/', component: AppLayout,
+  {
+    path: '/', component: AppLayout,
     children: [
       { path: '', redirect: '/policy' },
       { path: 'policy', component: PolicyView },
@@ -87,10 +86,11 @@ const routes = [
       //성과평가-목표관리
       { path: 'goal', component: GoalListView },
       { path: 'hr/goals', component: HRGoalDashboard },
-      { path: 'goal/:goalId', component: GoalDetailView},
-      { path:'to/goals',component: TeamOwnerGoalListView},
-      { path: '/goal/create', component: GoalCreateView},
-      { path: 'report', component: CompetencyReportView ,
+      { path: 'goal/:goalId', component: GoalDetailView },
+      { path: 'to/goals', component: TeamOwnerGoalListView },
+      { path: '/goal/create', component: GoalCreateView },
+      {
+        path: 'report', component: CompetencyReportView,
         children: [
           { path: '/all/competency/report', component: CompetencyReportAllListView },
           { path: '/all/competency/report/create', component: CompetencyReportAllCreateView },
@@ -101,7 +101,8 @@ const routes = [
         ]
       },
       { path: 'salary/dashboard', component: SalaryDashboardView },
-      { path: 'salary/basic', component: BasicSalaryView,
+      {
+        path: 'salary/basic', component: BasicSalaryView,
         children: [
           { path: '/all/salary/basic', component: BasicSalaryAllListView },
           { path: '/all/salary/basic/employee/:year', component: BasicSalaryEmployeeListView },
@@ -111,45 +112,51 @@ const routes = [
           { path: '/me/salary/history/:basicId', component: SalaryEmployeeHistoryView },
         ]
       },
-      { path: 'salary/compensation', component: CompensationSalaryView ,
+      {
+        path: 'salary/compensation', component: CompensationSalaryView,
         children: [
           { path: '/all/salary/compensation', component: CompensationSalaryAllListView },
           { path: '/all/salary/compensation/create', component: CompensationSalaryCreateView },
           { path: '/all/salary/compensation/detail/:compensationId', component: CompensationSalaryDetailView },
         ]
       },
-      { path: 'contents', component: ContentsView ,
+      {
+        path: 'contents', component: ContentsView,
         children: [
           { path: '/all/contents', component: ContentsListView },
           { path: '/all/contents/create', component: ContentsCreateView },
           { path: '/all/contents/update/:contentId', component: ContentsCreateView },
-          {path: '/all/contents/detail/:contentId', component: ContentsDetailView, props: true}
-        ]},
-      { path: 'contents/tag', component: TagView
+          { path: '/all/contents/detail/:contentId', component: ContentsDetailView, props: true }
+        ]
+      },
+      {
+        path: 'contents/tag', component: TagView
         , children: [
           { path: '/all/contents/tag', component: TagModalView },
         ]
       },
 
       //회차
-      { path: 'cycles', component: CycleManageView},
+      { path: 'cycles', component: CycleManageView },
       { path: 'cycles/:cycleId/edit', component: CycleEditPage },
-      { path: 'cycles/:cycleId',
+      {
+        path: 'cycles/:cycleId',
         name: 'CycleDetail',
-        component: CycleDetailPage},
-      { path: 'hr/cycles', component: CycleAdminManageView},
-      { path: 'hr/cycles/:cycleId', component: CycleAdminDetailPage},
-      { path: '/hr/cycles/:cycleId/edit', component: CycleAdminEditPage},
+        component: CycleDetailPage
+      },
+      { path: 'hr/cycles', component: CycleAdminManageView },
+      { path: 'hr/cycles/:cycleId', component: CycleAdminDetailPage },
+      { path: '/hr/cycles/:cycleId/edit', component: CycleAdminEditPage },
 
       //등급
-      { path: 'grade/setting', component: CompanyGradeSettingPage},
-      { path: 'grading/list', component: DeptGradeStatusPage},
+      { path: 'grade/setting', component: CompanyGradeSettingPage },
+      { path: 'grading/list', component: DeptGradeStatusPage },
       { path: '/hr/grading/list', component: AdminDeptGradeStatusPage },
       { path: '/to/grading/list', component: IndividualGradePage },
       { path: '/hr/grading/list/approve', component: IndividualGradeApprovePage },
       { path: '/my/grading', component: MygradePage },
-      { path: '/to/grading/objection', component: AdminGradeObjectionPage},
-      { path: '/hr/objections/:objectionId', name: 'AdminGradeObjectionDetailPage',component:AdminGradeObjectionDetailPage }
+      { path: '/to/grading/objection', component: AdminGradeObjectionPage },
+      { path: '/hr/objections/:objectionId', name: 'AdminGradeObjectionDetailPage', component: AdminGradeObjectionDetailPage }
     ],
   },
 ]
@@ -174,10 +181,7 @@ router.beforeEach((to) => {
   if (auth.isLoggedIn && isPublic) {
     const next = auth.firstAccessiblePath?.()
     // next가 '/', '/home', '' 같은 값이면 루프 나기 쉬우니 안전값 강제
-    const safeNext =
-      next && next !== '/' && next !== '/home' ? next : '/policy'
-
-    return safeNext
+    return next && next !== '/' && next !== '/home' ? next : '/policy'
   }
 })
 

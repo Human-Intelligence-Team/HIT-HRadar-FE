@@ -3,11 +3,11 @@
 </template>
 
 <script setup>
-import { onMounted, watch } from 'vue'
+import { watch } from 'vue'
 import { connectSSE, disconnectSSE } from '@/api/notificationSse.js'
 import { useNotificationStore } from '@/stores/notificationStore.js'
 import { useAuthStore } from '@/stores/authStore.js'
-import router from '@/router/index.js'
+
 
 const notificationStore = useNotificationStore()
 const auth = useAuthStore()
@@ -30,11 +30,11 @@ watch(
   () => auth.isLoggedIn,
   async (loggedIn) => {
     if (loggedIn) {
-      await notificationStore.load()
+        await notificationStore.load()
 
-      connectSSE((data) => {
-        notificationStore.push(data)
-      })
+        connectSSE((data) => {
+          notificationStore.push(data)
+        })
     } else {
       disconnectSSE()
     }
