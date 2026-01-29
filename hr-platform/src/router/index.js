@@ -57,6 +57,12 @@ import NoticeDetailView from '@/views/notice/NoticeDetailView.vue'
 import NoticeCreateView from '@/views/notice/NoticeCreateView.vue'
 import NoticeEditView from '@/views/notice/NoticeEditView.vue'
 import HomeView from '@/views/auth/HomeView.vue'
+import ApprovalMyListView from '@/views/approval/ApprovalMyListView.vue'
+import ApprovalInboxListView from '@/views/approval/ApprovalInboxListView.vue'
+import ApprovalRejectedListView from '@/views/approval/ApprovalRejectedListView.vue'
+import ApprovalAllListView from '@/views/approval/ApprovalAllListView.vue'
+import ApprovalCreateView from '@/views/approval/ApprovalCreateView.vue'
+import ApprovalAdminView from '@/views/approval/ApprovalAdminView.vue'
 
 const routes = [
 
@@ -155,8 +161,22 @@ const routes = [
       { path: '/to/grading/list', component: IndividualGradePage },
       { path: '/hr/grading/list/approve', component: IndividualGradeApprovePage },
       { path: '/my/grading', component: MygradePage },
-      { path: '/to/grading/objection', component: AdminGradeObjectionPage },
-      { path: '/hr/objections/:objectionId', name: 'AdminGradeObjectionDetailPage', component: AdminGradeObjectionDetailPage }
+      { path: '/to/grading/objection', component: AdminGradeObjectionPage},
+      { path: '/hr/objections/:objectionId', name: 'AdminGradeObjectionDetailPage',component:AdminGradeObjectionDetailPage },
+
+
+      {
+        path: 'approval',
+        children: [
+          { path: 'my', component: ApprovalMyListView },          // 내 문서함
+          { path: 'inbox', component: ApprovalInboxListView },    // 결재 문서함
+          { path: 'rejected', component: ApprovalRejectedListView }, // 반려 문서함
+          { path: 'all', component: ApprovalAllListView },
+          { path: 'create', component: ApprovalCreateView },     // 전체 문서함(인사팀)
+          { path: 'admin', component: ApprovalAdminView, meta: { requiresAdmin: true } }, // 결재 관리(인사팀)
+        ],
+      },
+
     ],
   },
 ]
@@ -177,6 +197,16 @@ router.beforeEach((to) => {
     return { path: '/home', query: { redirect: to.fullPath } }
   }
 
+  // 로그인 했는데, 관리자 페이지에 권한 없이 접근
+  if (to.meta.requiresAdmin && !auth.isAdmin) {
+    alert('접근 권한이 없습니다.');
+    return '/notice'; // 혹은 권한 없음 페이지로
+  }
+
+  // 로그인 했는데 로그인 페이지 접근
+  if (auth.isLoggedIn && to.path === '/login') {
+    return auth.firstAccessiblePath() || '/'
+  }
   // 로그인 했는데 /home 접근하면 첫 접근 가능 페이지로 보냄
   if (auth.isLoggedIn && isPublic) {
     const next = auth.firstAccessiblePath?.()
