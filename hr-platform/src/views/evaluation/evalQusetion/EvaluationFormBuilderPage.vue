@@ -56,8 +56,8 @@
     <!-- ===== Form Builder ===== -->
     <section
       v-else-if="canCreateForm"
-      v-for="(section, sIdx) in sections"
-      :key="section.id"
+      v-for="(section, sIdx) in sections.filter(s => !s.isDeleted)"
+      :key="section.id ?? sIdx"
       class="form-section"
     >
     <div class="section-header">
@@ -74,8 +74,8 @@
       </div>
       <!-- 질문 -->
       <div
-        v-for="(q, qIdx) in section.questions"
-        :key="q.id"
+        v-for="(q, qIdx) in section.questions.filter(q => !q.isDeleted)"
+        :key="q.id ?? qIdx"
         class="question-card"
       >
         <div class="question-head">
@@ -192,12 +192,21 @@ import { fetchCycleEvaluationTypes } from '@/api/cycleEvaluationTypeApi'
 // evaluation sheet query api
 import { fetchEvaluationSheet } from '@/api/evaluationSheetApi'
 
-// evaluation section command api
-import { createEvaluationSection } from '@/api/evaluationSectionApi'
+// section api
+import {
+  createEvaluationSection,
+  updateEvaluationSection,
+  deleteEvaluationSection,
+} from '@/api/evaluationSectionApi'
 
-/* =====================
-   state
-===================== */
+// question api
+import {
+  createEvaluationQuestion,
+  updateEvaluationQuestion,
+  deleteEvaluationQuestion,
+} from '@/api/evaluationQuestionApi'
+
+/* state */
 
 const cycles = ref([])
 const evalTypes = ref([])
@@ -205,45 +214,26 @@ const evalTypes = ref([])
 const selectedCycleId = ref('')
 const selectedEvalTypeId = ref('')
 
-const sections = ref([
-  {
-    id: Date.now(),
-    title: '',
-    description: '',
-    questions: [],
-  },
-])
+const sections = ref([])
 
-/* =====================
-   computed
-===================== */
+/* computed */
 
 const selectedCycle = computed(() => {
-  return cycles.value.find(
-    c => c.cycleId === selectedCycleId.value
-  )
+  return cycles.value.find(c => c.cycleId === selectedCycleId.value)
 })
 
 const canCreateForm = computed(() => {
   return selectedCycle.value?.status === 'DRAFT'
 })
 
-// evalTypeId is used as cycleEvalTypeId
-const cycleEvalTypeId = computed(() => {
-  return selectedEvalTypeId.value
-})
+const cycleEvalTypeId = computed(() => selectedEvalTypeId.value)
 
-/* =====================
-   load
-===================== */
+/* load */
 
 const loadCycles = async () => {
   const res = await fetchCycles()
   const body = res.data
-
-  cycles.value = Array.isArray(body)
-    ? body
-    : body?.data ?? []
+  cycles.value = Array.isArray(body) ? body : body?.data ?? []
 }
 
 const loadEvalTypesByCycle = async (cycleId) => {
@@ -255,49 +245,39 @@ const loadEvalTypesByCycle = async (cycleId) => {
 
   const res = await fetchCycleEvaluationTypes(cycleId)
   const body = res.data
-
-  evalTypes.value = Array.isArray(body)
-    ? body
-    : body?.data ?? []
-
+  evalTypes.value = Array.isArray(body) ? body : body?.data ?? []
   selectedEvalTypeId.value = ''
 }
 
-/* =====================
-   evaluation sheet load
-===================== */
+/* mapping */
 
-const mapQuestionType = (type) => {
-  switch (type) {
-    case 'OBJECTIVE':
-      return 'CHOICE'
-    case 'SUBJECTIVE':
-      return 'TEXT'
-    case 'SCORE':
-      return 'SCORE'
-    default:
-      return 'CHOICE'
-  }
+const mapQuestionTypeFromBE = (type) => {
+  if (type === 'OBJECTIVE') return 'CHOICE'
+  if (type === 'SUBJECTIVE') return 'TEXT'
+  if (type === 'RATING') return 'SCORE'
+  return 'CHOICE'
 }
 
-const mapRequired = (status) => status === 'REQUIRED'
+const mapQuestionTypeToBE = (type) => {
+  if (type === 'CHOICE') return 'OBJECTIVE'
+  if (type === 'TEXT') return 'SUBJECTIVE'
+  if (type === 'SCORE') return 'RATING'
+  return 'OBJECTIVE'
+}
+
+const mapRequiredFromBE = (status) => status === 'REQUIRED'
+const mapRequiredToBE = (required) => required ? 'REQUIRED' : 'OPTIONAL'
+
+/* evaluation sheet load */
 
 const loadEvaluationSheet = async (cycleId, evalTypeId) => {
   if (!cycleId || !evalTypeId) return
 
   const res = await fetchEvaluationSheet(cycleId, evalTypeId)
-  const body = res.data
-  const data = Array.isArray(body?.data) ? body.data : []
+  const data = Array.isArray(res.data?.data) ? res.data.data : []
 
   if (data.length === 0) {
-    sections.value = [
-      {
-        id: Date.now(),
-        title: '',
-        description: '',
-        questions: [],
-      },
-    ]
+    sections.value = []
     return
   }
 
@@ -305,31 +285,27 @@ const loadEvaluationSheet = async (cycleId, evalTypeId) => {
     id: section.sectionId,
     title: section.sectionTitle,
     description: section.sectionDescription,
+    isDeleted: false,
     questions: section.questions.map(q => ({
       id: q.questionId,
       title: q.questionContent,
-      type: mapQuestionType(q.questionType),
-      required: mapRequired(q.requiredStatus),
+      type: mapQuestionTypeFromBE(q.questionType),
+      required: mapRequiredFromBE(q.requiredStatus),
       maxScore: q.ratingScale ?? 5,
       options:
         q.questionType === 'OBJECTIVE'
           ? q.options.map(opt => opt.optionContent)
           : [],
+      isDeleted: false,
     })),
   }))
 }
 
-/* =====================
-   lifecycle
-===================== */
+/* lifecycle */
 
-onMounted(() => {
-  loadCycles()
-})
+onMounted(loadCycles)
 
-watch(selectedCycleId, (newVal) => {
-  loadEvalTypesByCycle(newVal)
-})
+watch(selectedCycleId, loadEvalTypesByCycle)
 
 watch(
   [selectedCycleId, selectedEvalTypeId],
@@ -340,76 +316,177 @@ watch(
   }
 )
 
-/* =====================
-   section command
-===================== */
+/* section actions */
 
-const createSection = async (section, order) => {
-  if (!cycleEvalTypeId.value) return
-
-  const payload = {
-    cycleEvalTypeId: cycleEvalTypeId.value,
-    sectionTitle: section.title,
-    sectionDescription: section.description,
-    sectionOrder: order,
-  }
-
-  const res = await createEvaluationSection(
-    cycleEvalTypeId.value,
-    payload
-  )
-
-  section.id = res.data.data
-}
-
-/* =====================
-   section actions
-===================== */
-
-const addSection = async () => {
-  const newSection = {
-    id: Date.now(),
+const addSection = () => {
+  sections.value.push({
+    id: null,
     title: '',
     description: '',
+    isDeleted: false,
     questions: [],
-  }
-
-  sections.value.push(newSection)
-
-  await createSection(newSection, sections.value.length)
+  })
 }
 
 const removeSection = (idx) => {
-  sections.value.splice(idx, 1)
+  const section = sections.value[idx]
+
+  const hasAliveQuestions = section.questions.some(
+    q => !q.isDeleted
+  )
+
+  if (hasAliveQuestions) {
+    alert(
+      '이 섹션에는 질문이 있습니다.\n' +
+      '섹션을 삭제하려면 먼저 모든 질문을 삭제해주세요.'
+    )
+    return
+  }
+
+  // 질문이 없을 때만 삭제 허용
+  if (section.id) {
+    section.isDeleted = true
+  } else {
+    sections.value.splice(idx, 1)
+  }
 }
 
-/* =====================
-   question actions
-===================== */
+/* question actions */
 
 const addQuestion = (section) => {
   section.questions.push({
-    id: Date.now(),
+    id: null,
     title: '',
     type: 'CHOICE',
     required: false,
-    options: ['옵션 1'],
+    options: [],
     maxScore: 5,
+    isDeleted: false,
   })
 }
 
 const removeQuestion = (section, idx) => {
-  section.questions.splice(idx, 1)
+  const question = section.questions[idx]
+
+  if (question.id) {
+    question.isDeleted = true
+  } else {
+    section.questions.splice(idx, 1)
+  }
 }
 
 const addOption = (q) => {
-  q.options.push(`옵션 ${q.options.length + 1}`)
+  q.options.push(``)
 }
 
 const removeOption = (section, q, idx) => {
   q.options.splice(idx, 1)
 }
+
+/* payload builders */
+
+const buildCreateQuestionPayload = (q) => ({
+  questionType: mapQuestionTypeToBE(q.type),
+  questionContent: q.title,
+  ratingScale: q.type === 'SCORE' ? q.maxScore : null,
+  requiredStatus: mapRequiredToBE(q.required),
+  options:
+    q.type === 'CHOICE'
+      ? q.options.map(opt => ({
+        optionContent: opt,
+        optionScore: null,
+      }))
+      : [],
+})
+
+const buildUpdateQuestionPayload = (q) => ({
+  questionContent: q.title,
+  requiredStatus: mapRequiredToBE(q.required),
+  ratingScale: q.type === 'SCORE' ? q.maxScore : null,
+  options:
+    q.type === 'CHOICE'
+      ? q.options.map(opt => ({
+        optionContent: opt,
+        optionScore: null,
+      }))
+      : [],
+})
+
+/* save */
+
+const saveEvaluationSheet = async () => {
+  if (!cycleEvalTypeId.value) return
+
+  try {
+    let sectionOrder = 1
+
+    for (const section of sections.value) {
+      if (section.isDeleted) {
+        if (section.id) {
+          await deleteEvaluationSection(section.id)
+        }
+        continue
+      }
+
+      if (!section.id) {
+        const res = await createEvaluationSection(
+          cycleEvalTypeId.value,
+          {
+            sectionTitle: section.title,
+            sectionDescription: section.description,
+            sectionOrder,
+          }
+        )
+        section.id = res.data.data
+      } else {
+        await updateEvaluationSection(section.id, {
+          sectionTitle: section.title,
+          sectionDescription: section.description,
+          sectionOrder,
+        })
+      }
+
+      for (const q of section.questions) {
+        if (q.isDeleted) {
+          if (q.id) {
+            await deleteEvaluationQuestion(q.id)
+          }
+          continue
+        }
+
+        if (!q.id) {
+          const res = await createEvaluationQuestion(
+            section.id,
+            buildCreateQuestionPayload(q)
+          )
+          q.id = res.data.data
+        } else {
+          await updateEvaluationQuestion(
+            q.id,
+            buildUpdateQuestionPayload(q)
+          )
+        }
+      }
+
+      sectionOrder++
+    }
+
+    // 프론트 상태 정리
+    sections.value = sections.value.filter(s => !s.isDeleted)
+    sections.value.forEach(s => {
+      s.questions = s.questions.filter(q => !q.isDeleted)
+    })
+
+    alert('저장되었습니다.')
+
+  } catch (e) {
+    console.error(e)
+    alert('저장 중 오류가 발생했습니다.')
+  }
+}
+
 </script>
+
 
 
 

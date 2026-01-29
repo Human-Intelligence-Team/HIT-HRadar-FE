@@ -1,9 +1,9 @@
-import axios from '@/utils/axios'
+import axios from './axios.js'
 
 // 질문 생성
 export const createEvaluationQuestion = (sectionId, payload) => {
   return axios.post(
-    `/evaluation-sections/${sectionId}/questions`,
+    `/api/v1/evaluation-sections/${sectionId}/questions`,
     payload
   )
 }
@@ -11,7 +11,7 @@ export const createEvaluationQuestion = (sectionId, payload) => {
 // 질문 수정
 export const updateEvaluationQuestion = (questionId, payload) => {
   return axios.put(
-    `/evaluation-sections/questions/${questionId}`,
+    `/api/v1/evaluation-sections/questions/${questionId}`,
     payload
   )
 }
@@ -19,6 +19,6 @@ export const updateEvaluationQuestion = (questionId, payload) => {
 // 질문 삭제
 export const deleteEvaluationQuestion = (questionId) => {
   return axios.delete(
-    `/evaluation-sections/questions/${questionId}`
+    `/api/v1/evaluation-sections/questions/${questionId}`
   )
 }
