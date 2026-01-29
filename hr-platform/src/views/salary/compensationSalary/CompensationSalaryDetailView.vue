@@ -72,45 +72,48 @@ const goListPage = () => {
       </div>
     </div>
   </div>
-  <div class="card-bd">
-    <table class="table">
-      <thead class="tbl-hd">
-      <tr>
-        <th style="width:10%;">재직상태</th>
-        <th style="width:10%;">부서</th>
-        <th style="width:10%;">직급</th>
-        <th style="width:10%;">사번</th>
-        <th style="width:10%;">사원명</th>
-        <th style="width:10%;">변동보상 유형</th>
-        <th style="width:20%;">비고</th>
-        <th style="width:10%;">날짜</th>
-      </tr>
-      </thead>
-      <tbody class="tbl-bd">
-      <tr @click="goDetailPage(1)">
-        <td>재직중</td>
-        <td>영업</td>
-        <td>사원</td>
-        <td>12345677</td>
-        <td>김사원</td>
-        <td>기타수당</td>
-        <td>교통비</td>
-        <td>2025-01</td>
-      </tr>
-      <tr  @click="goDetailPage(1)">
-        <td>재직중</td>
-        <td>영업</td>
-        <td>사원</td>
-        <td>12345677 </td>
-        <td>김사원 </td>
-        <td>기타수당</td>
-        <td>교통비</td>
-        <td>2025-01</td>
-      </tr>
-      </tbody>
-    </table>
-  </div>
 
+
+  <div class="card">
+    <div class="card-bd">
+      <table class="table">
+        <thead class="tbl-hd">
+        <tr>
+          <th style="width:10%;">재직상태</th>
+          <th style="width:10%;">부서</th>
+          <th style="width:10%;">직급</th>
+          <th style="width:10%;">사번</th>
+          <th style="width:10%;">사원명</th>
+          <th style="width:10%;">변동보상 유형</th>
+          <th style="width:20%;">비고</th>
+          <th style="width:10%;">날짜</th>
+        </tr>
+        </thead>
+        <tbody class="tbl-bd">
+        <tr @click="goDetailPage(1)">
+          <td>재직중</td>
+          <td>영업</td>
+          <td>사원</td>
+          <td>12345677</td>
+          <td>김사원</td>
+          <td>기타수당</td>
+          <td>교통비</td>
+          <td>2025-01</td>
+        </tr>
+        <tr  @click="goDetailPage(1)">
+          <td>재직중</td>
+          <td>영업</td>
+          <td>사원</td>
+          <td>12345677 </td>
+          <td>김사원 </td>
+          <td>기타수당</td>
+          <td>교통비</td>
+          <td>2025-01</td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
 </template>
 
 <style scoped>

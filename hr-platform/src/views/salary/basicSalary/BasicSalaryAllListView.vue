@@ -13,29 +13,31 @@ const goEmployeeListPage = (year) => {
 
 <template>
   <div class="sub">기본급 조회(인사팀)</div>
-  <div class="dashboard-box">
-    <div class="dashboard-box-header">
-      <div class="dashboard-box-title">
-        <span class="title">2026년 기본급 관리</span>
-        <span class="sub-title">2026년 01월 01일 ~ 2026년 02월 01일</span>
+  <div class="card">
+    <div class="dashboard-box">
+      <div class="dashboard-box-header">
+        <div class="dashboard-box-title">
+          <span class="title">2026년 기본급 관리</span>
+          <span class="sub-title">2026년 01월 01일 ~ 2026년 02월 01일</span>
+        </div>
+        <div>
+          <button class="btn primary" @click="goBasicCreate()">등록하기</button>
+        </div>
       </div>
-      <div>
-        <button class="btn primary" @click="goBasicCreate()">등록하기</button>
-      </div>
-    </div>
 
-    <div class="dashboard-box-body">
-      <div class="amount-box">
-        <span class="title">총 금액</span>
-        <span class="content-font">85,000,000원</span>
-      </div>
-      <div class="chart-box">
-        달 별 금액
+      <div class="dashboard-box-body">
+        <div class="amount-box">
+          <span class="title">총 금액</span>
+          <span class="content-font">85,000,000원</span>
+        </div>
+        <div class="chart-box">
+          달 별 금액
+        </div>
       </div>
     </div>
   </div>
-
-  <div class="card-bd">
+  <div class="grid">
+  <div class="card">
     <table class="table">
       <thead class="tbl-hd">
       <tr>
@@ -61,8 +63,14 @@ const goEmployeeListPage = (year) => {
       </tbody>
     </table>
   </div>
+  </div>
 </template>
 
 <style scoped>
 @import "@/views/salary/style/salary.css";
+
+.card {
+  margin-top: 10px;
+  padding : 20px;
+}
 </style>

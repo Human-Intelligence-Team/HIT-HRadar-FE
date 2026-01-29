@@ -51,8 +51,8 @@
           <span class="arrow">›</span>
         </div>
         <div class="flyout">
-          <RouterLink to="/review/self" class="flyout-item">자기 평가</RouterLink>
-          <RouterLink to="/review/peer" class="flyout-item">동료 평가</RouterLink>
+          <RouterLink to="/cycles" class="flyout-item">회차 등록/조회</RouterLink>
+          <RouterLink to="/hr/cycles" class="flyout-item">회차 등록/조회</RouterLink>
         </div>
       </div>
 
@@ -62,6 +62,13 @@
           <span class="arrow">›</span>
         </div>
         <div class="flyout">
+          <RouterLink to="/grade/setting" class="flyout-item">등급 설정</RouterLink>
+          <RouterLink to="/grading/list" class="flyout-item"> 부서 등급 부여 현황</RouterLink>
+          <RouterLink to="/hr/grading/list" class="flyout-item">부서 등급 부여 현황(승인)</RouterLink>
+          <RouterLink to="/to/grading/list" class="flyout-item">부서원 등급 부여</RouterLink>
+          <RouterLink to="/hr/grading/list/approve" class="flyout-item">부서원 등급 부여 및 승인</RouterLink>
+          <RouterLink to="/my/grading" class="flyout-item">부여된 등급 조회</RouterLink>
+          <RouterLink to="/to/grading/objection" class="flyout-item">이의 제기 관리</RouterLink>
           <!--          <RouterLink to="/dashboard" class="flyout-item">대시보드</RouterLink>
           <RouterLink to="/report" class="flyout-item">리포트</RouterLink>-->
         </div>
@@ -77,6 +84,7 @@
           <RouterLink to="/all/competency/report" class="flyout-item">리포트(인사팀)</RouterLink>
           <RouterLink to="/dept/competency/report" class="flyout-item">리포트(팀장)</RouterLink>
           <RouterLink to="/me/competency/report" class="flyout-item">리포트(개인)</RouterLink>
+          <RouterLink to="/all/contents" class="flyout-item">학습컨텐츠 관리</RouterLink>
         </div>
       </div>
 
@@ -97,27 +105,17 @@
       <div class="section-title">연봉 관리</div>
 
       <div class="nav-group has-flyout">
-        <RouterLink to="/salary/dashboard" class="nav-item">
-          <span>대시보드</span>
-        </RouterLink>
 
-        <!--
-        <RouterLink to="/all/salary/basic" class="nav-item">
-          <span>기본급관리(인사팀)</span>
-        </RouterLink>
--->
         <div class="nav-item">
-          <span>기본급관리</span>
+          <span>연봉관리</span>
           <span class="arrow">›</span>
         </div>
         <div class="flyout">
           <RouterLink to="/all/salary/basic" class="flyout-item">기본급관리(인사팀)</RouterLink>
           <RouterLink to="/me/salary/basic" class="flyout-item">기본급관리(본인)</RouterLink>
+          <RouterLink to="/all/salary/compensation" class="flyout-item">변동보상관리</RouterLink>
         </div>
       </div>
-      <RouterLink to="/all/salary/compensation" class="nav-item">
-        <span>변동보상관리</span>
-      </RouterLink>
       <!-- 챗봇 관리 -->
       <div class="section-title">챗봇 관리</div>
 
@@ -128,10 +126,6 @@
         active-class="active"
       >
         제도 · 규정
-      </RouterLink>
-
-      <RouterLink v-if="can('FAQ_MANAGE')" to="/faq" class="nav-item link" active-class="active">
-        FAQ
       </RouterLink>
 
       <!-- 기타 -->
@@ -154,17 +148,6 @@
       >
         알림 관리
       </RouterLink>
-
-      <div class="nav-group has-flyout">
-        <div class="nav-item">
-          <span>학습 컨텐츠 관리</span>
-          <span class="arrow">›</span>
-        </div>
-        <div class="flyout">
-          <RouterLink to="/all/contents" class="flyout-item">학습컨텐츠 관리</RouterLink>
-          <RouterLink to="/all/contents/tag" class="flyout-item">태그 관리</RouterLink>
-        </div>
-      </div>
     </nav>
   </aside>
 </template>
@@ -176,8 +159,8 @@ const auth = useAuthStore()
 
 const can = (perm) => {
   const permissions = {
-    USER: ['POLICY_READ', 'FAQ_MANAGE', 'NOTICE_READ', 'ALERT_MANAGE'],
-    ADMIN: ['POLICY_READ', 'FAQ_MANAGE', 'NOTICE_READ', 'ALERT_MANAGE'],
+    USER: ['POLICY_READ', 'NOTICE_READ', 'ALERT_MANAGE'],
+    ADMIN: ['POLICY_READ', 'NOTICE_READ', 'ALERT_MANAGE'],
   }
   return permissions[auth.user.role]?.includes(perm) ?? false
 }

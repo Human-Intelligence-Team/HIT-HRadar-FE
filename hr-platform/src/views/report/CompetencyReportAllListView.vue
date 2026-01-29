@@ -41,10 +41,11 @@ const goDetailPage = (year) => {
     </div>
   </div>
 
-  <div class="section-btn">
-    <button class="btn primary" @click="isModalOpen()" type="button">생성하기</button>
-  </div>
-  <div class="card-bd">
+
+  <div class="card">
+    <div class="section-btn">
+      <button class="btn primary" @click="isModalOpen()" type="button">생성하기</button>
+    </div>
     <table class="table">
       <thead class="tbl-hd">
       <tr>
@@ -83,7 +84,7 @@ const goDetailPage = (year) => {
 .section-btn {
   display: flex;
   justify-content: flex-end;
-  padding-top: 10px;
+  padding-bottom: 10px;
   padding-right: 10px;
 }
 

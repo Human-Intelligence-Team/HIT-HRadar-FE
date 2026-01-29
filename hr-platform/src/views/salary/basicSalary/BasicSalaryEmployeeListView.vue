@@ -18,7 +18,6 @@ const goListPage = () => {
     <button class="btn" @click="goListPage()" type="button">목록</button>
   </div>
 
-  <div class="grid">
     <div class="card">
       <div class="card-head">
         <div class="search-section">
@@ -60,9 +59,8 @@ const goListPage = () => {
 
       </div>
     </div>
-  </div>
 
-  <div class="card-bd">
+  <div class="card">
     <table class="table">
       <thead class="tbl-hd">
       <tr>

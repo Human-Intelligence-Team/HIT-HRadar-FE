@@ -1,9 +1,8 @@
 .dashboard-box {
-  margin-top: 20px;
   border: 1px solid #9aa1ad;
   border-radius: 16px;
   height: 300px;
-  padding: 25px;
+  padding: 27px;
 
 }
 
@@ -42,12 +41,12 @@
 }
 
 .dashboard-box .dashboard-box-body .amount-box .content-font {
-  font-size: 38px;
+  font-size: 20px;
   font-weight: bold;
 }
 
 .dashboard-box .dashboard-box-body .compensation-box .content-font {
-  font-size: 30px;
+  font-size: 18px;
   font-weight: bold;
   color: #777777;
 }
@@ -82,4 +81,14 @@
 
 .search-input-box .search-section {
   width : 423px;
+}
+.table th {
+  text-align: center;
+  vertical-align: middle;
+  background-color: #eaf0ff;
+}
+
+.table td {
+  text-align: center;
+  vertical-align: middle;
 }
