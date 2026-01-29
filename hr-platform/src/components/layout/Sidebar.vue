@@ -24,8 +24,11 @@
           <span class="arrow">›</span>
         </div>
         <div class="flyout">
-          <RouterLink to="/attendance/status" class="flyout-item">근태 현황</RouterLink>
-          <RouterLink to="/attendance/request" class="flyout-item">근태 신청</RouterLink>
+          <RouterLink to="/attendance/commute" class="flyout-item">나의 출퇴근 관리</RouterLink>
+          <RouterLink to="/attendance/my-calendar" class="flyout-item">나의 근태 캘린더</RouterLink>
+          <RouterLink v-if="auth.isAdmin" to="/attendance/ip-policy" class="flyout-item">IP 정책 관리</RouterLink>
+          <RouterLink v-if="auth.isAdmin" to="/attendance/department" class="flyout-item">부서 출퇴근 관리</RouterLink>
+          <RouterLink v-if="auth.isAdmin" to="/attendance/department-calendar" class="flyout-item">부서별 근태 캘린더</RouterLink>
         </div>
       </div>
 

@@ -57,6 +57,12 @@ import NoticeDetailView from '@/views/notice/NoticeDetailView.vue'
 import NoticeCreateView from '@/views/notice/NoticeCreateView.vue'
 import NoticeEditView from '@/views/notice/NoticeEditView.vue'
 import HomeView from '@/views/auth/HomeView.vue'
+import AttendanceIpPolicyView from '@/views/attendance/AttendanceIpPolicyView.vue'
+import AttendanceCommuteView from '@/views/attendance/AttendanceCommuteView.vue'
+import AttendanceDepartmentView from '@/views/attendance/AttendanceDepartmentView.vue'
+import MyAttendanceCalendarView from '@/views/attendance/MyAttendanceCalendarView.vue'
+import DepartmentAttendanceCalendarView from '@/views/attendance/DepartmentAttendanceCalendarView.vue'
+import AttendanceEmployeeDetailView from '@/views/attendance/AttendanceEmployeeDetailView.vue'
 
 const routes = [
 
@@ -156,7 +162,21 @@ const routes = [
       { path: '/hr/grading/list/approve', component: IndividualGradeApprovePage },
       { path: '/my/grading', component: MygradePage },
       { path: '/to/grading/objection', component: AdminGradeObjectionPage },
-      { path: '/hr/objections/:objectionId', name: 'AdminGradeObjectionDetailPage', component: AdminGradeObjectionDetailPage }
+      { path: '/hr/objections/:objectionId', name: 'AdminGradeObjectionDetailPage', component: AdminGradeObjectionDetailPage },
+
+      // 근태 관리
+      {
+        path: 'attendance',
+        redirect: '/attendance/commute', // 기본적으로 사원 출퇴근 관리 페이지로 리디렉션
+        children: [
+          { path: 'commute', component: AttendanceCommuteView }, // 사원 출퇴근 관리
+          { path: 'ip-policy', component: AttendanceIpPolicyView, meta: { requiresAdmin: true } }, // 인사팀 IP 정책 관리
+          { path: 'department', component: AttendanceDepartmentView, meta: { requiresAdmin: true } }, // 인사팀 부서 출퇴근 관리
+          { path: 'my-calendar', component: MyAttendanceCalendarView }, // 나의 근태 캘린더
+          { path: 'department-calendar', component: DepartmentAttendanceCalendarView, meta: { requiresAdmin: true } }, // 부서별 근태 캘린더 (인사팀)
+          { path: 'employee-detail/:employeeId/:workDate', name: 'AttendanceEmployeeDetail', component: AttendanceEmployeeDetailView, props: true }, // 사원 근태 상세 조회
+        ],
+      },
     ],
   },
 ]
@@ -174,9 +194,9 @@ router.beforeEach((to) => {
 
   // 로그인 안 했는데 보호 페이지 접근
   if (!auth.isLoggedIn && !isPublic) {
+    // 로그인 페이지로 리다이렉트하며 원래 가려던 경로를 쿼리 파라미터로 전달
     return { path: '/home', query: { redirect: to.fullPath } }
   }
-
   // 로그인 했는데 /home 접근하면 첫 접근 가능 페이지로 보냄
   if (auth.isLoggedIn && isPublic) {
     const next = auth.firstAccessiblePath?.()
@@ -184,5 +204,6 @@ router.beforeEach((to) => {
     return next && next !== '/' && next !== '/home' ? next : '/policy'
   }
 })
+
 
 export default router
