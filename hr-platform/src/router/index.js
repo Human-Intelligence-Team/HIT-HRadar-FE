@@ -56,6 +56,8 @@ import IndividualGradeApprovePage from '@/views/grading/individualGrade/Individu
 import MygradePage from '@/views/grading/individualGrade/MygradePage.vue'
 import AdminGradeObjectionPage from '@/views/grading/gradeObjection/AdminGradeObjectionPage.vue'
 import AdminGradeObjectionDetailPage from '@/views/grading/gradeObjection/AdminGradeObjectionDetailPage.vue'
+import EvaluationTypeSetupPage from '@/views/evaluation/evalType/EvaluationTypeSetupPage.vue'
+import EvaluationFormBuilderPage from '@/views/evaluation/evalQusetion/EvaluationFormBuilderPage.vue'
 
 const routes = [
   {
@@ -137,7 +139,11 @@ const routes = [
       { path: '/hr/grading/list/approve', component: IndividualGradeApprovePage },
       { path: '/my/grading', component: MygradePage },
       { path: '/to/grading/objection', component: AdminGradeObjectionPage},
-      { path: '/hr/objections/:objectionId', name: 'AdminGradeObjectionDetailPage',component:AdminGradeObjectionDetailPage }
+      { path: '/hr/objections/:objectionId', name: 'AdminGradeObjectionDetailPage',component:AdminGradeObjectionDetailPage },
+
+      //평가
+      { path: '/hr/evaluation/type/setting', component: EvaluationTypeSetupPage },
+      { path: '/hr/evaluation/question/form/setting', component: EvaluationFormBuilderPage },
     ],
   },
 ]

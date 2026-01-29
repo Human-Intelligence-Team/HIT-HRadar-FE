@@ -53,6 +53,8 @@
         <div class="flyout">
           <RouterLink to="/cycles" class="flyout-item">회차 등록/조회</RouterLink>
           <RouterLink to="/hr/cycles" class="flyout-item">회차 등록/조회</RouterLink>
+          <RouterLink to="/hr/evaluation/type/setting" class="flyout-item">평가유형 생성/회차 포함</RouterLink>
+          <RouterLink to="/hr/evaluation/question/form/setting" class="flyout-item">문항지 생성</RouterLink>
         </div>
       </div>
 
