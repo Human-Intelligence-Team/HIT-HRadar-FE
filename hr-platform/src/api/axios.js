@@ -56,12 +56,17 @@ api.interceptors.response.use(
     const { status, data } = error.response;
     const url = originalRequest.url || '';
 
+    // 서버에서 내려주는 특정 에러 메시지가 있으면 최우선으로 표시 (단, 401은 토큰 리프레시 로직이 있으므로 제외)
+    if (status !== 401 && data?.message) {
+      alert(data.message);
+    }
+
     if (data?.message) {
       error.customMessage = data.message;
     }
 
-    if (status === 500 || status === 503) {
-      error.customMessage = "서비스 오류가 발생했습니다. 관리자에게 문의해주세요.";
+    if ((status === 500 || status === 503) && !data?.message) { // 메시지가 없을 때만 일반 서버 오류 표시
+      alert("서비스 오류가 발생했습니다. 관리자에게 문의해주세요.");
       return Promise.reject(error);
     }
 
