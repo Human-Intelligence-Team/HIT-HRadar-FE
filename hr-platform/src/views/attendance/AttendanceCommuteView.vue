@@ -99,7 +99,7 @@ import { useAuthStore } from '@/stores/authStore';
 import {
   processAttendance,
   fetchMyTodayAttendance,
-  fetchMonthlyAttendance // 변경된 이름으로 임포트
+  fetchAttendanceCalendar
 } from '@/api/attendanceApi';
 
 const auth = useAuthStore();
@@ -181,8 +181,11 @@ const fetchInitialData = async () => {
   // 부서원 출퇴근 현황 불러오기
   loading.value.department = true;
   try {
-    const response = await fetchMonthlyAttendance(departmentId.value, true, getTodayString(), getTodayString()); // fetchMonthlyAttendance로 변경 및 파라미터 수정
-    
+    const response = await fetchAttendanceCalendar({
+      targetDeptId: departmentId.value,
+      fromDate: getTodayString(),
+      toDate: getTodayString()
+    });
     // fetchMonthlyAttendance의 응답이 AttendanceListResponseDto[] 이므로, 이를 departmentMembers에 맞게 변환
     const transformedMembers = [];
     if (response.data && Array.isArray(response.data)) {

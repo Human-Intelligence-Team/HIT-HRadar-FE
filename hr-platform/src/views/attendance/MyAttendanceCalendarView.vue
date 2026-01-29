@@ -20,7 +20,7 @@ import FullCalendar from '@fullcalendar/vue3';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import bootstrap5Plugin from '@fullcalendar/bootstrap5';
-import { fetchMonthlyAttendance } from '@/api/attendanceApi';
+import { fetchAttendanceCalendar } from '@/api/attendanceApi';
 import { fetchMyLeaves } from '@/api/leaveApi';
 
 const auth = useAuthStore();
@@ -62,12 +62,17 @@ const calendarOptions = ref({
 });
 
 const fetchCalendarEvents = async (startDate, endDate) => {
+  await fetchAttendanceCalendar({
+    targetEmpId: employeeId.value,
+    fromDate: startDate,
+    toDate: endDate
+  });
   console.log('Fetching calendar events for range:', startDate, 'to', endDate);
   loading.value = true;
   try {
-    const attendanceResponse = await fetchMonthlyAttendance(employeeId.value, false, startDate, endDate);
+    const attendanceResponse = await fetchAttendanceCalendar (employeeId.value, false, startDate, endDate);
     const leaveResponse = await fetchMyLeaves(); // 휴가 API는 기간 필터링이 없을 수 있으므로 클라이언트에서 필터링
-    
+
     console.log('Attendance Response:', attendanceResponse.data);
     console.log('Leave Response:', leaveResponse.data);
 
@@ -141,8 +146,8 @@ onMounted(() => {
 
     const startDateStr = startOfMonth.toISOString().split('T')[0];
     const endDateStr = endOfMonth.toISOString().split('T')[0];
-    
-    fetchCalendarEvents(startDateStr, endDateStr);
+
+    fetchCalendarEvents(startDateStr, endDateStr)
   }
 });
 </script>

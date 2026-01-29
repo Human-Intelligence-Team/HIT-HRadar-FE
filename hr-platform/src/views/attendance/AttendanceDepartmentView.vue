@@ -68,7 +68,7 @@
 <script setup>
 import { ref, onMounted, computed, watch } from 'vue';
 import { useAuthStore } from '@/stores/authStore';
-import { fetchMonthlyAttendance } from '@/api/attendanceApi';
+import { fetchAttendanceCalendar  } from '@/api/attendanceApi';
 
 const auth = useAuthStore();
 const companyId = computed(() => auth.user?.companyId);
@@ -107,7 +107,7 @@ const fetchRecords = async () => {
     let response;
     if (selectedDepartmentId.value) {
       // 특정 부서 조회
-      response = await fetchMonthlyAttendance(
+      response = await fetchAttendanceCalendar (
         selectedDepartmentId.value,
         true, // isDepartment
         selectedDate.value,
@@ -123,7 +123,7 @@ const fetchRecords = async () => {
       loading.value = false;
       return;
     }
-    
+
     // AttendanceListResponseDto[] 구조를 가정.
     // 각 DTO는 여러 직원의 기록을 포함할 수 있으므로, 단일 배열로 평탄화 필요.
     // 백엔드 AttendanceQueryController의 getAttendanceList 응답은 List<AttendanceListResponseDto>
@@ -137,7 +137,7 @@ const fetchRecords = async () => {
             // 테이블은 한 사람의 하루 기록을 나타내므로, attendanceRecords 배열에서 해당 날짜 기록을 찾음
             if (deptRecord.attendanceRecords && deptRecord.attendanceRecords.length > 0) {
                 // 단일 날짜 조회이므로 첫 번째 기록만 사용
-                const record = deptRecord.attendanceRecords[0]; 
+                const record = deptRecord.attendanceRecords[0];
                 flatRecords.push({
                     employeeId: deptRecord.employeeId,
                     name: deptRecord.employeeName,

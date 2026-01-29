@@ -7,7 +7,15 @@ import axios from './axios';
  * @param {number} comId - 회사 ID
  */
 export const fetchIpPolicies = async (comId) => {
-  return await axios.get(`/admin/ip-policies`, { params: { comId } });
+  return axios.get('/admin/ip-policies', {
+    params: { comId }
+  });
+};
+
+export const fetchActiveIpPolicies = async (comId) => {
+  return axios.get('/admin/ip-policies/active', {
+    params: { comId }
+  });
 };
 
 /**
@@ -45,6 +53,12 @@ export const deleteIpPolicy = async (policyId) => {
   return await axios.delete(`/attendance/ip-policies/${policyId}`);
 };
 
+export const fetchAttendanceIpPolicies = async (comId) => {
+  return axios.get('/admin/ip-policies/attendance', {
+    params: { comId }
+  });
+};
+
 
 // --- 사원 출퇴근 관리 ---
 
@@ -64,27 +78,21 @@ export const fetchMyTodayAttendance = async (targetEmpId, workDate) => {
   return await axios.get(`/api/attendance/detail`, { params: { targetEmpId, workDate } });
 };
 
-/**
- * 부서원 근태 현황 조회 (오늘)
- * @param {number} targetDeptId - 부서 ID
- * @param {string} date - 조회 날짜 (YYYY-MM-DD)
- */
-/**
- * 월별 근태 현황 조회 (직원 또는 부서)
- * @param {number} targetId - 직원 ID 또는 부서 ID
- * @param {boolean} isDepartment - 부서 조회를 위한 경우 true
- * @param {string} fromDate - 조회 시작 날짜 (YYYY-MM-DD)
- * @param {string} toDate - 조회 종료 날짜 (YYYY-MM-DD)
- */
-export const fetchMonthlyAttendance = async (targetId, isDepartment, fromDate, toDate) => {
-  const params = {
-    fromDate,
-    toDate
-  };
-  if (isDepartment) {
-    params.targetDeptId = targetId;
-  } else {
-    params.targetEmpId = targetId;
-  }
-  return await axios.get(`/api/attendance`, { params });
+
+
+// 캘린더 전용 조회 (사원 / 부서 공용)
+export const fetchAttendanceCalendar = async ({
+  targetEmpId,
+  targetDeptId,
+  fromDate,
+  toDate
+}) => {
+  return await axios.get('/api/attendance', {
+    params: {
+      targetEmpId,
+      targetDeptId,
+      fromDate,
+      toDate
+    }
+  });
 };

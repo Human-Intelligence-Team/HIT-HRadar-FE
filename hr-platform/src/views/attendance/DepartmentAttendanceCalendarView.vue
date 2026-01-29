@@ -30,7 +30,7 @@ import FullCalendar from '@fullcalendar/vue3';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import bootstrap5Plugin from '@fullcalendar/bootstrap5';
-import { fetchMonthlyAttendance } from '@/api/attendanceApi';
+import { fetchAttendanceCalendar } from '@/api/attendanceApi';
 // import { fetchDepartments } from '@/api/deptApi'; // 부서 목록을 가져오는 API가 있다면 사용
 
 const auth = useAuthStore();
@@ -89,12 +89,22 @@ const fetchDepartments = async () => {
 };
 
 const fetchCalendarEvents = async (startDate, endDate) => {
+  if (!selectedDepartmentId.value) {
+    calendarEvents.value = [];
+    return;
+  }
+
+  await fetchAttendanceCalendar({
+    targetDeptId: selectedDepartmentId.value,
+    fromDate: startDate,
+    toDate: endDate
+  });
   loading.value = true;
   try {
     let response;
     if (selectedDepartmentId.value) {
       // 특정 부서 조회
-      response = await fetchMonthlyAttendance(selectedDepartmentId.value, true, startDate, endDate);
+      response = await fetchAttendanceCalendar (selectedDepartmentId.value, true, startDate, endDate);
     } else {
       // 전체 부서 조회 (백엔드에서 전체 부서 조회를 지원한다고 가정하거나, 모든 부서를 개별적으로 조회 후 병합)
       // 현재 백엔드 API는 targetDeptId가 필수. 따라서 전체 부서 조회를 하려면
@@ -104,7 +114,7 @@ const fetchCalendarEvents = async (startDate, endDate) => {
       loading.value = false;
       return;
     }
-    
+
     let events = [];
     if (response.data) {
       // AttendanceListResponseDto[]를 받아서 처리. 각 dto는 여러 직원의 기록을 포함할 수 있음.

@@ -154,29 +154,35 @@ const savePolicy = async () => {
       if (hasStatusChanged && !hasContentChanged) {
         // 상태만 변경된 경우
         console.log('Changing IP policy status:', formPolicy.value.id, { enabled: formPolicy.value.enabled });
-        await changeIpPolicyStatus(formPolicy.value.id, { enabled: formPolicy.value.enabled });
+        await changeIpPolicyStatus(formPolicy.value.id, {
+          isActive: formPolicy.value.enabled
+        });
         // alert('IP 정책 상태가 성공적으로 변경되었습니다.'); // 사용자 요청에 따라 alert 제거
       } else {
         // 내용이 변경된 경우 (상태 변경 포함 가능)
         const updatePayload = {
           cidr: formPolicy.value.ipAddress,
-          locationName: formPolicy.value.description // Backend expects locationName
+          locationName: formPolicy.value.description,
+          ipPolicyType: selectedPolicy.value.ipPolicyType
         };
+
         console.log('Updating IP policy:', formPolicy.value.id, updatePayload);
         await updateIpPolicy(formPolicy.value.id, updatePayload);
         // 상태도 같이 변경되었다면 별도 호출
         if (hasStatusChanged) {
            console.log('Also changing IP policy status after content update:', formPolicy.value.id, { enabled: formPolicy.value.enabled });
-           await changeIpPolicyStatus(formPolicy.value.id, { enabled: formPolicy.value.enabled });
+          await changeIpPolicyStatus(formPolicy.value.id, {
+            isActive: formPolicy.value.enabled
+          });
         }
         // alert('IP 정책이 성공적으로 수정되었습니다.'); // 사용자 요청에 따라 alert 제거
-      }
+      }changeIpPolicyStatus
     } else {
       // 신규 추가
       const newPolicy = {
+        comId: companyId.value,
         cidr: formPolicy.value.ipAddress,
         locationName: formPolicy.value.description, // Backend expects locationName
-        companyId: companyId.value,
         ipPolicyType: 'ATTENDANCE' // 기본값으로 ATTENDANCE 타입 설정
       };
       console.log('Creating new IP policy:', newPolicy);
