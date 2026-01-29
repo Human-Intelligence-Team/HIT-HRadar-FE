@@ -173,48 +173,38 @@
       <button class="btn btn-primary" @click="addSection">
         + 섹션 추가
       </button>
+
+      <button class="btn btn-primary save-btn" @click="saveEvaluationSheet">
+        저장
+      </button>
     </div>
   </section>
 </template>
-
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, computed } from 'vue'
 
-// 회차 API
+// cycle api
 import { fetchCycles } from '@/api/cycleApi'
 
-// 회차-평가유형 API
-import {
-  fetchCycleEvaluationTypes,
-} from '@/api/cycleEvaluationTypeApi'
+// cycle-evaluation-type api
+import { fetchCycleEvaluationTypes } from '@/api/cycleEvaluationTypeApi'
 
-//문항지 생성 가능 여부 체크
-import { computed } from 'vue'
+// evaluation sheet query api
+import { fetchEvaluationSheet } from '@/api/evaluationSheetApi'
 
-// 선택된 회차 객체
-const selectedCycle = computed(() => {
-  return cycles.value.find(
-    c => c.cycleId === selectedCycleId.value
-  )
-})
+// evaluation section command api
+import { createEvaluationSection } from '@/api/evaluationSectionApi'
 
-// 문항지 생성 가능 여부 (DRAFT만 허용)
-const canCreateForm = computed(() => {
-  return selectedCycle.value?.status === 'DRAFT'
-})
 /* =====================
    state
 ===================== */
 
-// 회차 / 평가유형
 const cycles = ref([])
 const evalTypes = ref([])
 
-// 선택 값
 const selectedCycleId = ref('')
 const selectedEvalTypeId = ref('')
 
-// 문항지 섹션
 const sections = ref([
   {
     id: Date.now(),
@@ -225,23 +215,37 @@ const sections = ref([
 ])
 
 /* =====================
+   computed
+===================== */
+
+const selectedCycle = computed(() => {
+  return cycles.value.find(
+    c => c.cycleId === selectedCycleId.value
+  )
+})
+
+const canCreateForm = computed(() => {
+  return selectedCycle.value?.status === 'DRAFT'
+})
+
+// evalTypeId is used as cycleEvalTypeId
+const cycleEvalTypeId = computed(() => {
+  return selectedEvalTypeId.value
+})
+
+/* =====================
    load
 ===================== */
 
-// 회차 목록 조회
 const loadCycles = async () => {
   const res = await fetchCycles()
-  console.log('raw response:', res.data)
-
   const body = res.data
+
   cycles.value = Array.isArray(body)
     ? body
     : body?.data ?? []
-
-  console.log('parsed cycles:', cycles.value)
 }
 
-// 회차별 평가 유형 조회
 const loadEvalTypesByCycle = async (cycleId) => {
   if (!cycleId) {
     evalTypes.value = []
@@ -250,15 +254,71 @@ const loadEvalTypesByCycle = async (cycleId) => {
   }
 
   const res = await fetchCycleEvaluationTypes(cycleId)
-  console.log('evalTypes:', evalTypes.value)
-
   const body = res.data
+
   evalTypes.value = Array.isArray(body)
     ? body
     : body?.data ?? []
 
   selectedEvalTypeId.value = ''
 }
+
+/* =====================
+   evaluation sheet load
+===================== */
+
+const mapQuestionType = (type) => {
+  switch (type) {
+    case 'OBJECTIVE':
+      return 'CHOICE'
+    case 'SUBJECTIVE':
+      return 'TEXT'
+    case 'SCORE':
+      return 'SCORE'
+    default:
+      return 'CHOICE'
+  }
+}
+
+const mapRequired = (status) => status === 'REQUIRED'
+
+const loadEvaluationSheet = async (cycleId, evalTypeId) => {
+  if (!cycleId || !evalTypeId) return
+
+  const res = await fetchEvaluationSheet(cycleId, evalTypeId)
+  const body = res.data
+  const data = Array.isArray(body?.data) ? body.data : []
+
+  if (data.length === 0) {
+    sections.value = [
+      {
+        id: Date.now(),
+        title: '',
+        description: '',
+        questions: [],
+      },
+    ]
+    return
+  }
+
+  sections.value = data.map(section => ({
+    id: section.sectionId,
+    title: section.sectionTitle,
+    description: section.sectionDescription,
+    questions: section.questions.map(q => ({
+      id: q.questionId,
+      title: q.questionContent,
+      type: mapQuestionType(q.questionType),
+      required: mapRequired(q.requiredStatus),
+      maxScore: q.ratingScale ?? 5,
+      options:
+        q.questionType === 'OBJECTIVE'
+          ? q.options.map(opt => opt.optionContent)
+          : [],
+    })),
+  }))
+}
+
 /* =====================
    lifecycle
 ===================== */
@@ -267,26 +327,58 @@ onMounted(() => {
   loadCycles()
 })
 
-// 회차 선택 시 → 평가유형 다시 조회
 watch(selectedCycleId, (newVal) => {
   loadEvalTypesByCycle(newVal)
 })
+
+watch(
+  [selectedCycleId, selectedEvalTypeId],
+  ([cycleId, evalTypeId]) => {
+    if (cycleId && evalTypeId) {
+      loadEvaluationSheet(cycleId, evalTypeId)
+    }
+  }
+)
+
+/* =====================
+   section command
+===================== */
+
+const createSection = async (section, order) => {
+  if (!cycleEvalTypeId.value) return
+
+  const payload = {
+    cycleEvalTypeId: cycleEvalTypeId.value,
+    sectionTitle: section.title,
+    sectionDescription: section.description,
+    sectionOrder: order,
+  }
+
+  const res = await createEvaluationSection(
+    cycleEvalTypeId.value,
+    payload
+  )
+
+  section.id = res.data.data
+}
 
 /* =====================
    section actions
 ===================== */
 
-// 섹션 추가
-const addSection = () => {
-  sections.value.push({
+const addSection = async () => {
+  const newSection = {
     id: Date.now(),
     title: '',
     description: '',
     questions: [],
-  })
+  }
+
+  sections.value.push(newSection)
+
+  await createSection(newSection, sections.value.length)
 }
 
-// 섹션 삭제
 const removeSection = (idx) => {
   sections.value.splice(idx, 1)
 }
@@ -295,7 +387,6 @@ const removeSection = (idx) => {
    question actions
 ===================== */
 
-// 질문 추가
 const addQuestion = (section) => {
   section.questions.push({
     id: Date.now(),
@@ -307,21 +398,20 @@ const addQuestion = (section) => {
   })
 }
 
-// 질문 삭제
 const removeQuestion = (section, idx) => {
   section.questions.splice(idx, 1)
 }
 
-// 객관식 옵션 추가
 const addOption = (q) => {
   q.options.push(`옵션 ${q.options.length + 1}`)
 }
 
-// 객관식 옵션 삭제
 const removeOption = (section, q, idx) => {
   q.options.splice(idx, 1)
 }
 </script>
+
+
 
 <style scoped>
 /* ===== Page ===== */
