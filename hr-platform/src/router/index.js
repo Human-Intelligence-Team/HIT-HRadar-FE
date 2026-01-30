@@ -61,6 +61,7 @@ import EvaluationFormBuilderPage from '@/views/evaluation/evalQusetion/Evaluatio
 import EvaluationAssignmentSetupPage
   from '@/views/evaluation/evalAssignment/EvaluationAssignmentSetupPage.vue'
 import EvaluationAssignmentStatusPage from '@/views/evaluation/evalAssignment/EvaluationAssignmentStatusPage.vue'
+import EvaluationResponsePage from '@/views/evaluation/evaluationResponse/EvaluationResponsePage.vue'
 
 const routes = [
   {
@@ -149,6 +150,7 @@ const routes = [
       { path: '/hr/evaluation/question/form/setting', component: EvaluationFormBuilderPage },
       { path: '/hr/evaluation/assignment', component: EvaluationAssignmentSetupPage },
       { path: '/hr/evaluation/assignment/status', component: EvaluationAssignmentStatusPage },
+      { path: '/evaluation/assignment/response', component: EvaluationResponsePage },
     ],
   },
 ]

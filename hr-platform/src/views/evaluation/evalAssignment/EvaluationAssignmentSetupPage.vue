@@ -321,10 +321,10 @@ const activeTab = ref('assign') // 'status' | 'assign'
 /* ===== 더미 사원 (ID: 1001~1004) ===== */
 
 const employees = ref([
-  { id: 1001, name: '김성수', department: '개발팀', position: '대리' },
-  { id: 1002, name: '이서연', department: '기획팀', position: '과장' },
-  { id: 1003, name: '박민수', department: '인사팀', position: '사원' },
-  { id: 1004, name: '정유진', department: '개발팀', position: '차장' },
+  { id: 1001, name: '김성수', department: '개발팀', position: '대리', deptId: 1 },
+  { id: 1002, name: '이서연', department: '기획팀', position: '과장', deptId: 2 },
+  { id: 1003, name: '박민수', department: '인사팀', position: '사원', deptId: 3 },
+  { id: 1004, name: '정유진', department: '개발팀', position: '차장', deptId: 1 },
 ])
 
 const departments = ['개발팀', '기획팀', '인사팀']
