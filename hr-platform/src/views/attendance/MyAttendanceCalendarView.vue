@@ -22,6 +22,7 @@ import interactionPlugin from '@fullcalendar/interaction';
 import bootstrap5Plugin from '@fullcalendar/bootstrap5';
 import { fetchAttendanceCalendar } from '@/api/attendanceApi';
 import { fetchMyLeaves } from '@/api/leaveApi';
+import { useRouter } from 'vue-router'; // Add this line
 
 const auth = useAuthStore();
 const employeeId = computed(() => auth.user?.employeeId);
@@ -47,85 +48,93 @@ const calendarOptions = ref({
   },
   datesSet: async (dateInfo) => {
     // 캘린더 날짜 범위가 변경될 때마다 이벤트 다시 로드
-    if (employeeId.value) {
+    if (employeeId.value && departmentId.value) { // Ensure both are available
       const start = new Date(dateInfo.start);
       const end = new Date(dateInfo.end);
-      // FullCalendar의 end는 다음 달 1일이므로, 실제 마지막 날짜는 전날
-      end.setDate(end.getDate() - 1); // 캘린더 라이브러리에서 제공하는 end는 다음 달의 시작일이므로, 실제 마지막 날을 계산
+      end.setDate(end.getDate() - 1);
 
       const startDateStr = start.toISOString().split('T')[0];
       const endDateStr = end.toISOString().split('T')[0];
 
       await fetchCalendarEvents(startDateStr, endDateStr);
     }
+  },
+  eventClick: (info) => {
+    // 사원 근태 상세 조회 페이지로 이동
+    const employeeId = info.event.extendedProps.employeeId;
+    const workDate = info.event.startStr; // 이벤트 시작 날짜 (YYYY-MM-DD)
+    if (employeeId && workDate) {
+      router.push({ name: 'AttendanceEmployeeDetail', params: { employeeId: employeeId, workDate: workDate } });
+    }
   }
 });
 
 const fetchCalendarEvents = async (startDate, endDate) => {
-  await fetchAttendanceCalendar({
-    targetEmpId: employeeId.value,
-    fromDate: startDate,
-    toDate: endDate
-  });
   console.log('Fetching calendar events for range:', startDate, 'to', endDate);
   loading.value = true;
   try {
-    const attendanceResponse = await fetchAttendanceCalendar (employeeId.value, false, startDate, endDate);
-    const leaveResponse = await fetchMyLeaves(); // 휴가 API는 기간 필터링이 없을 수 있으므로 클라이언트에서 필터링
+    // Fetch attendance for the entire department
+    const attendanceResponse = await fetchAttendanceCalendar(departmentId.value, true, startDate, endDate);
+    // TODO: Need a backend API to fetch leaves for the entire department or all employees
+    // For now, only fetching current user's leaves will not achieve the 'department members' leave status goal.
+    // const leaveResponse = await fetchMyLeaves();
 
-    console.log('Attendance Response:', attendanceResponse.data);
-    console.log('Leave Response:', leaveResponse.data);
+    console.log('Department Attendance Response:', attendanceResponse.data);
 
     let events = [];
 
     // 근태 데이터 처리
     if (attendanceResponse.data) {
-      attendanceResponse.data.forEach(record => {
-        const date = record.workDate;
-        const title = `${record.workPlace || '미지정'} - ${record.workType || '미지정'}`;
-        events.push({
-          id: `att-${record.id}`,
-          title: title,
-          date: date,
-          allDay: true,
-          extendedProps: {
-            type: 'attendance',
-            workType: record.workType,
-            workPlace: record.workPlace
-          }
+      attendanceResponse.data.forEach(deptRecord => { // deptRecord is AttendanceListResponseDto
+        deptRecord.attendanceRecords.forEach(record => {
+          const date = record.workDate;
+          const title = `${deptRecord.employeeName}: ${record.workPlace || '미지정'} - ${record.workType || '미지정'}`;
+          events.push({
+            id: `att-${deptRecord.employeeId}-${date}`,
+            title: title,
+            date: date,
+            allDay: true,
+            extendedProps: {
+              type: 'attendance',
+              employeeId: deptRecord.employeeId, // Essential for detail view navigation
+              employeeName: deptRecord.employeeName,
+              workType: record.workType,
+              workPlace: record.workPlace
+            }
+          });
         });
       });
     }
 
-    // 휴가 데이터 처리 (클라이언트 측에서 기간 필터링 적용)
-    if (leaveResponse.data && Array.isArray(leaveResponse.data)) {
-      leaveResponse.data.forEach(leave => {
-        const leaveStart = leave.fromDate;
-        const leaveEnd = leave.toDate;
-
-        // 휴가 기록이 현재 캘린더 범위 내에 있는지 확인
-        if (
-          leaveStart && leaveEnd &&
-          new Date(leaveStart) <= new Date(endDate) &&
-          new Date(leaveEnd) >= new Date(startDate)
-        ) {
-          const endDateForFullCalendar = new Date(leaveEnd);
-          endDateForFullCalendar.setDate(endDateForFullCalendar.getDate() + 1);
-
-          events.push({
-            id: `leave-${leave.id}`,
-            title: `휴가 (${leave.leaveTypeName || '미지정'})`,
-            start: leaveStart,
-            end: endDateForFullCalendar.toISOString().split('T')[0],
-            allDay: true,
-            extendedProps: {
-              type: 'leave',
-              leaveType: leave.leaveTypeName
-            }
-          });
-        }
-      });
-    }
+    // TODO: 휴가 데이터 처리 - 현재 fetchMyLeaves는 단일 사용자용. 부서원 전체 휴가 API 필요.
+    // if (leaveResponse.data && Array.isArray(leaveResponse.data)) {
+    //   leaveResponse.data.forEach(leave => {
+    //     const leaveStart = leave.fromDate;
+    //     const leaveEnd = leave.toDate;
+    //
+    //     if (
+    //       leaveStart && leaveEnd &&
+    //       new Date(leaveStart) <= new Date(endDate) &&
+    //       new Date(leaveEnd) >= new Date(startDate)
+    //     ) {
+    //       const endDateForFullCalendar = new Date(leaveEnd);
+    //       endDateForFullCalendar.setDate(endDateForFullCalendar.getDate() + 1);
+    //
+    //       events.push({
+    //         id: `leave-${leave.id}`,
+    //         title: `휴가 (${leave.leaveTypeName || '미지정'})`,
+    //         start: leaveStart,
+    //         end: endDateForFullCalendar.toISOString().split('T')[0],
+    //         allDay: true,
+    //         extendedProps: {
+    //           type: 'leave',
+    //           employeeId: leave.employeeId, // Assuming employeeId is part of leave response
+    //           leaveType: leave.leaveTypeName
+    //         }
+    //       });
+    //     }
+    //   });
+    // }
     calendarEvents.value = events;
     console.log('Final events for calendar:', calendarEvents.value);
 
