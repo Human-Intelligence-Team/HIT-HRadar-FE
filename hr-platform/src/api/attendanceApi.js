@@ -20,7 +20,7 @@ export const fetchActiveIpPolicies = async (comId) => {
 
 /**
  * 신규 IP 정책 등록
- * @param {object} policyData - RegisterIpPolicyRequest
+ * @param {object} policyData - RegisterIpPo licyRequest
  */
 export const createIpPolicy = async (policyData) => {
   return await axios.post(`/attendance/ip-policies`, policyData);
@@ -93,6 +93,19 @@ export const fetchAttendanceCalendar = async ({
       targetDeptId,
       fromDate,
       toDate
+    }
+  });
+};
+
+// 사원 근태 상세 조회 (하루)
+export const fetchAttendanceDetail = async ({
+  targetEmpId,
+  workDate
+}) => {
+  return await axios.get('/api/attendance/detail', {
+    params: {
+      targetEmpId,
+      workDate
     }
   });
 };
