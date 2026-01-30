@@ -20,7 +20,7 @@ export const fetchActiveIpPolicies = async (comId) => {
 
 /**
  * 신규 IP 정책 등록
- * @param {object} policyData - RegisterIpPo licyRequest
+ * @param {object} policyData - RegisterIpPolicyRequest
  */
 export const createIpPolicy = async (policyData) => {
   return await axios.post(`/attendance/ip-policies`, policyData);
