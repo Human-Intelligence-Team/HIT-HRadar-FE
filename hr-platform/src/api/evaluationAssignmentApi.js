@@ -28,3 +28,13 @@ export const deleteEvaluationAssignment = (assignmentId) => {
     `/api/v1/cycle-evaluation-types/assignments/${assignmentId}`
   )
 }
+
+//부서별 배정 조회
+export const fetchDeptEvaluationAssignmentDetails = (deptId) => {
+  return axios.get(
+    '/api/v1/evaluation-assignments/department/details',
+    {
+      params: { deptId },
+    }
+  )
+}

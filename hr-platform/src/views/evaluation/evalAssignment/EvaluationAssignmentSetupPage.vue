@@ -10,119 +10,237 @@
       </div>
     </div>
 
-    <!-- ===== STEP 1 ===== -->
-    <section class="card step-card">
-      <div class="step-header">
-        <span class="step">STEP 1</span>
-        <h3>평가 기준 선택</h3>
-      </div>
-
-      <div class="selector">
-        <div class="field">
-          <label>평가 회차</label>
-          <select v-model="selectedCycleId">
-            <option value="">회차 선택</option>
-            <option
-              v-for="c in cycles"
-              :key="c.cycleId"
-              :value="c.cycleId"
-            >
-              {{ c.cycleName }}
-            </option>
-          </select>
+    <!-- ===== Tabs ===== -->
+    <div class="tabs">
+      <button
+        class="tab"
+        :class="{ active: activeTab === 'assign' }"
+        @click="activeTab = 'assign'"
+      >
+        평가 배정하기
+      </button>
+      <button
+        class="tab"
+        :class="{ active: activeTab === 'status' }"
+        @click="$router.push('/hr/evaluation/assignment/status')"
+      >
+        평가 배정 상태 보기
+      </button>
+    </div>
+    <!-- ======================================================
+      TAB 1 : 평가 배정하기
+    ======================================================= -->
+    <section v-if="activeTab === 'assign'">
+      <!-- ===== STEP 1 ===== -->
+      <section class="card step-card">
+        <div class="step-header">
+          <span class="step">STEP 1</span>
+          <h3>평가 기준 선택</h3>
         </div>
 
-        <div class="field">
-          <label>평가 유형</label>
-          <select v-model="selectedEvalTypeId">
-            <option value="">평가 유형 선택</option>
-            <option
-              v-for="t in evalTypes"
-              :key="t.evalTypeId"
-              :value="t.evalTypeId"
-            >
-              {{ t.typeName }}
-            </option>
-          </select>
-        </div>
-      </div>
-    </section>
-
-    <!-- ===== STEP 2 ===== -->
-    <section class="card step-card">
-      <div class="step-header">
-        <span class="step">STEP 2</span>
-        <h3>평가자 선택</h3>
-      </div>
-
-      <div class="employee-grid">
-        <label
-          v-for="emp in employees"
-          :key="emp.id"
-          class="employee-card"
-          :class="{ selected: selectedEvaluator?.id === emp.id }"
-        >
-          <input
-            type="radio"
-            name="evaluator"
-            :value="emp"
-            v-model="selectedEvaluator"
-          />
-          <div class="info">
-            <div class="name">{{ emp.name }}</div>
-            <div class="meta">{{ emp.department }} · {{ emp.position }}</div>
+        <div class="selector">
+          <div class="field">
+            <label>평가 회차</label>
+            <select v-model="selectedCycleId">
+              <option value="">회차 선택</option>
+              <option
+                v-for="c in cycles"
+                :key="c.cycleId"
+                :value="c.cycleId"
+              >
+                {{ c.cycleName }}
+              </option>
+            </select>
           </div>
-        </label>
-      </div>
-    </section>
 
-    <!-- ===== STEP 3 ===== -->
-    <section class="card step-card">
-      <div class="step-header">
-        <span class="step">STEP 3</span>
-        <h3>피평가자 선택</h3>
-      </div>
+          <div class="field">
+            <label>평가 유형</label>
+            <select v-model="selectedEvalTypeId">
+              <option value="">평가 유형 선택</option>
+              <option
+                v-for="t in evalTypes"
+                :key="t.evalTypeId"
+                :value="t.evalTypeId"
+              >
+                {{ t.typeName }}
+              </option>
+            </select>
+          </div>
 
-      <div class="employee-grid">
-        <label
-          v-for="emp in employees"
-          :key="emp.id"
-          class="employee-card"
-          :class="{
-            selected: selectedEvaluatees.includes(emp),
-            disabled:
-              selectedEvaluator?.id === emp.id ||
-              alreadyAssignedEvaluateeIds.includes(emp.id)
-          }"
+          <div class="field">
+            <label>부서</label>
+            <select v-model="selectedDepartment">
+              <option value="">부서 선택</option>
+              <option
+                v-for="d in departments"
+                :key="d"
+                :value="d"
+              >
+                {{ d }}
+              </option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== STEP 2~4 ===== -->
+      <section v-if="isStep1Completed">
+        <!-- ===== STEP 2 ===== -->
+        <section class="card step-card">
+          <div class="step-header">
+            <span class="step">STEP 2</span>
+            <h3>평가자 선택</h3>
+          </div>
+
+          <div class="employee-grid">
+            <label
+              v-for="emp in filteredEmployees"
+              :key="emp.id"
+              class="employee-card"
+              :class="{ selected: selectedEvaluator?.id === emp.id }"
+            >
+              <input
+                type="radio"
+                name="evaluator"
+                :value="emp"
+                v-model="selectedEvaluator"
+              />
+              <div class="info">
+                <div class="name">{{ emp.name }}</div>
+                <div class="meta">
+                  {{ emp.department }} · {{ emp.position }}
+                </div>
+              </div>
+            </label>
+          </div>
+        </section>
+
+        <!-- ===== STEP 3 ===== -->
+        <section class="card step-card">
+          <div class="step-header">
+            <span class="step">STEP 3</span>
+            <h3>피평가자 선택</h3>
+          </div>
+
+          <div class="employee-grid">
+            <label
+              v-for="emp in filteredEmployees"
+              :key="emp.id"
+              class="employee-card"
+              :class="{
+                selected: selectedEvaluatees.includes(emp),
+                disabled:
+                  selectedEvaluator?.id === emp.id ||
+                  alreadyAssignedEvaluateeIds.includes(emp.id)
+              }"
+            >
+              <input
+                type="checkbox"
+                :value="emp"
+                v-model="selectedEvaluatees"
+                :disabled="
+                  selectedEvaluator?.id === emp.id ||
+                  alreadyAssignedEvaluateeIds.includes(emp.id)
+                "
+              />
+              <div class="info">
+                <div class="name">{{ emp.name }}</div>
+                <div class="meta">
+                  {{ emp.department }} · {{ emp.position }}
+                </div>
+              </div>
+            </label>
+          </div>
+        </section>
+
+        <!-- ===== STEP 4 ===== -->
+        <section class="card preview-card">
+          <div class="step-header">
+            <span class="step">STEP 4</span>
+            <h3>기존 평가 배정 관리</h3>
+          </div>
+
+          <div v-if="assignments.length === 0" class="empty">
+            아직 배정된 평가가 없습니다.
+          </div>
+
+          <div v-else class="assignment-table">
+            <div class="assignment-head">
+              <span></span>
+              <span>평가자</span>
+              <span>피평가자</span>
+              <span>상태</span>
+              <span></span>
+            </div>
+
+            <div
+              v-for="a in assignments"
+              :key="a.assignmentId"
+              class="assignment-row"
+            >
+              <input
+                type="checkbox"
+                v-model="selectedAssignments"
+                :value="a.assignmentId"
+              />
+
+              <span class="name">{{ mapEmployeeName(a.evaluatorId) }}</span>
+              <span class="name">{{ mapEmployeeName(a.evaluateeId) }}</span>
+
+              <span
+                class="status"
+                :class="a.assignmentStatus.toLowerCase()"
+              >
+                {{ a.assignmentStatus }}
+              </span>
+
+              <button
+                class="icon-btn delete"
+                @click="removeAssignment(a.assignmentId)"
+              >
+                🗑
+              </button>
+            </div>
+          </div>
+
+          <div
+            v-if="selectedAssignments.length > 0"
+            class="assignment-footer"
           >
-          <input
-            type="checkbox"
-            :value="emp"
-            v-model="selectedEvaluatees"
-            :disabled="
-              selectedEvaluator?.id === emp.id ||
-              alreadyAssignedEvaluateeIds.includes(emp.id)
-            "          />
-          <div class="info">
-            <div class="name">{{ emp.name }}</div>
-            <div class="meta">{{ emp.department }} · {{ emp.position }}</div>
+            <button
+              class="btn btn-danger"
+              @click="removeSelectedAssignments"
+            >
+              선택한 배정 삭제
+            </button>
           </div>
-        </label>
-      </div>
+        </section>
+
+        <!-- ===== Action ===== -->
+        <div class="action-footer">
+          <button
+            class="btn btn-primary"
+            :disabled="!isReady"
+            @click="createAssignments"
+          >
+            평가 배정하기
+          </button>
+        </div>
+      </section>
     </section>
-    <!-- ===== STEP 4 ===== -->
-    <section class="card preview-card">
+
+    <!-- ======================================================
+      TAB 2 : 평가 배정 상태 보기
+    ======================================================= -->
+    <section v-if="activeTab === 'status'" class="card preview-card">
       <div class="step-header">
-        <span class="step">STEP 4</span>
-        <h3>기존 평가 배정 관리</h3>
+        <h3>평가 배정 현황</h3>
       </div>
 
-      <!-- 배정 없음 -->
       <div v-if="assignments.length === 0" class="empty">
         아직 배정된 평가가 없습니다.
       </div>
 
-      <!-- 배정 목록 -->
       <div v-else class="assignment-table">
         <div class="assignment-head">
           <span></span>
@@ -161,34 +279,11 @@
           </button>
         </div>
       </div>
-
-      <!-- 하단 액션 -->
-      <div
-        v-if="selectedAssignments.length > 0"
-        class="assignment-footer"
-      >
-        <button
-          class="btn btn-danger"
-          @click="removeSelectedAssignments"
-        >
-          선택한 배정 삭제
-        </button>
-      </div>
     </section>
-    <!-- ===== Action ===== -->
-    <div class="action-footer">
-      <button
-        class="btn btn-primary"
-        :disabled="!isReady"
-        @click="createAssignments"
-      >
-        평가 배정하기
-      </button>
-
-    </div>
-
   </section>
 </template>
+
+
 
 
 <script setup>
@@ -219,6 +314,10 @@ const selectedEvaluatees = ref([])
 
 const selectedAssignments = ref([])
 
+const selectedDepartment = ref('')
+
+const activeTab = ref('assign') // 'status' | 'assign'
+
 /* ===== 더미 사원 (ID: 1001~1004) ===== */
 
 const employees = ref([
@@ -227,6 +326,8 @@ const employees = ref([
   { id: 1003, name: '박민수', department: '인사팀', position: '사원' },
   { id: 1004, name: '정유진', department: '개발팀', position: '차장' },
 ])
+
+const departments = ['개발팀', '기획팀', '인사팀']
 
 /* =========================
  * computed
@@ -256,6 +357,12 @@ const isReady = computed(() =>
   selectedEvaluatees.value.length > 0
 )
 
+const filteredEmployees = computed(() =>
+  employees.value.filter(
+    e => e.department === selectedDepartment.value
+  )
+)
+
 /* =========================
  * load
  * ========================= */
@@ -283,6 +390,13 @@ const loadAssignments = async (cycleEvalTypeId) => {
   assignments.value = res.data?.data ?? []
 }
 
+const isStep1Completed = computed(() =>
+  selectedCycleId.value &&
+  selectedEvalTypeId.value &&
+  selectedDepartment.value
+)
+
+
 /* =========================
  * lifecycle
  * ========================= */
@@ -305,6 +419,14 @@ watch(selectedEvalTypeId, (evalTypeId) => {
   selectedEvaluator.value = null
   selectedEvaluatees.value = []
   loadAssignments(evalTypeId)
+})
+watch(activeTab, () => {
+  selectedAssignments.value = []
+})
+
+watch(selectedDepartment, () => {
+  selectedEvaluator.value = null
+  selectedEvaluatees.value = []
 })
 
 /* =========================
@@ -378,23 +500,20 @@ const mapEmployeeName = (empId) => {
 
 
 <style scoped>
-.page {
-  max-width: 920px;
+.page{
+  max-width: 1160px;
   margin: 0 auto;
-  padding: 32px 16px 64px;
+  padding: 28px 18px 48px;
 }
-
-/* ===== Title ===== */
 .section-title {
-  margin-bottom: 28px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
 }
 .section-title h1 {
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 700;
-}
-.section-title .sub {
-  font-size: 13px;
-  color: #6b7280;
 }
 
 /* ===== Card ===== */
@@ -603,6 +722,34 @@ select:focus {
   margin-top: 14px;
   display: flex;
   justify-content: flex-end;
+}
+
+/* ===== Tabs ===== */
+.tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.tab {
+  padding: 10px 18px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 700;
+  background: #e5e7eb;
+  color: #374151;
+  border: none;
+  cursor: pointer;
+  transition: 0.15s;
+}
+
+.tab.active {
+  background: #6366f1;
+  color: white;
+}
+
+.tab:not(.active):hover {
+  background: #d1d5db;
 }
 
 </style>
