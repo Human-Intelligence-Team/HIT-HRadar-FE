@@ -1,3 +1,4 @@
+/*evaluationResponseApi.js*/
 import axios from './axios.js'
 
 export const saveEvaluationResponseDraft = (data) => {
@@ -14,5 +15,38 @@ export const submitEvaluationResponse = (assignmentId) => {
 export const fetchEvaluationResponses = (assignmentId) => {
   return axios.get(
     `/api/v1/evaluation-responses/${assignmentId}`
+  )
+}
+
+//피평가자 기준 조회
+export const fetchEvaluateeEvaluationResult = (
+  evaluateeId,
+  cycleId,
+  evalTypeId
+) => {
+  return axios.get(
+    `/api/v1/evaluation-results/evaluatee/${evaluateeId}`,
+    {
+      params: {
+        cycleId,
+        evalTypeId,
+      },
+    }
+  )
+}
+
+//내 기준 조회
+export const fetchMyEvaluationResult = (
+  cycleId,
+  evalTypeId
+) => {
+  return axios.get(
+    `/api/v1/evaluation-results/evaluatee/me`,
+    {
+      params: {
+        cycleId,
+        evalTypeId,
+      },
+    }
   )
 }
