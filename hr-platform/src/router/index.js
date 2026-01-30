@@ -58,6 +58,8 @@ import AdminGradeObjectionPage from '@/views/grading/gradeObjection/AdminGradeOb
 import AdminGradeObjectionDetailPage from '@/views/grading/gradeObjection/AdminGradeObjectionDetailPage.vue'
 import EvaluationTypeSetupPage from '@/views/evaluation/evalType/EvaluationTypeSetupPage.vue'
 import EvaluationFormBuilderPage from '@/views/evaluation/evalQusetion/EvaluationFormBuilderPage.vue'
+import EvaluationAssignmentSetupPage
+  from '@/views/evaluation/evalAssignment/EvaluationAssignmentSetupPage.vue'
 
 const routes = [
   {
@@ -144,6 +146,7 @@ const routes = [
       //평가
       { path: '/hr/evaluation/type/setting', component: EvaluationTypeSetupPage },
       { path: '/hr/evaluation/question/form/setting', component: EvaluationFormBuilderPage },
+      { path: '/hr/evaluation/assignment', component: EvaluationAssignmentSetupPage },
     ],
   },
 ]
