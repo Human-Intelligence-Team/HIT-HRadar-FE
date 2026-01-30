@@ -17,7 +17,7 @@ const cardEl = ref(null)
 let rafId = 0
 const target = { rx: 0, ry: 0 }
 const cur = { rx: 0, ry: 0 }
-const clamp = (v, min, max) => Math.min(max, Math.max(min, v))
+// 3D logic simplified
 
 const applyVars = () => {
   const el = cardEl.value
@@ -40,17 +40,11 @@ onMounted(() => {
 
 onBeforeUnmount(() => cancelAnimationFrame(rafId))
 
-const onMove = (e) => {
-  const el = cardEl.value
-  if (!el) return
-  const rect = el.getBoundingClientRect()
-  const x = clamp(e.clientX - rect.left, 0, rect.width)
-  const y = clamp(e.clientY - rect.top, 0, rect.height)
-
-  const nx = (x / rect.width) * 2 - 1
-  const ny = (y / rect.height) * 2 - 1
-  target.ry = clamp(nx * 6, -6, 6)
-  target.rx = clamp(-ny * 4, -4, 4)
+// 3D Motion Disabled
+const onMove = () => {
+  // logic removed to fix unused vars
+  target.ry = 0
+  target.rx = 0
 }
 
 const onLeave = () => {

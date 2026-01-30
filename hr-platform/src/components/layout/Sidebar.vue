@@ -6,12 +6,13 @@
 
       <div class="nav-group has-flyout">
         <div class="nav-item">
-          <span>사원 · 조직 관리</span>
+          <span>사원 · 부서 관리</span>
           <span class="arrow">›</span>
         </div>
         <div class="flyout">
           <RouterLink to="/employee" class="flyout-item">사원 관리</RouterLink>
-          <RouterLink to="/organization" class="flyout-item">조직 관리</RouterLink>
+          <RouterLink to="/organization" class="flyout-item">부서 조회</RouterLink>
+          <RouterLink to="/department/manage" class="flyout-item">부서 정책 관리</RouterLink>
         </div>
       </div>
 
@@ -167,9 +168,23 @@
       >
         알림 관리
       </RouterLink>
+      <RouterLink
+        v-if="auth.isAdmin"
+        to="/admin/company-applications"
+        class="nav-item link"
+        active-class="active"
+      >
+        ❖ Admin Dashboard
+      </RouterLink>
     </nav>
   </aside>
 </template>
+
+<script>
+export default {
+  name: 'SidebarMenu'
+}
+</script>
 
 <script setup>
 import { useAuthStore } from '@/stores/authStore'

@@ -1,0 +1,287 @@
+<template>
+  <div class="dept-manage-page">
+    <div class="header-action">
+      <div>
+        <h1 class="page-title">부서 관리</h1>
+        <p class="page-desc">부서를 생성, 수정, 삭제할 수 있습니다.</p>
+      </div>
+      <button class="btn-primary" @click="openCreateModal">
+        + 부서 생성
+      </button>
+    </div>
+
+    <!-- Department List Table -->
+    <div class="card">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>부서명</th>
+            <th>상위 부서</th>
+            <th>부서장</th>
+            <th>관리</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="dept in departments" :key="dept.deptId || dept.id">
+            <td class="font-medium">{{ dept.deptName || dept.departmentName }}</td>
+            <td>{{ dept.parentDeptName || dept.parentDepartmentName || '-' }}</td>
+            <td>{{ dept.managerName || '-' }}</td>
+            <td>
+              <div class="action-buttons">
+                <button class="btn-sm btn-edit" @click="openEditModal(dept)">수정</button>
+                <button class="btn-sm btn-delete" @click="confirmDelete(dept)">삭제</button>
+              </div>
+            </td>
+          </tr>
+           <tr v-if="departments.length === 0">
+             <td colspan="4" class="text-center py-4">등록된 부서가 없습니다.</td>
+           </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Modal Form -->
+    <div v-if="showModal" class="modal-backdrop" @click.self="closeModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title">{{ isEditMode ? '부서 수정' : '부서 생성' }}</h2>
+          <button class="btn-close" @click="closeModal">×</button>
+        </div>
+        
+        <form @submit.prevent="handleSubmit" class="modal-body">
+          <div class="form-group">
+            <label>부서명 <span class="required">*</span></label>
+            <input v-model="form.deptName" type="text" class="input-modern" required placeholder="예: 인사팀" />
+          </div>
+
+          <div class="form-group">
+            <label>부서 연락처 <span class="required">*</span></label>
+            <input v-model="form.deptPhone" type="text" class="input-modern" required placeholder="예: 02-1234-5678" />
+          </div>
+
+          <div class="form-group">
+            <label>상위 부서</label>
+            <select v-model="form.parentDeptId" class="input-modern">
+              <option :value="null">없음 (최상위 부서)</option>
+              <option 
+                v-for="d in parentOptions" 
+                :key="d.deptId || d.id" 
+                :value="d.deptId || d.id"
+              >
+                {{ d.deptName || d.departmentName }}
+              </option>
+            </select>
+          </div>
+
+          <!-- Optional: Manager ID or Name if API supports it often IDs are used -->
+          <!-- For now simplified as per likely DTO -->
+          
+          <div class="modal-footer">
+            <button type="button" class="btn-secondary" @click="closeModal">취소</button>
+            <button type="submit" class="btn-primary" :disabled="submitting">
+              {{ submitting ? '처리중...' : (isEditMode ? '수정' : '생성') }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { ref, computed, onMounted } from 'vue'
+import { 
+  getAllDepartmentsByCompany, 
+  createDepartment, 
+  updateDepartment, 
+  deleteDepartment 
+} from '@/api/departmentApi'
+
+const departments = ref([])
+const showModal = ref(false)
+const isEditMode = ref(false)
+const submitting = ref(false)
+const editId = ref(null)
+
+const form = ref({
+  deptName: '',
+  deptPhone: '',
+  parentDeptId: null
+})
+
+// Filter out itself from parent options when editing to avoid cycles
+const parentOptions = computed(() => {
+  if (!isEditMode.value) return departments.value
+  return departments.value.filter(d => d.deptId !== editId.value)
+})
+
+onMounted(() => {
+  fetchDepartments()
+})
+
+const fetchDepartments = async () => {
+  try {
+    const res = await getAllDepartmentsByCompany()
+    departments.value = ensureArray(res.data?.data?.departments || res.data?.data)
+  } catch (err) {
+    console.error(err)
+  }
+}
+
+const ensureArray = (data) => Array.isArray(data) ? data : []
+
+const openCreateModal = () => {
+  isEditMode.value = false
+  editId.value = null
+  form.value = { deptName: '', deptPhone: '', parentDeptId: null }
+  showModal.value = true
+}
+
+const openEditModal = (dept) => {
+  isEditMode.value = true
+  editId.value = dept.deptId || dept.id // Depending on response field
+  form.value = {
+    deptName: dept.deptName || dept.departmentName,
+    deptPhone: dept.deptPhoneNo || dept.deptPhone || '',
+    parentDeptId: dept.parentDeptId || dept.parentDepartmentId || null
+  }
+  showModal.value = true
+}
+
+const closeModal = () => {
+  showModal.value = false
+}
+
+const handleSubmit = async () => {
+  submitting.value = true
+  try {
+    if (isEditMode.value) {
+      await updateDepartment(editId.value, {
+        deptName: form.value.deptName,
+        deptPhone: form.value.deptPhone,
+        parentDeptId: form.value.parentDeptId
+      })
+      alert('성공적으로 수정되었습니다.')
+    } else {
+      await createDepartment({
+        deptName: form.value.deptName,
+        deptPhone: form.value.deptPhone,
+        parentDeptId: form.value.parentDeptId
+      })
+      alert('성공적으로 생성되었습니다.')
+    }
+    closeModal()
+    fetchDepartments()
+  } catch (err) {
+    alert('오류가 발생했습니다: ' + (err.response?.data?.message || err.message))
+  } finally {
+    submitting.value = false
+  }
+}
+
+const confirmDelete = async (dept) => {
+  if (!confirm(`${dept.departmentName} 부서를 삭제하시겠습니까?`)) return
+  
+  try {
+    await deleteDepartment(dept.id)
+    alert('삭제되었습니다.')
+    fetchDepartments()
+  } catch (err) {
+    alert('삭제 실패: ' + (err.response?.data?.message || err.message))
+  }
+}
+</script>
+
+<style scoped>
+.dept-manage-page {
+  padding: 32px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.header-action {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+}
+.page-title { font-size: 1.8rem; font-weight: 800; color: #1e293b; margin-bottom: 4px; }
+.page-desc { color: #64748b; }
+
+.card {
+  background: white;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.data-table th, .data-table td {
+  padding: 16px 20px;
+  text-align: left;
+  border-bottom: 1px solid #f1f5f9;
+}
+.data-table th {
+  background: #f8fafc;
+  font-weight: 600;
+  color: #475569;
+}
+.font-medium { font-weight: 500; color: #334155; }
+.text-center { text-align: center; }
+.py-4 { padding-top: 1rem; padding-bottom: 1rem; }
+
+.btn-primary {
+  background: #0f172a; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s;
+}
+.btn-primary:hover { background: #334155; }
+.btn-primary:disabled { background: #cbd5e1; cursor: not-allowed; }
+
+.btn-secondary {
+  background: white; color: #475569; border: 1px solid #e2e8f0; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer;
+}
+.btn-secondary:hover { background: #f8fafc; }
+
+.action-buttons { display: flex; gap: 8px; }
+.btn-sm { padding: 6px 12px; font-size: 0.85rem; border-radius: 6px; cursor: pointer; border: none; font-weight: 500; }
+.btn-edit { background: #e0f2fe; color: #0284c7; }
+.btn-edit:hover { background: #bae6fd; }
+.btn-delete { background: #fee2e2; color: #ef4444; }
+.btn-delete:hover { background: #fecaca; }
+
+/* Modal */
+.modal-backdrop {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.5);
+  display: flex; justify-content: center; align-items: center;
+  z-index: 9999;
+  backdrop-filter: blur(4px);
+}
+.modal-content {
+  background: white; width: 440px; border-radius: 16px; padding: 24px;
+  box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+.modal-title { font-size: 1.25rem; font-weight: 700; color: #0f172a; }
+.btn-close { background: none; border: none; font-size: 1.5rem; color: #94a3b8; cursor: pointer; }
+
+.form-group { margin-bottom: 20px; display: flex; flex-direction: column; gap: 8px; }
+.form-group label { font-size: 0.9rem; font-weight: 600; color: #475569; }
+.required { color: #ef4444; }
+.input-modern {
+  padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.95rem;
+  transition: all 0.2s;
+}
+.input-modern:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+
+.modal-footer { display: flex; justify-content: flex-end; gap: 12px; margin-top: 32px; }
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+</style>

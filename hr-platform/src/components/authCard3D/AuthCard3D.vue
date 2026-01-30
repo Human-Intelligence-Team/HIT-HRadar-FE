@@ -52,9 +52,9 @@
 
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue'
-import { useRouter } from 'vue-router'
+// import { useRouter } from 'vue-router'
 
-const router = useRouter()
+// const router = useRouter()
 const cardEl = ref(null)
 
 /** snap state */
@@ -67,7 +67,7 @@ const onEnterRight = () => { side.value = 'LEFT' } // 오른쪽 올라가면 오
 let rafId = 0
 const target = { rx: 0, ry: 0 }
 const cur = { rx: 0, ry: 0 }
-const clamp = (v, min, max) => Math.min(max, Math.max(min, v))
+// const clamp = (v, min, max) => Math.min(max, Math.max(min, v))
 
 const applyVars = () => {
   const el = cardEl.value
@@ -90,19 +90,21 @@ onMounted(() => {
 
 onBeforeUnmount(() => cancelAnimationFrame(rafId))
 
+// 3D Mouse Move Logic Removed for now as requested
+/*
 const onMove = (e) => {
   const el = cardEl.value
   if (!el) return
   const rect = el.getBoundingClientRect()
-  const x = clamp(e.clientX - rect.left, 0, rect.width)
-  const y = clamp(e.clientY - rect.top, 0, rect.height)
+  // const x = clamp(e.clientX - rect.left, 0, rect.width)
+  // const y = clamp(e.clientY - rect.top, 0, rect.height)
 
-  const nx = (x / rect.width) * 2 - 1
-  const ny = (y / rect.height) * 2 - 1
-  target.ry = clamp(nx * 6, -6, 6)
-  target.rx = clamp(-ny * 4, -4, 4)
+  target.ry = 0
+  target.rx = 0
 }
+*/
 
+const onMove = () => {} // No-op
 const onLeave = () => {
   target.rx = 0
   target.ry = 0
@@ -189,35 +191,44 @@ const goApply = () => emit('select-apply')
 }
 
 .title {
-  margin: 6px 0 0;
-  font-size: 22px;
-  font-weight: 900;
-  letter-spacing: -0.3px;
-  color: #0f172a;
+  margin: 12px 0 4px;
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: #1e293b;
+  background: linear-gradient(135deg, #0f172a 0%, #334155 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 .sub {
-  margin: 0 0 8px;
-  font-size: 13px;
+  margin: 0 0 16px;
+  font-size: 15px;
+  font-weight: 500;
   color: #64748b;
-  line-height: 1.6;
+  line-height: 1.5;
+  letter-spacing: -0.01em;
 }
 
 .chips {
   list-style: none;
   padding: 0;
-  margin: 6px 0 12px;
+  margin: 0 0 24px;
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
 }
 .chips li {
-  font-size: 12px;
+  font-size: 13px;
+  font-weight: 500;
   color: #475569;
-  background: rgba(148, 163, 184, 0.14);
-  border: 1px solid rgba(148, 163, 184, 0.20);
-  border-radius: 999px;
-  padding: 6px 10px;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 4px 10px;
 }
+
+
 
 /* buttons */
 .btn {
@@ -295,15 +306,17 @@ const goApply = () => emit('select-apply')
 }
 
 .overlay-title {
-  margin: 0 0 10px;
-  font-size: 22px;
-  font-weight: 900;
-  letter-spacing: -0.2px;
+  margin: 0 0 8px;
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.1);
 }
 .overlay-desc {
   margin: 0;
-  font-size: 13px;
-  opacity: 0.92;
+  font-size: 16px;
+  font-weight: 500;
+  opacity: 0.95;
   line-height: 1.6;
 }
 

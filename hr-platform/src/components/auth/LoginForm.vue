@@ -8,6 +8,8 @@
           v-model="companyCode"
           placeholder="Company Code"
           @blur="validateCompanyCode"
+          autocomplete="new-password"
+          spellcheck="false"
         />
         <p v-if="errors.companyCode" class="error">
           {{ errors.companyCode }}
@@ -19,6 +21,8 @@
           v-model="loginId"
           placeholder="ID"
           @blur="validateLoginId"
+          autocomplete="new-password"
+          spellcheck="false"
         />
         <p v-if="errors.loginId" class="error">
           {{ errors.loginId }}
@@ -31,6 +35,8 @@
           type="password"
           placeholder="Password"
           @blur="validatePassword"
+          autocomplete="new-password"
+          spellcheck="false"
         />
         <p v-if="errors.password" class="error">
           {{ errors.password }}
@@ -148,7 +154,9 @@ input {
   background: rgba(255, 255, 255, 0.8);
   border: 1px solid #cbd5e1;
   border-radius: 12px;
+  border-radius: 12px;
   transition: all 0.2s;
+  user-select: text;
 }
 
 input::placeholder {
