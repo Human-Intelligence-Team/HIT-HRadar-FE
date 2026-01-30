@@ -26,7 +26,6 @@
             <li><strong>출근 시간:</strong> {{ clockInInfo.clockInTime }}</li>
             <li><strong>이름:</strong> {{ clockInInfo.name }}</li>
             <li><strong>부서:</strong> {{ clockInInfo.department }}</li>
-            <li><strong>직급:</strong> {{ clockInInfo.grade }}</li>
             <li><strong>근무 유형:</strong> {{ clockInInfo.workingType }}</li>
             <li><strong>근무 장소:</strong> {{ clockInInfo.workplace }}</li>
             <li><strong>IP 주소:</strong> {{ clockInInfo.ipAddress }}</li>
