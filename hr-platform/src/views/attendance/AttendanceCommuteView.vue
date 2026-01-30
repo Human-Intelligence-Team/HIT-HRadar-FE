@@ -22,6 +22,7 @@
           <p class="current-time">{{ currentTime }}</p>
           <p class="current-status">현재 상태: <span class="status-in">출근 상태</span></p>
           <ul class="info-list">
+            <li><strong>날짜:</strong> {{ clockInInfo.workDate }}</li>
             <li><strong>출근 시간:</strong> {{ clockInInfo.clockInTime }}</li>
             <li><strong>이름:</strong> {{ clockInInfo.name }}</li>
             <li><strong>부서:</strong> {{ clockInInfo.department }}</li>
@@ -29,6 +30,7 @@
             <li><strong>근무 유형:</strong> {{ clockInInfo.workingType }}</li>
             <li><strong>근무 장소:</strong> {{ clockInInfo.workplace }}</li>
             <li><strong>IP 주소:</strong> {{ clockInInfo.ipAddress }}</li>
+            <li><strong>초과근무 여부:</strong> {{ clockInInfo.overtimeStatus }}</li>
           </ul>
           <button class="btn btn-clock-out" @click="clockInOut">퇴근하기</button>
         </div>
@@ -148,13 +150,15 @@ const fetchInitialData = async () => {
     if (data && data.clockInTime && !data.clockOutTime) {
       // 출근 상태
       clockInInfo.value = {
-        name: userInfo.value?.name,
-        department: userInfo.value?.department,
-        grade: userInfo.value?.grade,
         clockInTime: new Date(data.clockInTime).toLocaleString('ko-KR'),
+        name: userInfo.value?.name,
+        department: userInfo.value?.department, // from auth store for now
+        grade: userInfo.value?.grade, // from auth store for now
         workingType: data.workType,
         workplace: data.workPlace,
-        ipAddress: data.ipAddress // 이 정보가 응답에 포함되어 있다고 가정
+        ipAddress: data.ipAddress, // 이 정보가 응답에 포함되어 있다고 가정
+        workDate: new Date(data.workDate).toLocaleDateString('ko-KR'), // assuming backend returns it
+        overtimeStatus: data.overtimeStatus || '없음', // assuming backend returns it
       };
       // 출근 상태일 때는 initialWorkInfo 업데이트 불필요
     } else {
@@ -229,11 +233,26 @@ const clockInOut = async () => {
   try {
     const response = await processAttendance();
     const data = response.data; // AttendanceCheckResponse
-
     const actionText = data.attendanceStatusType === 'CHECK_IN' ? '출근' : '퇴근';
     alert(`${actionText} 처리가 완료되었습니다.`);
 
-    // UI 상태를 최신 정보로 다시 로드
+    if (data.attendanceStatusType === 'CHECK_IN') {
+      clockInInfo.value = {
+        clockInTime: new Date(data.checkInTime).toLocaleString('ko-KR'), // from backend
+        name: userInfo.value?.name,
+        department: userInfo.value?.department, // from auth store for now
+        grade: userInfo.value?.grade, // from auth store for now
+        workingType: data.workType, // from backend
+        workplace: data.workLocation, // from backend
+        ipAddress: data.ipAddress, // from backend
+        workDate: new Date(data.workDate).toLocaleDateString('ko-KR'), // from backend
+        overtimeStatus: data.overtimeStatus || '없음', // from backend, default to '없음'
+      };
+    } else {
+      // 퇴근 시 clockInInfo 초기화
+      clockInInfo.value = null;
+    }
+    // UI 상태를 최신 정보로 다시 로드 (부서원 현황 등)
     await fetchInitialData();
 
   } catch (error) {
