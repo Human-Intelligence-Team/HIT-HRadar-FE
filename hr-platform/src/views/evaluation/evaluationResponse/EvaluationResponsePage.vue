@@ -1,3 +1,4 @@
+
 <template>
   <section class="page">
     <!-- Title -->
@@ -11,20 +12,32 @@
     </div>
 
     <div class="layout">
-      <!-- LEFT -->
+      <!-- LEFT : 내 평가함 -->
       <aside class="eval-panel">
         <div class="panel-title">내 평가함</div>
+
         <ul class="eval-list">
           <li
             v-for="e in myEvaluations"
             :key="e.assignmentId"
-            :class="{ active: selectedAssignment?.assignmentId === e.assignmentId }"
-            @click="selectAssignment(e)"
+            :class="{
+              active: selectedAssignment?.assignmentId === e.assignmentId,
+              disabled: e.cycleStatus !== 'IN_PROGRESS'
+            }"
+            @click="e.cycleStatus === 'IN_PROGRESS' && selectAssignment(e)"
+            :title="e.cycleStatus !== 'IN_PROGRESS'
+              ? '평가 기간이 아닙니다'
+              : ''"
           >
             <div class="target">{{ e.targetName }}</div>
+
             <div class="meta">
               {{ e.evalTypeName }}
-              <span class="status" :class="e.assignmentStatus.toLowerCase()">
+
+              <span
+                class="status"
+                :class="e.assignmentStatus.toLowerCase()"
+              >
                 {{ e.assignmentStatus === 'SUBMITTED' ? '제출완료' : '미제출' }}
               </span>
             </div>
@@ -34,20 +47,31 @@
 
       <!-- RIGHT -->
       <section class="content-panel">
-        <div v-if="!selectedAssignment">
-          <div class="empty-state">
-            <div class="empty-icon">📝</div>
-            <div class="empty-title">
-              평가 대상을 선택해주세요
-            </div>
-            <div class="empty-desc">
-              왼쪽 <b>내 평가함</b>에서 평가 대상을 선택하면<br />
-              평가 문항을 작성할 수 있습니다.
-            </div>
-          </div>
 
+        <!-- 아무것도 선택 안 함 -->
+        <div v-if="!selectedAssignment" class="empty-state">
+          <div class="empty-icon">📝</div>
+          <div class="empty-title">평가 대상을 선택해주세요</div>
+          <div class="empty-desc">
+            왼쪽 <b>내 평가함</b>에서 평가 대상을 선택하면<br />
+            평가 문항을 작성할 수 있습니다.
+          </div>
         </div>
 
+        <!-- 회차가 닫힌 경우 -->
+        <div
+          v-else-if="selectedAssignment.cycleStatus !== 'IN_PROGRESS'"
+          class="empty-state warning"
+        >
+          <div class="empty-icon">⛔</div>
+          <div class="empty-title">평가 기간이 아닙니다</div>
+          <div class="empty-desc">
+            해당 회차는 현재 평가를 작성할 수 없습니다.<br />
+            평가 기간을 확인해주세요.
+          </div>
+        </div>
+
+        <!-- 정상 평가 가능 -->
         <template v-else>
           <div class="content-header">
             <h2>
@@ -61,8 +85,12 @@
             :key="section.sectionId"
             class="form-section"
           >
-            <div class="section-title-text">{{ section.sectionTitle }}</div>
-            <div class="section-desc-text">{{ section.sectionDescription }}</div>
+            <div class="section-title-text">
+              {{ section.sectionTitle }}
+            </div>
+            <div class="section-desc-text">
+              {{ section.sectionDescription }}
+            </div>
 
             <div
               v-for="q in section.questions"
@@ -71,7 +99,10 @@
             >
               <div class="question-title">
                 {{ q.questionContent }}
-                <span v-if="q.requiredStatus === 'REQUIRED'" class="required">*</span>
+                <span
+                  v-if="q.requiredStatus === 'REQUIRED'"
+                  class="required"
+                >*</span>
               </div>
 
               <!-- RATING -->
@@ -89,7 +120,10 @@
                     :disabled="isReadonly"
                   />
                   <span class="score-num">{{ n }}</span>
-                  <span class="score-star" :class="{ active: answers[q.questionId].score >= n }">★</span>
+                  <span
+                    class="score-star"
+                    :class="{ active: answers[q.questionId].score >= n }"
+                  >★</span>
                 </label>
               </div>
 
@@ -102,7 +136,10 @@
               />
 
               <!-- OBJECTIVE -->
-              <div v-if="q.questionType === 'OBJECTIVE'" class="choice-list">
+              <div
+                v-if="q.questionType === 'OBJECTIVE'"
+                class="choice-list"
+              >
                 <label
                   v-for="opt in q.options"
                   :key="opt.optionId"
@@ -123,8 +160,12 @@
 
           <!-- Actions -->
           <div class="form-actions" v-if="!isReadonly">
-            <button class="btn secondary" @click="tempSave">임시 저장</button>
-            <button class="btn primary" @click="submit">제출</button>
+            <button class="btn secondary" @click="tempSave">
+              임시 저장
+            </button>
+            <button class="btn primary" @click="submit">
+              제출
+            </button>
           </div>
         </template>
       </section>
@@ -142,6 +183,9 @@ import {
   fetchEvaluationResponses,
 } from '@/api/evaluationResponseApi'
 
+/* =========================
+ * state
+ * ========================= */
 const myEvaluations = ref([])
 const selectedAssignment = ref(null)
 const sections = ref([])
@@ -154,10 +198,21 @@ const employeeMap = {
   1004: '정유진',
 }
 
-const isReadonly = computed(
-  () => selectedAssignment.value?.assignmentStatus === 'SUBMITTED'
-)
+/* =========================
+ * readonly 여부
+ * ========================= */
+const isReadonly = computed(() => {
+  if (!selectedAssignment.value) return true
 
+  return (
+    selectedAssignment.value.assignmentStatus === 'SUBMITTED' ||
+    selectedAssignment.value.cycleStatus !== 'IN_PROGRESS'
+  )
+})
+
+/* =========================
+ * 내 평가함 조회
+ * ========================= */
 const loadMyAssignments = async () => {
   const res = await fetchAssignmentsByEvaluator()
   myEvaluations.value = (res.data?.data ?? []).map(a => ({
@@ -166,36 +221,62 @@ const loadMyAssignments = async () => {
   }))
 }
 
+/* =========================
+ * 평가 선택
+ * ========================= */
 const selectAssignment = async (assignment) => {
   selectedAssignment.value = assignment
   sections.value = []
   answers.value = {}
 
+  // 1️⃣ 문항지
   const sheetRes = await fetchEvaluationSheet(
     assignment.cycleId,
     assignment.evalTypeId
   )
   sections.value = sheetRes.data?.data ?? []
 
-  sections.value.forEach(s =>
-    s.questions.forEach(q => {
-      answers.value[q.questionId] = { score: null, text: '', optionId: null }
+  // 2️⃣ 기본 answers 초기화
+  sections.value.forEach(section =>
+    section.questions.forEach(q => {
+      answers.value[q.questionId] = {
+        score: null,
+        text: '',
+        optionId: null,
+      }
     })
   )
 
-  const responseRes = await fetchEvaluationResponses(assignment.assignmentId)
+  // 3️⃣ 기존 응답 불러오기
+  const responseRes = await fetchEvaluationResponses(
+    assignment.assignmentId
+  )
+
   responseRes.data?.forEach(r => {
     if (!answers.value[r.questionId]) return
-    if (r.questionType === 'RATING') answers.value[r.questionId].score = r.score
-    if (r.questionType === 'SUBJECTIVE') answers.value[r.questionId].text = r.textAnswer ?? ''
-    if (r.questionType === 'OBJECTIVE') answers.value[r.questionId].optionId = r.optionId
+
+    if (r.questionType === 'RATING') {
+      answers.value[r.questionId].score = r.score
+    }
+    if (r.questionType === 'SUBJECTIVE') {
+      answers.value[r.questionId].text = r.textAnswer ?? ''
+    }
+    if (r.questionType === 'OBJECTIVE') {
+      answers.value[r.questionId].optionId = r.optionId
+    }
   })
 }
 
+/* =========================
+ * payload builder
+ * ========================= */
 const buildResponsePayload = () => ({
   assignmentId: selectedAssignment.value.assignmentId,
   responses: Object.entries(answers.value).map(([id, a]) => {
-    const q = sections.value.flatMap(s => s.questions).find(q => q.questionId === Number(id))
+    const q = sections.value
+      .flatMap(s => s.questions)
+      .find(q => q.questionId === Number(id))
+
     return {
       questionId: Number(id),
       responseType: q.questionType,
@@ -206,6 +287,9 @@ const buildResponsePayload = () => ({
   }),
 })
 
+/* =========================
+ * actions
+ * ========================= */
 const tempSave = async () => {
   await saveEvaluationResponseDraft(buildResponsePayload())
   alert('임시 저장되었습니다.')
@@ -214,11 +298,15 @@ const tempSave = async () => {
 const submit = async () => {
   await saveEvaluationResponseDraft(buildResponsePayload())
   await submitEvaluationResponse(selectedAssignment.value.assignmentId)
+
   alert('평가가 제출되었습니다.')
   await loadMyAssignments()
   selectedAssignment.value = null
 }
 
+/* =========================
+ * lifecycle
+ * ========================= */
 onMounted(loadMyAssignments)
 </script>
 
