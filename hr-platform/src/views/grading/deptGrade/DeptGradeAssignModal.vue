@@ -61,8 +61,8 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import { assignDeptGrade, updateDeptGrade } from '@/api/DeptGradeApi'
-import { fetchCompanyGrades } from '@/api/gradeApi'
+import { assignDeptGrade, updateDeptGrade } from '@/api/DeptGradeApi.js'
+import { fetchCompanyGrades } from '@/api/gradeApi.js'
 
 const props = defineProps({
   department: Object,

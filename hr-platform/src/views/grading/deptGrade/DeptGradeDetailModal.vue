@@ -57,7 +57,7 @@
   </div>
 </template>
 <script setup>
-import { approveDeptGrade } from '@/api/DeptGradeApi'
+import { approveDeptGrade } from '@/api/DeptGradeApi.js'
 
 const props = defineProps({
   dept: Object,

@@ -222,12 +222,12 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 
-import IndividualGradeAssignModal from '@/views/grading/IndividualGradeAssignModal.vue'
-import IndividualGradeDetailModal from '@/views/grading/IndividualGradeDetailModal.vue'
+import IndividualGradeAssignModal from '@/views/grading/individualGrade/IndividualGradeAssignModal.vue'
+import IndividualGradeDetailModal from '@/views/grading/individualGrade/IndividualGradeDetailModal.vue'
 
-import { fetchMyDeptGrade } from '@/api/DeptGradeApi'
-import { fetchCompanyGrades } from '@/api/gradeApi'
-import { fetchDistributionPolicies } from '@/api/teamGradeDistributionPolicyApi'
+import { fetchMyDeptGrade } from '@/api/DeptGradeApi.js'
+import { fetchCompanyGrades } from '@/api/gradeApi.js'
+import { fetchDistributionPolicies } from '@/api/teamGradeDistributionPolicyApi.js'
 import {
   assignIndividualGrade,
   updateIndividualGrade,
@@ -239,7 +239,7 @@ import {
 
 const currentCycle = ref(null)
 
-import { fetchCycles } from '@/api/cycleApi'
+import { fetchCycles } from '@/api/cycleApi.js'
 
 const loadCurrentCycle = async () => {
   const res = await fetchCycles()

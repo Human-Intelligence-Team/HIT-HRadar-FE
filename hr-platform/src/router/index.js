@@ -44,14 +44,23 @@ import CycleEditPage from '@/views/cycle/CycleEditPage.vue'
 import CycleAdminManageView from '@/views/cycle/CycleAdminManageView.vue'
 import CycleAdminDetailPage from '@/views/cycle/CycleAdminDetailPage.vue'
 import CycleAdminEditPage from '@/views/cycle/CycleAdminEditPage.vue'
-import CompanyGradeSettingPage from '@/views/grading/CompanyGradeSettingPage.vue'
-import DeptGradeStatusPage from '@/views/grading/DeptGradeStatusPage.vue'
-import AdminDeptGradeStatusPage from '@/views/grading/AdminDeptGradeStatusPage.vue'
-import IndividualGradePage from '@/views/grading/IndividualGradePage.vue'
-import IndividualGradeApprovePage from '@/views/grading/IndividualGradeApprovePage.vue'
-import MygradePage from '@/views/grading/MygradePage.vue'
-import AdminGradeObjectionPage from '@/views/grading/AdminGradeObjectionPage.vue'
-import AdminGradeObjectionDetailPage from '@/views/grading/AdminGradeObjectionDetailPage.vue'
+import CompanyGradeSettingPage from '@/views/grading/gradeSetting/CompanyGradeSettingPage.vue'
+import DeptGradeStatusPage from '@/views/grading/deptGrade/DeptGradeStatusPage.vue'
+import AdminDeptGradeStatusPage from '@/views/grading/deptGrade/AdminDeptGradeStatusPage.vue'
+import IndividualGradePage from '@/views/grading/individualGrade/IndividualGradePage.vue'
+import IndividualGradeApprovePage from '@/views/grading/individualGrade/IndividualGradeApprovePage.vue'
+import MygradePage from '@/views/grading/individualGrade/MygradePage.vue'
+import AdminGradeObjectionPage from '@/views/grading/gradeObjection/AdminGradeObjectionPage.vue'
+import AdminGradeObjectionDetailPage from '@/views/grading/gradeObjection/AdminGradeObjectionDetailPage.vue'
+import EvaluationTypeSetupPage from '@/views/evaluation/evalType/EvaluationTypeSetupPage.vue'
+import EvaluationFormBuilderPage from '@/views/evaluation/evalQusetion/EvaluationFormBuilderPage.vue'
+import EvaluationAssignmentSetupPage
+  from '@/views/evaluation/evalAssignment/EvaluationAssignmentSetupPage.vue'
+import EvaluationAssignmentStatusPage from '@/views/evaluation/evalAssignment/EvaluationAssignmentStatusPage.vue'
+import EvaluationResponsePage from '@/views/evaluation/evaluationResponse/EvaluationResponsePage.vue'
+import EvaluationResultPage from '@/views/evaluation/evaluationResponse/EvaluationResultPage.vue'
+import EvaluationMyResultPage from '@/views/evaluation/evaluationResponse/EvaluationMyResultPage.vue'
+
 import NoticeListView from '@/views/notice/NoticeListView.vue'
 import NoticeDetailView from '@/views/notice/NoticeDetailView.vue'
 import NoticeCreateView from '@/views/notice/NoticeCreateView.vue'
@@ -76,6 +85,7 @@ import AttendanceDepartmentView from '@/views/attendance/AttendanceDepartmentVie
 import MyAttendanceCalendarView from '@/views/attendance/MyAttendanceCalendarView.vue'
 import DepartmentAttendanceCalendarView from '@/views/attendance/DepartmentAttendanceCalendarView.vue'
 import AttendanceEmployeeDetailView from '@/views/attendance/AttendanceEmployeeDetailView.vue'
+
 
 const routes = [
 
@@ -176,24 +186,33 @@ const routes = [
       },
 
       //회차
-      { path: 'cycles', component: CycleManageView },
+      { path: 'cycles', component: CycleManageView},
       { path: 'cycles/:cycleId/edit', component: CycleEditPage },
-      {
-        path: 'cycles/:cycleId',
+      { path: 'cycles/:cycleId',
         name: 'CycleDetail',
-        component: CycleDetailPage
-      },
-      { path: 'hr/cycles', component: CycleAdminManageView },
-      { path: 'hr/cycles/:cycleId', component: CycleAdminDetailPage },
-      { path: '/hr/cycles/:cycleId/edit', component: CycleAdminEditPage },
+        component: CycleDetailPage},
+      { path: 'hr/cycles', component: CycleAdminManageView},
+      { path: 'hr/cycles/:cycleId', component: CycleAdminDetailPage},
+      { path: '/hr/cycles/:cycleId/edit', component: CycleAdminEditPage},
 
       //등급
-      { path: 'grade/setting', component: CompanyGradeSettingPage },
-      { path: 'grading/list', component: DeptGradeStatusPage },
+      { path: 'grade/setting', component: CompanyGradeSettingPage},
+      { path: 'grading/list', component: DeptGradeStatusPage},
       { path: '/hr/grading/list', component: AdminDeptGradeStatusPage },
       { path: '/to/grading/list', component: IndividualGradePage },
       { path: '/hr/grading/list/approve', component: IndividualGradeApprovePage },
       { path: '/my/grading', component: MygradePage },
+      { path: '/to/grading/objection', component: AdminGradeObjectionPage},
+      { path: '/hr/objections/:objectionId', name: 'AdminGradeObjectionDetailPage',component:AdminGradeObjectionDetailPage },
+
+      //평가
+      { path: '/hr/evaluation/type/setting', component: EvaluationTypeSetupPage },
+      { path: '/hr/evaluation/question/form/setting', component: EvaluationFormBuilderPage },
+      { path: '/hr/evaluation/assignment', component: EvaluationAssignmentSetupPage },
+      { path: '/hr/evaluation/assignment/status', component: EvaluationAssignmentStatusPage },
+      { path: '/evaluation/assignment/response', component: EvaluationResponsePage },
+      { path: '/hr/evaluation/response/result', component: EvaluationResultPage },
+      { path: '/evaluation/response/my/result', component: EvaluationMyResultPage },
       { path: '/to/grading/objection', component: AdminGradeObjectionPage },
       { path: '/hr/objections/:objectionId', name: 'AdminGradeObjectionDetailPage', component: AdminGradeObjectionDetailPage },
 

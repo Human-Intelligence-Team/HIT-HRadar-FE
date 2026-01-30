@@ -57,6 +57,12 @@
         <div class="flyout">
           <RouterLink to="/cycles" class="flyout-item">회차 등록/조회</RouterLink>
           <RouterLink to="/hr/cycles" class="flyout-item">회차 등록/조회</RouterLink>
+          <RouterLink to="/hr/evaluation/type/setting" class="flyout-item">평가유형 생성/회차 포함</RouterLink>
+          <RouterLink to="/hr/evaluation/question/form/setting" class="flyout-item">문항지 생성</RouterLink>
+          <RouterLink to="/hr/evaluation/assignment" class="flyout-item">평가 배정</RouterLink>
+          <RouterLink to="/evaluation/assignment/response" class="flyout-item">다면 평가</RouterLink>
+          <RouterLink to="/hr/evaluation/response/result" class="flyout-item">평가 응답 조회</RouterLink>
+          <RouterLink to="/evaluation/response/my/result" class="flyout-item">평가 결과 조회</RouterLink>
         </div>
       </div>
 
@@ -207,6 +213,7 @@ const can = (perm) => {
   background: #ffffff;
   border-right: 1px solid #e6e8ec;
   padding: 14px 10px;
+  z-index: 1000;
   font-family:
     Pretendard,
     -apple-system,
@@ -272,7 +279,7 @@ const can = (perm) => {
   padding: 6px;
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
   display: none;
-  z-index: 30;
+  z-index: 1010;
 }
 
 .has-flyout:hover .flyout {
