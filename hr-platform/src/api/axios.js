@@ -71,23 +71,23 @@ api.interceptors.response.use(
     }
 
     // 401이 아닌 상황은 그대로 throw
-    if(status !== 401) return Promise.reject(error);
+    if (status !== 401) return Promise.reject(error);
 
     // auth 관련 엔드포인트의 401 무한 루프 방지를 위해 그대로 throw
-    if(url.includes('/api/v1/auth/')) return Promise.reject(error);
+    if (url.includes('/api/v1/auth/')) return Promise.reject(error);
 
     // access token이 없는 상황도 그대로 throw
-    if(!authStore.accessToken) {
+    if (!authStore.accessToken) {
       authStore.clearAuthState();
       router.replace('/login');
       return Promise.reject(error);
     }
 
     // 이미 재시도한 요청이면 그대로 실패
-    if(originalRequest._retry) return Promise.reject(error);
+    if (originalRequest._retry) return Promise.reject(error);
 
     // 일반 보호 API의 401 중 한 번만 refresh 시도
-    if(isRefreshing) return Promise.reject(error);
+    if (isRefreshing) return Promise.reject(error);
 
     originalRequest._retry = true;
     isRefreshing = true;
@@ -99,7 +99,7 @@ api.interceptors.response.use(
       // 401로 실패햇던 기존 요청을 다시 수행
       originalRequest.headers.Authorization = `Bearer ${authStore.accessToken}`;
       return api(originalRequest);
-    } catch(e) {
+    } catch (e) {
       isRefreshing = false;
       authStore.clearAuthState();
       return Promise.reject(e);

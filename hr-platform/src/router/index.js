@@ -57,12 +57,19 @@ import NoticeDetailView from '@/views/notice/NoticeDetailView.vue'
 import NoticeCreateView from '@/views/notice/NoticeCreateView.vue'
 import NoticeEditView from '@/views/notice/NoticeEditView.vue'
 import HomeView from '@/views/auth/HomeView.vue'
+import CompanyRegisterView from '@/views/auth/CompanyRegisterView.vue'
 import ApprovalMyListView from '@/views/approval/ApprovalMyListView.vue'
 import ApprovalInboxListView from '@/views/approval/ApprovalInboxListView.vue'
 import ApprovalRejectedListView from '@/views/approval/ApprovalRejectedListView.vue'
 import ApprovalAllListView from '@/views/approval/ApprovalAllListView.vue'
 import ApprovalCreateView from '@/views/approval/ApprovalCreateView.vue'
 import ApprovalAdminView from '@/views/approval/ApprovalAdminView.vue'
+import AdminLayout from '@/components/layout/AdminLayout.vue'
+import AdminComAppList from '@/views/admin/AdminComAppList.vue'
+import AdminUserAccountList from '@/views/admin/AdminUserAccountList.vue'
+import DepartmentListView from '@/views/department/DepartmentListView.vue'
+import DepartmentManageView from '@/views/department/DepartmentManageView.vue'
+
 import AttendanceIpPolicyView from '@/views/attendance/AttendanceIpPolicyView.vue'
 import AttendanceCommuteView from '@/views/attendance/AttendanceCommuteView.vue'
 import AttendanceDepartmentView from '@/views/attendance/AttendanceDepartmentView.vue'
@@ -74,9 +81,24 @@ const routes = [
 
 
   {
+    path: '/register-company',
+    component: CompanyRegisterView,
+  },
+
+  {
     path: '/home',
     component: AuthLayout,
     children: [{ path: '', component: HomeView }],
+  },
+
+  {
+    path: '/admin',
+    component: AdminLayout,
+    meta: { requiresAuth: true, requiresAdmin: true },
+    children: [
+      { path: 'company-applications', component: AdminComAppList },
+      { path: 'user-accounts', component: AdminUserAccountList },
+    ]
   },
 
   {
@@ -94,6 +116,11 @@ const routes = [
           { path: ':id/edit', name: 'notice-edit', component: NoticeEditView, props: true },
         ]
       },
+
+      // 조직/부서 관리
+      { path: 'organization', component: DepartmentListView },
+      { path: 'department/manage', component: DepartmentManageView },
+
 
       //성과평가-목표관리
       { path: 'goal', component: GoalListView },
@@ -167,8 +194,8 @@ const routes = [
       { path: '/to/grading/list', component: IndividualGradePage },
       { path: '/hr/grading/list/approve', component: IndividualGradeApprovePage },
       { path: '/my/grading', component: MygradePage },
-      { path: '/to/grading/objection', component: AdminGradeObjectionPage},
-      { path: '/hr/objections/:objectionId', name: 'AdminGradeObjectionDetailPage',component:AdminGradeObjectionDetailPage },
+      { path: '/to/grading/objection', component: AdminGradeObjectionPage },
+      { path: '/hr/objections/:objectionId', name: 'AdminGradeObjectionDetailPage', component: AdminGradeObjectionDetailPage },
 
 
       {
@@ -211,7 +238,7 @@ const router = createRouter({
 router.beforeEach((to) => {
   const auth = useAuthStore()
 
-  const publicPaths = ['/home']
+  const publicPaths = ['/home', '/register-company']
   const isPublic = publicPaths.includes(to.path)
 
   // 로그인 안 했는데 보호 페이지 접근

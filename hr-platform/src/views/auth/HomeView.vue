@@ -35,9 +35,7 @@
             근태·성과·프로젝트·피드백을 하나의 맥락(Context)으로 통합하고,<br />
             HR이 공정함을 <strong>설명 가능한 근거</strong>로 바꿉니다.
           </p>
-          <div class="hero-btns center">
-            <button class="btn-lg-primary" @click="goIntro">시작하기</button>
-          </div>
+          <!-- Button removed as per request (Only Top & Bottom) -->
           <p class="hero-note">⚠️ AI는 결정을 내리지 않습니다. 최종 판단은 HR이 합니다.</p>
         </div>
         <div class="hero-visual" data-aos>
@@ -306,6 +304,66 @@
       </div>
     </section>
 
+    <!-- 5. Process (How it works) -->
+    <section class="section process-section">
+      <div class="container">
+        <div class="section-header center" data-aos>
+          <span class="section-tag">workflow</span>
+          <h2>데이터가 인사이트가 되는 과정</h2>
+        </div>
+        <div class="process-steps">
+          <div class="step-card" data-aos>
+            <div class="step-num">01</div>
+            <div class="step-icon">🔗</div>
+            <h3>데이터 연동</h3>
+            <p>기존에 사용하시던 근태 관리, 성과 평가 툴의 데이터를 안전하게 연동합니다.</p>
+          </div>
+          <div class="step-arrow">→</div>
+          <div class="step-card" data-aos>
+            <div class="step-num">02</div>
+            <div class="step-icon">🧠</div>
+            <h3>AI 분석 & 감지</h3>
+            <p>HIT 모델이 데이터를 분석하여 이탈 위험, 번아웃 신호, 성장 가능성을 포착합니다.</p>
+          </div>
+          <div class="step-arrow">→</div>
+          <div class="step-card" data-aos>
+            <div class="step-num">03</div>
+            <div class="step-icon">💡</div>
+            <h3>HR 액션</h3>
+            <p>제공된 리포트와 가이드를 바탕으로, HR 담당자는 최적의 면담과 코칭을 진행합니다.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. FAQ Section -->
+    <section class="section faq-section">
+      <div class="container">
+        <div class="section-header center" data-aos>
+          <span class="section-tag">FAQ</span>
+          <h2>자주 묻는 질문</h2>
+        </div>
+        <div class="faq-grid">
+          <div class="faq-item" data-aos>
+            <h3>Q. 초기 스타트업도 사용할 수 있나요?</h3>
+            <p>네, 물론입니다. 오히려 데이터가 적을 때부터 체계적인 관리를 시작하면 조직 문화의 기틀을 잡는 데 큰 도움이 됩니다.</p>
+          </div>
+          <div class="faq-item" data-aos>
+            <h3>Q. 기존 HR 데이터를 그대로 쓸 수 있나요?</h3>
+            <p>엑셀 업로드 및 주요 HR SaaS 연동을 지원하여, 기존 데이터를 손쉽게 이관하고 분석할 수 있습니다.</p>
+          </div>
+          <div class="faq-item" data-aos>
+            <h3>Q. 보안은 안전한가요?</h3>
+            <p>모든 데이터는 암호화되어 저장되며, 민감한 개인정보는 철저하게 분리되어 관리됩니다.</p>
+          </div>
+          <div class="faq-item" data-aos>
+            <h3>Q. 도입 비용은 어떻게 되나요?</h3>
+            <p>현재 베타 기간 동안은 무료로 제공되며, 이후 기업 규모에 맞는 합리적인 요금제를 제안드릴 예정입니다.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- CTA -->
     <section class="cta-section">
       <div class="container cta-container">
@@ -330,17 +388,16 @@
     <!-- Auth Modal -->
     <div v-if="authModalState !== 'hidden'" class="auth-modal-backdrop" @click.self="closeAuthModal">
       <div class="auth-modal-content">
-        <AuthCard3D
-          v-if="authModalState === 'card'"
-          @select-login="switchToLogin"
-          @select-apply="switchToApply"
-        />
-        <ThreeDCard v-else-if="authModalState === 'login'">
-          <LoginForm @login-success="onLoginSuccess" />
-        </ThreeDCard>
-        <ThreeDCard v-else-if="authModalState === 'apply'">
-          <CompanyApplyForm @apply-success="onApplySuccess" @back="goIntro" />
-        </ThreeDCard>
+        <Transition name="fade" mode="out-in">
+          <AuthCard3D
+            v-if="authModalState === 'card'"
+            @select-login="switchToLogin"
+            @select-apply="switchToApply"
+          />
+          <ThreeDCard v-else-if="authModalState === 'login'">
+            <LoginForm @login-success="onLoginSuccess" />
+          </ThreeDCard>
+        </Transition>
       </div>
     </div>
   </main>
@@ -349,10 +406,10 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/authStore'
 import AuthCard3D from '@/components/authCard3D/AuthCard3D.vue'
 import ThreeDCard from '@/components/common/ThreeDCard.vue'
 import LoginForm from '@/components/auth/LoginForm.vue'
-import CompanyApplyForm from '@/components/auth/CompanyApplyForm.vue'
 
 const router = useRouter()
 const isScrolled = ref(false)
@@ -367,24 +424,23 @@ const switchToLogin = () => {
 }
 
 const switchToApply = () => {
-  authModalState.value = 'apply'
+  router.push('/register-company')
 }
 
 const closeAuthModal = () => {
   authModalState.value = 'hidden'
 }
 
+const authStore = useAuthStore()
+
 const onLoginSuccess = () => {
   authModalState.value = 'hidden'
-  router.push('/') // Staying on home or moving to a dashboard if exists. Defaulting to home or refresh.
+  const next = authStore.firstAccessiblePath()
+  router.push(next || '/') 
 }
 
-const onApplySuccess = () => {
-  // Option: show success message or auto login?
-  // For now back to card or close
-  authModalState.value = 'card'
-  alert('회사 신청이 완료되었습니다. 관리자 승인을 기다려주세요.')
-}
+
+
 
 const scrollTo = (selector) => {
   const el = document.querySelector(selector)
@@ -426,6 +482,18 @@ onUnmounted(() => {
 /* @import url(...) - handled in App.vue or main.css typically, but kept here if it was there */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+KR:wght@400;500;700;900&display=swap');
 
+/* --- Transitions --- */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+  transform: scale(0.98);
+}
+
 /* --- Reset & Base --- */
 .page {
   font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
@@ -433,6 +501,7 @@ onUnmounted(() => {
   overflow-x: hidden;
   position: relative;
   background-color: #f8fafc;
+  user-select: none;
 }
 
 .bg-layer {
@@ -790,6 +859,57 @@ p { font-size: 1.125rem; line-height: 1.7; color: #475569; }
 .screen-mockup:hover {
   transform: translateY(-5px) rotateX(2deg);
   box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.2);
+}
+
+/* --- Process Section --- */
+.process-section { background: #f8fafc; }
+.process-steps {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+.step-card {
+  background: white;
+  padding: 30px;
+  border-radius: 20px;
+  border: 1px solid #e2e8f0;
+  width: 280px;
+  text-align: center;
+  position: relative;
+  transition: transform 0.3s;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+.step-card:hover { transform: translateY(-5px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+.step-num {
+  font-size: 0.9rem; font-weight: 800; color: #cbd5e1; margin-bottom: 10px;
+}
+.step-icon { font-size: 2.5rem; margin-bottom: 16px; }
+.step-card h3 { font-size: 1.2rem; margin-bottom: 12px; }
+.step-card p { font-size: 0.95rem; color: #64748b; line-height: 1.5; }
+.step-arrow { font-size: 2rem; color: #cbd5e1; font-weight: 300; }
+
+/* --- FAQ Section --- */
+.faq-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 30px;
+}
+.faq-item {
+  background: white;
+  padding: 30px;
+  border-radius: 16px;
+  border: 1px solid #f1f5f9;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+.faq-item h3 { font-size: 1.15rem; margin-bottom: 12px; color: #1e293b; }
+.faq-item p { font-size: 1rem; color: #64748b; line-height: 1.6; }
+
+@media (max-width: 768px) {
+  .process-steps { flex-direction: column; }
+  .step-arrow { transform: rotate(90deg); margin: 10px 0; }
+  .faq-grid { grid-template-columns: 1fr; }
 }
 
 .mock-header { height: 40px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; padding-left: 20px; font-size: 0.8rem; font-weight: 600; color: #94a3b8; }

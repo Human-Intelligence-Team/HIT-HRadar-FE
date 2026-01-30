@@ -1,87 +1,118 @@
 <template>
-  <div class="apply-container">
-    <form class="apply-content" @submit.prevent="submitApply">
-      <h1>Company Apply</h1>
-
-      <div class="field">
-        <input
-          v-model="form.companyName"
-          placeholder="회사명 (Company Name)"
-          @blur="validateField('companyName')"
-        />
-        <p v-if="errors.companyName" class="error">{{ errors.companyName }}</p>
+  <div class="apply-container-trendy">
+    <form class="apply-content-trendy" @submit.prevent="submitApply">
+      <div class="form-header">
+        <h2 class="form-title">서비스 신청</h2>
+        <p class="form-subtitle">회사 정보를 입력하고 바로 시작하세요.</p>
       </div>
 
-      <div class="field">
-        <input
-          v-model="form.bizNo"
-          placeholder="사업자등록번호 (Business No)"
-          @blur="validateField('bizNo')"
-        />
-        <p v-if="errors.bizNo" class="error">{{ errors.bizNo }}</p>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>회사명</label>
+          <input
+            v-model="form.companyName"
+            placeholder="상호명을 입력하세요"
+            @blur="validateField('companyName')"
+            class="input-modern"
+            :class="{ error: errors.companyName }"
+            autocomplete="off"
+            spellcheck="false"
+          />
+          <span v-if="errors.companyName" class="error-msg">{{ errors.companyName }}</span>
+        </div>
+
+        <div class="form-group">
+          <label>사업자등록번호</label>
+          <input
+            v-model="form.bizNo"
+            placeholder="'-' 없이 숫자만"
+            @blur="validateField('bizNo')"
+            class="input-modern"
+            :class="{ error: errors.bizNo }"
+          />
+          <span v-if="errors.bizNo" class="error-msg">{{ errors.bizNo }}</span>
+        </div>
+
+        <div class="form-group">
+          <label>대표 전화번호</label>
+          <input
+            v-model="form.comTel"
+            placeholder="연락 가능한 번호"
+            @blur="validateField('comTel')"
+            class="input-modern"
+            :class="{ error: errors.comTel }"
+          />
+          <span v-if="errors.comTel" class="error-msg">{{ errors.comTel }}</span>
+        </div>
+
+        <div class="form-group full-width">
+          <label>사업장 주소</label>
+          <input
+            v-model="form.address"
+            placeholder="도로명 주소 입력"
+            @blur="validateField('address')"
+            class="input-modern"
+            :class="{ error: errors.address }"
+          />
+          <span v-if="errors.address" class="error-msg">{{ errors.address }}</span>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="form-group">
+          <label>관리자 성명</label>
+          <input
+            v-model="form.name"
+            placeholder="담당자 이름"
+            @blur="validateField('name')"
+            class="input-modern"
+            :class="{ error: errors.name }"
+          />
+          <span v-if="errors.name" class="error-msg">{{ errors.name }}</span>
+        </div>
+
+        <div class="form-group">
+          <label>관리자 이메일</label>
+          <input
+            v-model="form.email"
+            type="email"
+            placeholder="example@company.com"
+            @blur="validateField('email')"
+            class="input-modern"
+            :class="{ error: errors.email }"
+          />
+          <span v-if="errors.email" class="error-msg">{{ errors.email }}</span>
+        </div>
+
+        <div class="form-group full-width">
+          <label>관리자 ID</label>
+          <input
+            v-model="form.loginId"
+            placeholder="로그인에 사용할 ID"
+            @blur="validateField('loginId')"
+            class="input-modern"
+            :class="{ error: errors.loginId }"
+          />
+          <span v-if="errors.loginId" class="error-msg">{{ errors.loginId }}</span>
+        </div>
       </div>
 
-      <div class="field">
-        <input
-          v-model="form.comTel"
-          placeholder="전화번호 (Tel)"
-          @blur="validateField('comTel')"
-        />
-        <p v-if="errors.comTel" class="error">{{ errors.comTel }}</p>
+      <div class="form-actions">
+        <button
+          class="btn-submit-modern"
+          @click="submitApply"
+          :disabled="loading"
+        >
+          {{ loading ? '처리중...' : '신청하기' }}
+        </button>
+        <button
+          type="button"
+          class="btn-cancel-modern"
+          @click="$emit('back')"
+        >
+          취소
+        </button>
       </div>
-
-      <div class="field">
-        <input
-          v-model="form.address"
-          placeholder="주소 (Address)"
-          @blur="validateField('address')"
-        />
-        <p v-if="errors.address" class="error">{{ errors.address }}</p>
-      </div>
-
-      <div class="field">
-        <input
-          v-model="form.name"
-          placeholder="담당자명 (Manager Name)"
-          @blur="validateField('name')"
-        />
-        <p v-if="errors.name" class="error">{{ errors.name }}</p>
-      </div>
-
-      <div class="field">
-        <input
-          v-model="form.email"
-          type="email"
-          placeholder="이메일 (Email)"
-          @blur="validateField('email')"
-        />
-        <p v-if="errors.email" class="error">{{ errors.email }}</p>
-      </div>
-
-      <div class="field">
-        <input
-          v-model="form.loginId"
-          placeholder="사용할 ID (Login ID)"
-          @blur="validateField('loginId')"
-        />
-        <p v-if="errors.loginId" class="error">{{ errors.loginId }}</p>
-      </div>
-
-      <button
-        class="btn-lg-primary"
-        @click="submitApply"
-        :disabled="loading || !isFormValid"
-      >
-        {{ loading ? 'Submitting...' : '회사 신청하기' }}
-      </button>
-      
-      <button 
-        type="button" 
-        class="btn-text-back" 
-        @click="$emit('back')"
-      >
-        돌아가기
-      </button>
 
     </form>
   </div>
@@ -117,7 +148,7 @@ const loading = ref(false)
 
 const validateField = (field) => {
   if (!form[field]) {
-    errors[field] = '필수 입력 항목입니다.'
+    errors[field] = '정보를 입력해주세요.'
   } else {
     errors[field] = ''
   }
@@ -133,11 +164,8 @@ const submitApply = async () => {
 
   loading.value = true
   
-  console.log('Company Application:', form)
-  
   try {
     await applyCompanyApi({ ...form })
-    // success
     emit('apply-success')
   } catch (err) {
     const msg = err.response?.data?.message || err.customMessage || '신청 중 오류가 발생했습니다.'
@@ -149,120 +177,136 @@ const submitApply = async () => {
 </script>
 
 <style scoped>
-.apply-container {
+.apply-container-trendy {
   width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  /* Removed max-height to allow full vertical growth */
-  /* max-height: 520px; */
-  /* overflow-y: auto; */
 }
 
-.apply-content {
-  width: 320px;
-  padding: 20px;
-}
-
-h1 {
-  margin-bottom: 24px;
-  font-size: 22px;
-  font-weight: 800;
-  color: #0f172a;
-  text-align: center;
-  letter-spacing: -0.02em;
-}
-
-.field {
-  margin-bottom: 12px;
-}
-
-input {
+.apply-content-trendy {
   width: 100%;
-  height: 44px;
-  padding: 0 16px;
-  font-size: 0.9rem;
+}
+
+.form-header {
+  margin-bottom: 32px;
+}
+
+.form-title {
+  font-size: 1.75rem;
+  font-weight: 700;
   color: #1e293b;
-  background: rgba(255, 255, 255, 0.8);
-  border: 1px solid #cbd5e1;
-  border-radius: 10px;
-  transition: all 0.2s;
+  margin-bottom: 8px;
+  letter-spacing: -0.03em;
 }
 
-input::placeholder {
-  color: #94a3b8;
+.form-subtitle {
+  font-size: 1rem;
+  color: #64748b;
 }
 
-input:focus {
-  outline: none;
-  background: white;
-  border-color: #2563eb;
-  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px 16px;
+  margin-bottom: 40px;
 }
 
-.error {
-  margin-top: 4px;
-  font-size: 12px;
-  color: #ef4444;
-  margin-left: 4px;
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
-/* --- Button --- */
-.btn-lg-primary {
-  width: 100%;
+.form-group.full-width {
+  grid-column: 1 / -1;
+}
+
+label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #334155;
+}
+
+.input-modern {
   height: 48px;
-  margin-top: 16px;
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 0 16px;
+  font-size: 0.95rem;
+  color: #0f172a;
+  background: white;
+  transition: all 0.2s ease;
+  user-select: text; /* Ensure text is selectable */
+  -webkit-user-select: text;
+}
+
+.input-modern:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.input-modern.error {
+  border-color: #ef4444;
+  background: #fef2f2;
+}
+
+.error-msg {
+  font-size: 0.75rem;
+  color: #ef4444;
+  margin-left: 2px;
+}
+
+.divider {
+  grid-column: 1 / -1;
+  height: 1px;
+  background: #f1f5f9;
+  margin: 8px 0;
+}
+
+.form-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.btn-submit-modern {
+  height: 52px;
+  background: #0f172a; /* Trendy black/dark slate */
   color: white;
+  font-weight: 600;
+  font-size: 1rem;
   border: none;
   border-radius: 12px;
-  font-weight: 700;
-  font-size: 0.95rem;
-  box-shadow: 
-    0 8px 20px rgba(37, 99, 235, 0.25),
-    inset 0 1px 0 rgba(255,255,255,0.2);
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   cursor: pointer;
+  transition: all 0.2s;
 }
-
-.btn-lg-primary:hover:not(:disabled) { 
-  transform: translateY(-2px) scale(1.02);
-  box-shadow: 
-    0 12px 30px rgba(37, 99, 235, 0.35),
-    inset 0 1px 0 rgba(255,255,255,0.2);
+.btn-submit-modern:hover:not(:disabled) {
+  background: #1e293b;
+  transform: translateY(-1px);
 }
-
-.btn-lg-primary:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
+.btn-submit-modern:disabled {
   background: #94a3b8;
+  cursor: not-allowed;
 }
 
-.btn-text-back {
-  width: 100%;
-  margin-top: 12px;
-  background: none;
-  border: none;
+.btn-cancel-modern {
+  height: 48px;
+  background: white;
   color: #64748b;
-  font-size: 0.9rem;
+  border: 1px solid #e2e8f0;
   font-weight: 600;
+  font-size: 0.95rem;
+  border-radius: 12px;
   cursor: pointer;
-  transition: color 0.2s;
+  transition: all 0.2s;
 }
-.btn-text-back:hover {
-  color: #1e293b;
-  text-decoration: underline;
+.btn-cancel-modern:hover {
+  background: #f8fafc;
+  color: #0f172a;
 }
 
-/* Custom scrollbar for form area */
-.apply-container::-webkit-scrollbar {
-  width: 6px;
-}
-.apply-container::-webkit-scrollbar-track {
-  background: transparent;
-}
-.apply-container::-webkit-scrollbar-thumb {
-  background-color: rgba(148, 163, 184, 0.3);
-  border-radius: 10px;
+@media (max-width: 600px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>
