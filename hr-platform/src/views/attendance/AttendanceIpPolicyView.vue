@@ -30,17 +30,17 @@
             <td colspan="4" class="no-results">등록된 IP 정책이 없습니다.</td>
           </tr>
           <template v-else>
-            <tr v-for="policy in ipPolicies" :key="policy.id">
-              <td>{{ policy.ipAddress }}</td>
-              <td>{{ policy.description }}</td>
+            <tr v-for="policy in ipPolicies" :key="policy.ipPolicyId">
+              <td>{{ policy.cidr }}</td>
+              <td>{{ policy.locationName }}</td>
               <td>
-                <span :class="['status-badge', policy.enabled ? 'active' : 'inactive']">
-                  {{ policy.enabled ? '활성화' : '비활성화' }}
+                <span :class="['status-badge', policy.isActive  ? 'active' : 'inactive']">
+                  {{ policy.isActive  ? '활성화' : '비활성화' }}
                 </span>
               </td>
               <td>
                 <button class="btn-sm secondary" @click="openPolicyModal(policy)">수정</button>
-                <button class="btn-sm danger" @click="deletePolicy(policy.id)">삭제</button>
+                <button class="btn-sm danger" @click="deletePolicy(policy.ipId)">삭제</button>
               </td>
             </tr>
           </template>
@@ -76,139 +76,121 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
-import { useAuthStore } from '@/stores/authStore';
+import { ref, computed, onMounted } from 'vue'
+import { useAuthStore } from '@/stores/authStore'
 import {
   fetchIpPolicies,
   createIpPolicy,
   updateIpPolicy,
-  changeIpPolicyStatus,
   deleteIpPolicy as apiDeletePolicy
-} from '@/api/attendanceApi';
+} from '@/api/attendanceApi'
 
-const auth = useAuthStore();
-const companyId = computed(() => auth.user?.companyId);
+/* =========================
+   기본 상태
+========================= */
+const auth = useAuthStore()
+const companyId = computed(() => auth.user?.companyId)
 
-const ipPolicies = ref([]);
-const loading = ref(false);
+const ipPolicies = ref([])
+const loading = ref(false)
 
-const isModalOpen = ref(false);
-const isEditMode = computed(() => !!formPolicy.value.id);
+const isModalOpen = ref(false)
+const selectedPolicy = ref(null)
+
+/* ⭐ 핵심: id 반드시 포함 */
 const formPolicy = ref({
   id: null,
   ipAddress: '',
   description: '',
-  enabled: true
-});
-const selectedPolicy = ref(null); // 수정 시 원본 데이터 보관
+  enabled: true,
+  ipPolicyType: 'ATTENDANCE'
+})
 
+const isEditMode = computed(() => !!formPolicy.value.id)
+
+/* =========================
+   목록 조회
+========================= */
 const loadPolicies = async () => {
-  if (!companyId.value) {
-    alert('회사 정보를 불러올 수 없습니다.');
-    console.error('Error: companyId is null or undefined.');
-    return;
-  }
-  console.log('Fetching IP policies for companyId:', companyId.value);
-  loading.value = true;
+  if (!companyId.value) return
+
+  loading.value = true
   try {
-    const response = await fetchIpPolicies(companyId.value);
-    console.log('IP Policies API response:', response.data);
-    ipPolicies.value = response.data || [];
-  } catch (error) {
-    console.error('IP 정책을 불러오는 데 실패했습니다:', error.response || error);
-    alert('IP 정책을 불러오는 중 오류가 발생했습니다.');
+    const res = await fetchIpPolicies(companyId.value)
+    ipPolicies.value = res.data ?? []
   } finally {
-    loading.value = false;
+    loading.value = false
   }
-};
+}
 
-onMounted(() => {
-  loadPolicies();
-});
+onMounted(loadPolicies)
 
+/* =========================
+   모달 제어
+========================= */
 const openPolicyModal = (policy = null) => {
   if (policy) {
-    // 수정 모드
-    selectedPolicy.value = { ...policy };
-    formPolicy.value = { ...policy };
+    selectedPolicy.value = { ...policy }
+    formPolicy.value = {
+      id: policy.ipId,
+      ipAddress: policy.cidr,
+      description: policy.locationName,
+      enabled: policy.isActive,
+      ipPolicyType: policy.ipPolicyType
+    }
   } else {
-    // 추가 모드
-    selectedPolicy.value = null;
-    formPolicy.value = { id: null, ipAddress: '', description: '', enabled: true };
+    formPolicy.value = {
+      id: null,
+      ipAddress: '',
+      description: '',
+      enabled: true,
+      ipPolicyType: 'ATTENDANCE'
+    }
   }
-  isModalOpen.value = true;
-};
+  isModalOpen.value = true
+}
 
 const closePolicyModal = () => {
-  isModalOpen.value = false;
-  selectedPolicy.value = null;
-};
+  isModalOpen.value = false
+  selectedPolicy.value = null
+}
 
+/* =========================
+   저장 (추가 / 수정)
+========================= */
 const savePolicy = async () => {
-  try {
-    if (isEditMode.value) {
-      const hasContentChanged = formPolicy.value.ipAddress !== selectedPolicy.value.ipAddress ||
-                                formPolicy.value.description !== selectedPolicy.value.description;
-      const hasStatusChanged = formPolicy.value.enabled !== selectedPolicy.value.enabled;
-
-      if (hasStatusChanged && !hasContentChanged) {
-        // 상태만 변경된 경우
-        console.log('Changing IP policy status:', formPolicy.value.id, { enabled: formPolicy.value.enabled });
-        await changeIpPolicyStatus(formPolicy.value.id, {
-          isActive: formPolicy.value.enabled
-        });
-        // alert('IP 정책 상태가 성공적으로 변경되었습니다.'); // 사용자 요청에 따라 alert 제거
-      } else {
-        // 내용이 변경된 경우 (상태 변경 포함 가능)
-        const updatePayload = {
-          cidr: formPolicy.value.ipAddress,
-          locationName: formPolicy.value.description,
-          ipPolicyType: selectedPolicy.value.ipPolicyType
-        };
-
-        console.log('Updating IP policy:', formPolicy.value.id, updatePayload);
-        await updateIpPolicy(formPolicy.value.id, updatePayload);
-        // 상태도 같이 변경되었다면 별도 호출
-        if (hasStatusChanged) {
-           console.log('Also changing IP policy status after content update:', formPolicy.value.id, { enabled: formPolicy.value.enabled });
-          await changeIpPolicyStatus(formPolicy.value.id, {
-            isActive: formPolicy.value.enabled
-          });
-        }
-        // alert('IP 정책이 성공적으로 수정되었습니다.'); // 사용자 요청에 따라 alert 제거
-      }changeIpPolicyStatus
-    } else {
-      // 신규 추가
-      const newPolicy = {
-        comId: companyId.value,
-        cidr: formPolicy.value.ipAddress,
-        locationName: formPolicy.value.description, // Backend expects locationName
-        ipPolicyType: 'ATTENDANCE' // 기본값으로 ATTENDANCE 타입 설정
-      };
-      console.log('Creating new IP policy:', newPolicy);
-      await createIpPolicy(newPolicy);
-      // alert('IP 정책이 성공적으로 추가되었습니다.'); // 사용자 요청에 따라 alert 제거
-    }
-    closePolicyModal();
-    await loadPolicies(); // 목록 새로고침
-  } catch (error) {
-    console.error('IP 정책 저장에 실패했습니다:', error.response || error);
-    // alert('IP 정책 저장 중 오류가 발생했습니다.'); // 사용자 요청에 따라 alert 제거
+  if (isEditMode.value) {
+    await updateIpPolicy(formPolicy.value.id, {
+      cidr: formPolicy.value.ipAddress,
+      locationName: formPolicy.value.description,
+      ipPolicyType: formPolicy.value.ipPolicyType
+    })
+  } else {
+    await createIpPolicy({
+      comId: companyId.value,
+      cidr: formPolicy.value.ipAddress,
+      locationName: formPolicy.value.description,
+      ipPolicyType: 'ATTENDANCE'
+    })
   }
-};
 
-const deletePolicy = async (id) => {
-  if (confirm('정말로 이 IP 정책을 삭제하시겠습니까?')) {
-    try {
-      await apiDeletePolicy(id);
-      // alert('IP 정책이 성공적으로 삭제되었습니다.'); // 사용자 요청에 따라 alert 제거
-      await loadPolicies(); // 목록 새로고침
-    } catch (error) {
-      console.error('IP 정책 삭제에 실패했습니다:', error);
-      // alert('IP 정책 삭제 중 오류가 발생했습니다.'); // 사용자 요청에 따라 alert 제거
-    }
-  }
-};
+  closePolicyModal()
+  console.log('before', ipPolicies.value)
+  await loadPolicies()
+  console.log('after', ipPolicies.value)
+}
+
+/* =========================
+   삭제
+========================= */
+const deletePolicy = async (ipId) => {
+  if (!confirm('정말 삭제하시겠습니까?')) return
+
+  await apiDeletePolicy(ipId)
+
+  // ⭐ 이 한 줄
+  ipPolicies.value = ipPolicies.value.filter(p => p.ipId !== ipId)
+}
 </script>
 
 <style scoped>

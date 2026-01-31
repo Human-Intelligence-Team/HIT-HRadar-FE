@@ -10,7 +10,7 @@
     <div class="content-grid">
       <!-- 나의 출퇴근 관리 -->
       <div class="my-commute-card card">
-        <h3>나의 출퇴근 기록</h3>
+        <h3>출퇴근 현황</h3>
 
         <!-- 로딩 상태 -->
         <div v-if="loading.myStatus" class="status-loading">
@@ -22,14 +22,15 @@
           <p class="current-time">{{ currentTime }}</p>
           <p class="current-status">현재 상태: <span class="status-in">출근 상태</span></p>
           <ul class="info-list">
-            <li><strong>날짜:</strong> {{ clockInInfo.workDate }}</li>
-            <li><strong>출근 시간:</strong> {{ clockInInfo.clockInTime }}</li>
-            <li><strong>이름:</strong> {{ clockInInfo.name }}</li>
-            <li><strong>부서:</strong> {{ clockInInfo.department }}</li>
-            <li><strong>근무 유형:</strong> {{ clockInInfo.workingType }}</li>
-            <li><strong>근무 장소:</strong> {{ clockInInfo.workplace }}</li>
-            <li><strong>IP 주소:</strong> {{ clockInInfo.ipAddress }}</li>
-            <li><strong>초과근무 여부:</strong> {{ clockInInfo.overtimeStatus }}</li>
+            <li><strong>날짜:</strong> <span>{{ clockInInfo.workDate }}</span></li>
+            <li><strong>출근 시간:</strong> <span>{{ clockInInfo.clockInTime }}</span></li>
+            <li><strong>이름:</strong> <span>{{ clockInInfo.name }}</span></li>
+            <li><strong>부서:</strong> <span>{{ clockInInfo.department }}</span></li>
+            <li><strong>근무 유형:</strong> <span>{{ clockInInfo.workingType }}</span></li>
+            <li><strong>근무 장소:</strong> <span>{{ clockInInfo.workplace }}</span></li>
+            <li><strong>IP 주소:</strong> <span>{{ clockInInfo.ipAddress }}</span></li>
+            <li><strong>초과근무 여부:</strong> <span>{{ clockInInfo.overtimeStatus }}</span></li>
+
           </ul>
           <button class="btn btn-clock-out" @click="clockInOut">퇴근하기</button>
         </div>
@@ -44,9 +45,8 @@
             <li><strong>날짜:</strong> {{ getTodayString() }}</li>
             <li><strong>이름:</strong> {{ userInfo.value?.name || '-' }}</li>
             <li><strong>부서:</strong> {{ userInfo.value?.department || '-' }}</li>
-            <li><strong>직급:</strong> {{ userInfo.value?.grade || '-' }}</li>
-            <li><strong>근무 유형:</strong> {{ initialWorkInfo.value.workType || '-' }}</li>
-            <li><strong>근무 장소:</strong> {{ initialWorkInfo.value.workplace || '-' }}</li>
+            <li><strong>근무 유형:</strong> {{ initialWorkInfo?.workType || '-' }}</li>
+            <li><strong>근무 장소:</strong> {{ initialWorkInfo?.workplace || '-' }}</li>
           </ul>
           <button class="btn btn-clock-in" @click="clockInOut">
             출근하기
@@ -63,7 +63,6 @@
               <tr>
                 <th>이름</th>
                 <th>부서</th>
-                <th>직급</th>
                 <th>상태</th>
                 <th>근무 시간</th>
                 <th>근무 장소</th>
@@ -103,6 +102,9 @@ import {
   fetchAttendanceCalendar
 } from '@/api/attendanceApi';
 
+/* =====================
+   기본 상태
+===================== */
 const auth = useAuthStore();
 const employeeId = computed(() => auth.user?.employeeId);
 const departmentId = computed(() => auth.user?.departmentId);
@@ -114,10 +116,8 @@ const loading = ref({
   department: false
 });
 
-// 출근 시 상세 정보를 저장할 ref
 const clockInInfo = ref(null);
 
-// 미출근 시 기본 근무 정보 (근무 유형, 근무 장소 등)
 const initialWorkInfo = ref({
   workType: '-',
   workplace: '-'
@@ -126,144 +126,131 @@ const initialWorkInfo = ref({
 const departmentMembers = ref([]);
 let intervalId = null;
 
+/* =====================
+   유틸
+===================== */
 const getTodayString = () => {
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = String(today.getMonth() + 1).padStart(2, '0');
-  const day = String(today.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+};
+
+// ✅ 핵심: 시간 파싱 (형식 안 깨짐)
+const extractTime = (v) => {
+  if (!v) return '-';
+  if (v.length === 8) return v;                    // HH:mm:ss
+  if (v.includes('T')) return v.split('T')[1].slice(0, 8);
+  return '-';
 };
 
 const updateCurrentTime = () => {
-  currentTime.value = new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  currentTime.value = new Date().toLocaleTimeString('ko-KR', {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true
+  });
 };
 
+/* =====================
+   초기 데이터 로딩
+===================== */
 const fetchInitialData = async () => {
   if (!employeeId.value || !departmentId.value) return;
 
   loading.value.myStatus = true;
   try {
-    const response = await fetchMyTodayAttendance(employeeId.value, getTodayString());
-    const data = response.data;
+    const { data } = await fetchMyTodayAttendance(employeeId.value, getTodayString());
 
-    if (data && data.clockInTime && !data.clockOutTime) {
+    if (data?.attendanceStatusType === 'CHECK_IN')  {
       // 출근 상태
       clockInInfo.value = {
-        clockInTime: new Date(data.clockInTime).toLocaleString('ko-KR'),
-        name: userInfo.value?.name,
-        department: userInfo.value?.department, // from auth store for now
-        grade: userInfo.value?.grade, // from auth store for now
-        workingType: data.workType,
-        workplace: data.workPlace,
-        ipAddress: data.ipAddress, // 이 정보가 응답에 포함되어 있다고 가정
-        workDate: new Date(data.workDate).toLocaleDateString('ko-KR'), // assuming backend returns it
-        overtimeStatus: data.overtimeStatus || '없음', // assuming backend returns it
+        clockInTime: extractTime(data.clockInTime),
+        name: userInfo.value?.name || '-',
+        department: userInfo.value?.department || '-',
+        workingType: data.workType || '-',
+        workplace: data.workPlace || 'OFFICE',
+        ipAddress: data.ipAddress || '-',
+        workDate: data.workDate || getTodayString(),
+        overtimeStatus: data.overtimeStatus || '없음'
       };
-      // 출근 상태일 때는 initialWorkInfo 업데이트 불필요
     } else {
-      // 미출근 또는 퇴근 완료 상태
+      // 미출근
       clockInInfo.value = null;
-      if (data) {
-        // 백엔드에서 받아온 근무 유형/장소를 initialWorkInfo에 저장
-        initialWorkInfo.value.workType = data.workType || '-';
-        initialWorkInfo.value.workplace = data.workPlace || '-';
-      } else {
-        initialWorkInfo.value.workType = '-';
-        initialWorkInfo.value.workplace = '-';
-      }
+      initialWorkInfo.value.workType = data?.workType || '-';
+      initialWorkInfo.value.workplace = data?.workPlace || '-';
     }
-  } catch (error) {
-    console.error("오늘의 출근 상태를 불러오는 데 실패했습니다:", error);
-    clockInInfo.value = null; // 오류 발생 시 출근하지 않은 것으로 간주
+  } catch (e) {
+    clockInInfo.value = null;
     initialWorkInfo.value.workType = '-';
     initialWorkInfo.value.workplace = '-';
   } finally {
     loading.value.myStatus = false;
   }
 
-  // 부서원 출퇴근 현황 불러오기
+  /* 부서원 현황 */
   loading.value.department = true;
   try {
-    const response = await fetchAttendanceCalendar({
+    const res = await fetchAttendanceCalendar({
       targetDeptId: departmentId.value,
       fromDate: getTodayString(),
       toDate: getTodayString()
     });
-    // fetchMonthlyAttendance의 응답이 AttendanceListResponseDto[] 이므로, 이를 departmentMembers에 맞게 변환
-    const transformedMembers = [];
-    if (response.data && Array.isArray(response.data)) {
-      response.data.forEach(deptRecord => {
-        // AttendanceListResponseDto는 특정 직원의 하루 근태 정보를 포함
-        if (deptRecord.attendanceRecords && deptRecord.attendanceRecords.length > 0) {
-          const record = deptRecord.attendanceRecords[0]; // 단일 날짜 조회이므로 첫 번째 기록 사용
-          transformedMembers.push({
-            employeeId: deptRecord.employeeId,
-            name: deptRecord.employeeName,
-            department: deptRecord.departmentName,
-            jobTitle: deptRecord.jobTitle,
-            status: record.status || '기록 없음',
-            workingHours: record.workingHours || '-',
-            workplace: record.workPlace || '-'
-          });
-        } else {
-          transformedMembers.push({
-            employeeId: deptRecord.employeeId,
-            name: deptRecord.employeeName,
-            department: deptRecord.departmentName,
-            jobTitle: deptRecord.jobTitle,
-            status: '기록 없음',
-            workingHours: '-',
-            workplace: '-'
-          });
-        }
-      });
-    }
-    departmentMembers.value = transformedMembers;
 
-  } catch (error) {
-    console.error("부서원 출퇴근 현황을 불러오는 데 실패했습니다:", error);
+    departmentMembers.value = (res.data || []).map(d => {
+      const r = d.attendanceRecords?.[0];
+      return {
+        employeeId: d.employeeId,
+        name: d.employeeName,
+        department: d.departmentName,
+        jobTitle: d.jobTitle,
+        status: r?.status || '기록 없음',
+        workingHours: r?.workingHours || '-',
+        workplace: r?.workPlace || '-'
+      };
+    });
+  } catch (e) {
+    departmentMembers.value = [];
   } finally {
     loading.value.department = false;
   }
 };
 
+/* =====================
+   출퇴근 처리
+===================== */
 const clockInOut = async () => {
   loading.value.myStatus = true;
   try {
-    const response = await processAttendance();
-    const data = response.data; // AttendanceCheckResponse
+    const { data } = await processAttendance();
+
     const actionText = data.attendanceStatusType === 'CHECK_IN' ? '출근' : '퇴근';
     alert(`${actionText} 처리가 완료되었습니다.`);
 
     if (data.attendanceStatusType === 'CHECK_IN') {
       clockInInfo.value = {
-        clockInTime: new Date(data.checkInTime).toLocaleString('ko-KR'), // from backend
-        name: userInfo.value?.name,
-        department: userInfo.value?.department, // from auth store for now
-        grade: userInfo.value?.grade, // from auth store for now
-        workingType: data.workType, // from backend
-        workplace: data.workLocation, // from backend
-        ipAddress: data.ipAddress, // from backend
-        workDate: new Date(data.workDate).toLocaleDateString('ko-KR'), // from backend
-        overtimeStatus: data.overtimeStatus || '없음', // from backend, default to '없음'
+        clockInTime: extractTime(data.checkInTime || data.clockInTime),
+        name: userInfo.value?.name || '-',
+        department: userInfo.value?.department || '-',
+        workingType: data.workType || '-',
+        workplace: data.workLocation || 'OFFICE',
+        ipAddress: data.ipAddress || '-',
+        workDate: data.workDate || getTodayString(),
+        overtimeStatus: data.overtimeStatus || '없음'
       };
     } else {
-      // 퇴근 시 clockInInfo 초기화
       clockInInfo.value = null;
     }
-    // UI 상태를 최신 정보로 다시 로드 (부서원 현황 등)
-    await fetchInitialData();
 
-  } catch (error) {
-    console.error(`출퇴근 처리 실패:`, error);
-    // API 에러 응답에서 메시지 추출 (구조는 실제 백엔드에 따라 다름)
-    const errorMessage = error.response?.data?.message || '출퇴근 기록 중 오류가 발생했습니다. (예: 허용되지 않은 IP)';
-    alert(errorMessage);
+  } catch (e) {
+    alert(e.response?.data?.message || '출퇴근 처리 중 오류가 발생했습니다.');
   } finally {
     loading.value.myStatus = false;
   }
 };
 
+/* =====================
+   상태 뱃지
+===================== */
 const getMemberStatusClass = (status) => {
   switch (status) {
     case '출근': return 'status-in';
@@ -271,11 +258,13 @@ const getMemberStatusClass = (status) => {
     case '외근': return 'status-away';
     case '재택': return 'status-home';
     case '휴가': return 'status-leave';
-    case '기록 없음': return 'status-no-record'; // 추가
     default: return '';
   }
 };
 
+/* =====================
+   라이프사이클
+===================== */
 onMounted(() => {
   updateCurrentTime();
   intervalId = setInterval(updateCurrentTime, 1000);
@@ -283,18 +272,15 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
-  if (intervalId) {
-    clearInterval(intervalId);
-  }
+  if (intervalId) clearInterval(intervalId);
 });
 </script>
 
+
 <style scoped>
 .attendance-commute-view {
-  padding: 16px;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
+  height: auto;
+  min-height: 100vh;
 }
 
 .view-header {
@@ -314,11 +300,7 @@ onUnmounted(() => {
 }
 
 .content-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr; /* 2단 레이아웃 */
-  gap: 20px;
-  flex-grow: 1;
-  min-height: 0;
+  min-height: auto;
 }
 
 .card {
@@ -329,6 +311,7 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  min-height: 0;
 }
 
 .card h3 {
@@ -340,8 +323,9 @@ onUnmounted(() => {
 }
 
 .my-commute-card {
-  align-items: center; /* 내부 요소 중앙 정렬 */
-  justify-content: center;
+  overflow: visible;
+  justify-content: flex-start;
+  align-items: stretch;
 }
 
 .commute-status p {
@@ -445,28 +429,35 @@ onUnmounted(() => {
 
 .clock-in-info {
   width: 100%;
-  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;   /* ✅ 블록 자체 가운데 */
 }
 
 .clock-in-info .info-list {
   list-style: none;
   padding: 0;
-  margin: 20px 0;
-  text-align: left;
-  display: inline-block;
+  margin: 20px 0 0;
+  width: 100%;
+  max-width: 420px;      /* ✅ 보기좋은 폭 */
 }
 
 .clock-in-info .info-list li {
-  font-size: 14px;
-  color: #374151;
-  margin-bottom: 8px;
+  display: grid;
+  grid-template-columns: 110px 1fr; /* ✅ 라벨/값 */
+  align-items: center;
+  column-gap: 12px;
+  margin-bottom: 10px;
 }
 
 .clock-in-info .info-list li strong {
-  font-weight: 600;
-  color: #111827;
-  width: 80px;
-  display: inline-block;
+  width: auto;           /* ✅ 기존 80px 제거 */
+  display: block;
+  text-align: right;     /* 라벨은 오른쪽 정렬 */
+}
+
+.clock-in-info .info-list li span {
+  text-align: left;      /* 값은 왼쪽 정렬 */
 }
 
 .department-commute-card {

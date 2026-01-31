@@ -48,6 +48,10 @@
           <label for="name">유형명</label>
           <input type="text" id="name" v-model="form.name" class="input-field" placeholder="예: 휴가 신청" />
         </div>
+        <div class="form-group">
+          <label for="active">활성화</label>
+          <input type="checkbox" id="active" v-model="form.active" />
+        </div>
         <div class="modal-actions">
           <button class="btn btn-secondary" @click="showModal = false">취소</button>
           <button class="btn btn-primary" @click="saveDocumentType">저장</button>
@@ -74,12 +78,19 @@ const currentTypeId = ref(null);
 const form = ref({
   docType: '', // Corresponds to backend's docType
   name: '',    // Corresponds to backend's name
+  active: true, // New: Corresponds to backend's active status
 });
 
 const fetchDocumentTypes = async () => {
   try {
     const response = await fetchApprovalDocumentTypes();
-    documentTypes.value = response.data.data;
+    // Backend returns ApprovalDocumentTypeResponse which has typeId, docType, name, isActive
+    documentTypes.value = response.data.data.map(type => ({
+      typeId: type.typeId, // Use typeId as primary key
+      docType: type.docType,
+      name: type.name,
+      active: type.active // Also store active status
+    }));
   } catch (error) {
     alert('문서 유형 목록을 불러오는 데 실패했습니다.');
     console.error('Failed to fetch document types:', error);
@@ -89,17 +100,18 @@ const fetchDocumentTypes = async () => {
 const openCreateModal = () => {
   isEditing.value = false;
   currentTypeId.value = null;
-  form.value.docType = ''; // Use docType
-  form.value.name = '';    // Use name
+  form.value.docType = '';
+  form.value.name = '';
+  form.value.active = true; // New: Default to active for new types
   showModal.value = true;
 };
 
 const openEditModal = async (type) => {
   isEditing.value = true;
-  currentTypeId.value = type.docId; // Use docId from backend
-  form.value.docType = type.docType; // Use docType from backend
-  form.value.name = type.name;    // Use name from backend
-  showModal.value = true;
+  currentTypeId.value = type.typeId;
+  form.value.docType = type.docType;
+  form.value.name = type.name;
+  form.value.active = type.active;
 };
 
 const saveDocumentType = async () => {
@@ -110,15 +122,17 @@ const saveDocumentType = async () => {
 
   try {
     if (isEditing.value) {
-      await updateApprovalDocumentType(currentTypeId.value, { // Pass currentTypeId
-        docType: form.value.docType, // Use docType
-        name: form.value.name,    // Use name
+      await updateApprovalDocumentType(currentTypeId.value, {
+        docType: form.value.docType,
+        name: form.value.name,
+        active: form.value.active, // Pass active status
       });
       alert('문서 유형이 수정되었습니다.');
     } else {
       await createApprovalDocumentType({
-        docType: form.value.docType, // Use docType
-        name: form.value.name,    // Use name
+        docType: form.value.docType,
+        name: form.value.name,
+        active: form.value.active, // Pass active status
       });
       alert('새 문서 유형이 등록되었습니다.');
     }

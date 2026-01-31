@@ -84,14 +84,14 @@ export const createApprovalDocumentType = (data) => {
   return api.post('/api/v1/approval-types', data);
 };
 
-export const updateApprovalDocumentType = (id, data) => {
-  return api.put(`/api/v1/approval-types/${id}`, data);
+export const updateApprovalDocumentType = (typeId, data) => {
+  return api.put(`/api/v1/approval-types/${typeId}`, data);
 };
 
-export const deleteApprovalDocumentType = (id) => {
-  return api.delete(`/api/v1/approval-types/${id}`);
+export const deleteApprovalDocumentType = (typeId) => {
+  return api.delete(`/api/v1/approval-types/${typeId}`);
 };
 
-export const fetchApprovalDocumentTypeDetail = (id) => {
-  return api.get(`/api/v1/approval-types/${id}`);
+export const fetchApprovalDocumentTypeDetail = (typeId) => {
+  return api.get(`/api/v1/approval-types/${typeId}`);
 };
