@@ -245,6 +245,16 @@ const routes = [
           { path: 'employee-detail/:employeeId/:workDate', name: 'AttendanceEmployeeDetail', component: AttendanceEmployeeDetailView, props: true }, // 사원 근태 상세 조회
         ],
       },
+
+      // 휴가 관리
+      {
+        path: 'leave',
+        children: [
+          { path: 'my-history', component: () => import('@/views/leave/MyLeaveHistoryView.vue') },
+          { path: 'admin/policy', component: () => import('@/views/leave/LeavePolicyAdminView.vue'), meta: { requiresAdmin: true } },
+          { path: 'admin/department-history', component: () => import('@/views/leave/DepartmentLeaveHistoryView.vue'), meta: { requiresAdmin: true } },
+        ],
+      },
     ],
   },
 ]
