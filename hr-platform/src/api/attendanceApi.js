@@ -96,3 +96,16 @@ export const fetchAttendanceCalendar = async ({
     }
   });
 };
+
+// 사원 근태 상세 조회 (하루)
+export const fetchAttendanceDetail = async ({
+  targetEmpId,
+  workDate
+}) => {
+  return await axios.get('/api/attendance/detail', {
+    params: {
+      targetEmpId,
+      workDate
+    }
+  });
+};

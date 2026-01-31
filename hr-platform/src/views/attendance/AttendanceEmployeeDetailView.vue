@@ -1,49 +1,121 @@
 <template>
   <section class="attendance-employee-detail-view">
+    <!-- ===================== 헤더 ===================== -->
     <div class="view-header">
       <div class="title-group">
         <h1>사원 근태 상세 조회</h1>
-        <div class="sub">{{ employeeId }} 님의 {{ workDate }} 근태 상세 정보</div>
+        <div class="sub">
+          {{ attendanceDetail?.empName ?? employeeId }} 님의
+          {{ workDate }} 근태 상세 정보
+        </div>
       </div>
     </div>
+
+    <!-- ===================== 본문 ===================== -->
     <div class="detail-container card">
-      <!-- 상세 정보가 여기에 표시됩니다. -->
-      <p>로딩 중...</p>
-      <p>직원 ID: {{ employeeId }}</p>
-      <p>조회 날짜: {{ workDate }}</p>
+      <!-- 로딩 상태 -->
+      <p v-if="loading">로딩 중...</p>
+
+      <!-- 데이터 없음 -->
+      <p v-else-if="!attendanceDetail">근태 데이터가 없습니다.</p>
+
+      <!-- ===================== [1] 상단 요약 영역 ===================== -->
+      <section v-else class="summary-section">
+        <h2>기본 정보</h2>
+        <ul>
+          <li><strong>사원명:</strong> {{ attendanceDetail.empName }}</li>
+          <li><strong>사원 ID:</strong> {{ attendanceDetail.empId }}</li>
+          <li><strong>근태 ID:</strong> {{ attendanceDetail.attendanceId }}</li>
+          <li><strong>근무일자:</strong> {{ attendanceDetail.workDate }}</li>
+          <li><strong>근태 상태:</strong> {{ attendanceDetail.status }}</li>
+        </ul>
+      </section>
+
+      <!-- ===================== [2] 출퇴근 요약 ===================== -->
+      <section class="check-summary-section">
+        <h2>출퇴근 요약</h2>
+        <ul>
+          <li>
+            <strong>출근 시각:</strong>
+            {{ attendanceDetail.checkInTime ?? '-' }}
+          </li>
+          <li>
+            <strong>퇴근 시각:</strong>
+            {{ attendanceDetail.checkOutTime ?? '-' }}
+          </li>
+          <li>
+            <strong>총 근무 시간:</strong>
+            {{ attendanceDetail.totalWorkMinutes }} 분
+          </li>
+        </ul>
+      </section>
+
+      <!-- ===================== [3] 타임라인 (핵심) ===================== -->
+      <section class="timeline-section">
+        <h2>근무 타임라인</h2>
+
+        <ul v-if="attendanceDetail.timeline?.length">
+          <li
+            v-for="item in attendanceDetail.timeline"
+            :key="item.workLogId"
+            class="timeline-item"
+          >
+            <div class="timeline-type">
+              {{ item.type }}
+            </div>
+            <div class="timeline-time">
+              {{ item.startAt }}
+              ~
+              {{ item.endAt ?? '진행중' }}
+            </div>
+            <div class="timeline-location" v-if="item.location">
+              📍 {{ item.location }}
+            </div>
+          </li>
+        </ul>
+
+        <p v-else>타임라인 기록이 없습니다.</p>
+      </section>
     </div>
   </section>
 </template>
 
 <script setup>
-import { defineProps, ref, onMounted } from 'vue';
-// import { fetchAttendanceDetail } from '@/api/attendanceApi'; // 상세 조회 API (필요시 추가)
+import { ref, onMounted } from 'vue';
+import { useRoute } from 'vue-router';
+import { fetchAttendanceDetail } from '@/api/attendanceApi';
 
-const props = defineProps({
-  employeeId: {
-    type: String,
-    required: true
-  },
-  workDate: {
-    type: String,
-    required: true
-  }
-});
+// ===================== router =====================
+const route = useRoute();
 
+// ===================== state =====================
 const attendanceDetail = ref(null);
 const loading = ref(false);
 
+// ===================== derived params =====================
+const employeeId = route.params.empId;
+const workDate = route.query.date;
+
+// ===================== lifecycle =====================
 onMounted(async () => {
-  // 실제 API 호출 로직
-  // loading.value = true;
-  // try {
-  //   const response = await fetchAttendanceDetail(props.employeeId, props.workDate);
-  //   attendanceDetail.value = response.data;
-  // } catch (error) {
-  //   console.error('근태 상세 정보를 불러오는 데 실패했습니다:', error);
-  // } finally {
-  //   loading.value = false;
-  // }
+  if (!employeeId || !workDate) {
+    console.error('empId 또는 workDate 누락');
+    return;
+  }
+
+  loading.value = true;
+  try {
+    const response = await fetchAttendanceDetail({
+      targetEmpId: Number(employeeId),
+      workDate: workDate // YYYY-MM-DD
+    });
+
+    attendanceDetail.value = response.data;
+  } catch (e) {
+    console.error('근태 상세 조회 실패', e);
+  } finally {
+    loading.value = false;
+  }
 });
 </script>
 
