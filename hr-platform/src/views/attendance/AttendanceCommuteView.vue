@@ -161,7 +161,7 @@ const fetchInitialData = async () => {
   try {
     const { data } = await fetchMyTodayAttendance(employeeId.value, getTodayString());
 
-    if (data && data.clockInTime && !data.clockOutTime) {
+    if (data?.attendanceStatusType === 'CHECK_IN')  {
       // 출근 상태
       clockInInfo.value = {
         clockInTime: extractTime(data.clockInTime),
@@ -241,7 +241,6 @@ const clockInOut = async () => {
       clockInInfo.value = null;
     }
 
-    await fetchInitialData();
   } catch (e) {
     alert(e.response?.data?.message || '출퇴근 처리 중 오류가 발생했습니다.');
   } finally {
