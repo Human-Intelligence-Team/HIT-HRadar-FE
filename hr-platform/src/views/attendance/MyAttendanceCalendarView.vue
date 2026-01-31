@@ -21,11 +21,10 @@ import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import bootstrap5Plugin from '@fullcalendar/bootstrap5';
 import { fetchAttendanceCalendar } from '@/api/attendanceApi';
-import { fetchMyLeaves } from '@/api/leaveApi';
-import { useRouter } from 'vue-router'; // Add this line
 
 const auth = useAuthStore();
 const employeeId = computed(() => auth.user?.employeeId);
+const departmentId = computed(() => auth.user?.deptId); // Assuming deptId is available in auth.user
 
 const calendarEvents = ref([]);
 const loading = ref(false);
@@ -148,7 +147,7 @@ const fetchCalendarEvents = async (startDate, endDate) => {
 
 onMounted(() => {
   // 컴포넌트 마운트 시 현재 월의 범위로 초기 데이터 로드
-  if (employeeId.value) {
+  if (employeeId.value && departmentId.value) {
     const today = new Date();
     const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
     const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0); // 다음 달 0일 = 이번 달 마지막 날

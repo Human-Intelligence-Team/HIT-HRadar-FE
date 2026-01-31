@@ -1,110 +1,242 @@
 <template>
-  <section class="approval-admin-view">
-    <!-- 타이틀 -->
+  <div class="page">
     <div class="section-title">
-      <div>
-        <h1>결재 관리 (인사팀)</h1>
-        <div class="sub">공식 템플릿을 관리하고 모든 결재 문서를 조회합니다.</div>
-      </div>
+      <h1>결재 관리 (인사팀)</h1>
+      <div class="sub">전체 결재 문서를 조회하고 관리합니다.</div>
     </div>
 
-    <!-- 탭 -->
-    <div class="tabs">
-      <button class="tab" :class="{ active: activeTab === 'templates' }" @click="activeTab = 'templates'">
-        템플릿 관리
-      </button>
-      <button class="tab" :class="{ active: activeTab === 'documents' }" @click="activeTab = 'documents'">
-        전체 문서 조회
-      </button>
-    </div>
+    <section class="card filter-card">
+      <div class="filter-group">
+        <div class="filter-item">
+          <label for="searchDocType">문서 유형</label>
+          <select id="searchDocType" v-model="searchParams.docType">
+            <option value="">전체</option>
+            <option value="VACATION_REQUEST">휴가 신청</option>
+            <option value="EXPENSE_REPORT">경비 보고서</option>
+            <option value="BUSINESS_TRIP">출장 신청</option>
+          </select>
+        </div>
+        <div class="filter-item">
+          <label for="searchStatus">상태</label>
+          <select id="searchStatus" v-model="searchParams.status">
+            <option value="">전체</option>
+            <option value="DRAFT">임시저장</option>
+            <option value="IN_PROGRESS">진행중</option>
+            <option value="APPROVED">승인</option>
+            <option value="REJECTED">반려</option>
+            <option value="WITHDRAWN">회수</option>
+          </select>
+        </div>
+        <div class="filter-item">
+          <label for="searchDeptId">부서 ID</label>
+          <input type="number" id="searchDeptId" v-model="searchParams.deptId" placeholder="부서 ID" />
+        </div>
+        <div class="filter-item">
+          <label for="searchEmpId">사원 ID</label>
+          <input type="number" id="searchEmpId" v-model="searchParams.empId" placeholder="사원 ID" />
+        </div>
+        <div class="filter-item">
+          <label for="searchSort">정렬</label>
+          <select id="searchSort" v-model="searchParams.sort">
+            <option value="">기본</option>
+            <option value="ASC">오름차순</option>
+            <option value="DESC">내림차순</option>
+          </select>
+        </div>
 
-    <!-- 컨텐츠 -->
-    <div class="admin-content">
-      <!-- 템플릿 관리 탭 -->
-      <div v-if="activeTab === 'templates'">
-        <p class="tab-description">새로운 공식 템플릿을 만들거나 기존 템플릿을 수정합니다.</p>
-        <FormBuilder @save="onTemplateSave" />
       </div>
+    </section>
 
-      <!-- 전체 문서 조회 탭 -->
-      <div v-if="activeTab === 'documents'">
-        <p class="tab-description">모든 부서 및 직원의 결재 문서를 검색하고 조회합니다.</p>
-        <!-- 여기에 전체 문서 목록을 보여주는 컴포넌트가 위치합니다. -->
-        <div class="coming-soon">전체 문서 조회 기능은 곧 제공될 예정입니다.</div>
-      </div>
-    </div>
-  </section>
+    <section class="card document-list">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>문서 ID</th>
+            <th>제목</th>
+            <th>문서 유형</th>
+            <th>상태</th>
+            <th>부서명</th>
+            <th>기안자</th>
+            <th>제출 일시</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-if="documents.length === 0">
+            <td colspan="7" class="no-data">조회된 문서가 없습니다.</td>
+          </tr>
+          <tr v-for="doc in documents" :key="doc.docId" @click="goToDetail(doc.docId)">
+            <td>{{ doc.docId }}</td>
+            <td>{{ doc.title }}</td>
+            <td>{{ doc.docType }}</td>
+            <td>{{ doc.status }}</td>
+            <td>{{ doc.deptName }}</td>
+            <td>{{ doc.writerName }} ({{ doc.writerId }})</td>
+            <td>{{ formatDate(doc.submittedAt) }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+  </div>
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import FormBuilder from './FormBuilder.vue';
+import { ref, onMounted, watch } from 'vue';
+import { useRouter } from 'vue-router';
+import { fetchAdminAllDocuments } from '@/api/approvalApi';
 
-const activeTab = ref('templates'); // 'templates' | 'documents'
+const router = useRouter();
+const documents = ref([]);
+const searchParams = ref({
+  docType: '',
+  status: '',
+  deptId: null,
+  empId: null,
+  sort: '',
+});
 
-const onTemplateSave = (formDefinition) => {
-  console.log('A new official template was saved:', formDefinition);
-  // 여기에 템플릿을 서버에 저장하는 로직을 추가합니다.
-  alert('공식 템플릿이 저장되었습니다.');
+const fetchDocuments = async () => {
+  try {
+    const params = Object.fromEntries(
+      Object.entries(searchParams.value).filter(([, value]) => value !== null && value !== '')
+    );
+    const response = await fetchAdminAllDocuments(params);
+    documents.value = response.data.data;
+  } catch (error) {
+    alert('결재 문서 목록을 불러오는 데 실패했습니다.');
+    console.error('Failed to fetch admin documents:', error);
+  }
 };
+
+watch(searchParams, fetchDocuments, { deep: true });
+
+const goToDetail = (docId) => {
+  router.push(`/approval/${docId}`);
+};
+
+const formatDate = (datetime) => {
+  if (!datetime) return '-';
+  const date = new Date(datetime);
+  return date.toLocaleString('ko-KR', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+};
+
+onMounted(() => {
+  fetchDocuments();
+});
 </script>
 
 <style scoped>
-.approval-admin-view {
-  padding: 16px;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
+.page {
+  max-width: 1200px; /* Wider for admin view */
+  margin: 0 auto;
+  padding: 32px 16px;
 }
 
-/* 헤더 */
-.section-title { margin-bottom: 16px; }
-.section-title h1 { font-size: 20px; font-weight: 700; }
-.section-title .sub { font-size: 14px; color: #6b7280; margin-top: 4px; }
-
-/* 탭 */
-.tabs {
-  display: flex;
-  gap: 8px;
+.section-title {
   margin-bottom: 20px;
 }
-.tab {
-  padding: 8px 16px;
-  font-size: 14px;
-  border-radius: 999px;
-  border: 1px solid #e5e7eb;
-  background: #ffffff;
-  color: #374151;
-  cursor: pointer;
-}
-.tab.active {
-  background: #1e40af; /* 인사팀 관리자용 색상 */
-  color: #ffffff;
-  border-color: #1e40af;
+
+.section-title h1 {
+  font-size: 24px;
+  font-weight: bold;
+  color: #333;
 }
 
-/* 컨텐츠 */
-.admin-content {
-  flex-grow: 1;
-  min-height: 0;
+.section-title .sub {
+  margin-top: 8px;
+  font-size: 14px;
+  color: #666;
+}
+
+.card {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+  margin-bottom: 20px;
+}
+
+.filter-card {
+  padding: 18px 24px;
+}
+
+.filter-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  align-items: flex-end;
+}
+
+.filter-item {
   display: flex;
   flex-direction: column;
+  flex-grow: 1;
+  min-width: 150px;
 }
 
-.tab-description {
+.filter-item label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #666;
+  margin-bottom: 5px;
+}
+
+.filter-item select,
+.filter-item input[type="number"] {
+  padding: 8px 10px;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
   font-size: 13px;
-  color: #4b5563;
-  margin-bottom: 16px;
-  padding-left: 4px;
+  color: #333;
+  box-sizing: border-box;
 }
 
-.coming-soon {
+.filter-group .btn {
+  padding: 8px 15px;
+  font-size: 13px;
+  font-weight: 600;
+  min-width: 80px;
+}
+
+
+.document-list {
+  margin-top: 0; /* Adjust margin as filter card is above */
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th,
+.table td {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.table th {
+  background-color: #f8f9fa;
+  font-weight: 600;
+  color: #555;
+}
+
+.table tbody tr {
+  cursor: pointer;
+}
+
+.table tbody tr:hover {
+  background-color: #f1f1f1;
+}
+
+.no-data {
   text-align: center;
-  padding: 60px 20px;
-  font-size: 14px;
-  color: #9ca3af;
-  border: 2px dashed #d1d5db;
-  border-radius: 12px;
-  background: #f9fafb;
+  color: #888;
+  padding: 40px;
 }
 </style>
