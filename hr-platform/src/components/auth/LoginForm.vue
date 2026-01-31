@@ -1,6 +1,6 @@
 <template>
-  <div class="login-wrapper">
-    <div class="login-panel">
+  <div class="login-container">
+    <form class="login-content" @submit.prevent="login">
       <h1>Sign in</h1>
 
       <div class="field">
@@ -8,6 +8,8 @@
           v-model="companyCode"
           placeholder="Company Code"
           @blur="validateCompanyCode"
+          autocomplete="new-password"
+          spellcheck="false"
         />
         <p v-if="errors.companyCode" class="error">
           {{ errors.companyCode }}
@@ -19,6 +21,8 @@
           v-model="loginId"
           placeholder="ID"
           @blur="validateLoginId"
+          autocomplete="new-password"
+          spellcheck="false"
         />
         <p v-if="errors.loginId" class="error">
           {{ errors.loginId }}
@@ -31,6 +35,8 @@
           type="password"
           placeholder="Password"
           @blur="validatePassword"
+          autocomplete="new-password"
+          spellcheck="false"
         />
         <p v-if="errors.password" class="error">
           {{ errors.password }}
@@ -42,62 +48,43 @@
       </p>
 
       <button
+        class="btn-lg-primary"
         @click="login"
         :disabled="auth.loading || !isFormValid"
       >
         {{ auth.loading ? 'Signing in...' : 'Sign in' }}
       </button>
-    </div>
+    </form>
   </div>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
 import { useAuthStore } from '@/stores/authStore'
-import { useRouter } from 'vue-router'
+const emit = defineEmits(['login-success'])
 
 const loginId = ref('')
 const password = ref('')
 const companyCode = ref('')
 
-const errors = ref({
-  companyCode: '',
-  loginId: '',
-  password: '',
-})
-
+const errors = ref({ display: 'none', companyCode: '', loginId: '', password: '' })
 const serverError = ref('')
 
 const auth = useAuthStore()
-const router = useRouter()
 
 /* ----------------------
- * validation rules
+ * Validation & Login
  * ---------------------- */
 const validateCompanyCode = () => {
-  errors.value.companyCode =
-    !companyCode.value
-      ? '회사 코드를 입력해주세요.'
-      : ''
+  errors.value.companyCode = !companyCode.value ? '회사 코드를 입력해주세요.' : ''
 }
-
 const validateLoginId = () => {
-  errors.value.loginId =
-    !loginId.value
-      ? '아이디를 입력해주세요.'
-      : ''
+  errors.value.loginId = !loginId.value ? '아이디를 입력해주세요.' : ''
 }
-
 const validatePassword = () => {
-  errors.value.password =
-    !password.value
-      ? '비밀번호를 입력해주세요.'
-      : ''
+  errors.value.password = !password.value ? '비밀번호를 입력해주세요.' : ''
 }
 
-/* ----------------------
- * computed
- * ---------------------- */
 const isFormValid = computed(() => {
   return (
     companyCode.value &&
@@ -109,9 +96,6 @@ const isFormValid = computed(() => {
   )
 })
 
-/* ----------------------
- * submit
- * ---------------------- */
 const login = async () => {
   validateCompanyCode()
   validateLoginId()
@@ -128,7 +112,7 @@ const login = async () => {
   })
 
   if (result.success) {
-    await router.replace('/')
+    emit('login-success')
   } else {
     serverError.value = result.message || '로그인에 실패했습니다.'
   }
@@ -136,47 +120,25 @@ const login = async () => {
 </script>
 
 <style scoped>
-
-.error {
-  margin-top: 6px;
-  font-size: 12px;
-  color: #dc2626;
-}
-
-.server-error {
-  margin: 8px 0 4px;
-  font-size: 13px;
-  color: #b91c1c;
-  text-align: center;
-}
-
-.login-wrapper {
-  min-height: 100vh;
+.login-container {
+  width: 100%;
   display: flex;
-  align-items: center;
   justify-content: center;
-  background: #f7f8fa;
+  align-items: center;
 }
 
-.login-panel {
-  width: 340px;
-  padding: 40px 36px 36px;
-  background: #ffffff;
-  border-radius: 10px;
-
-  /* 👇 박스 느낌 핵심 */
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  box-shadow:
-    0 1px 2px rgba(0, 0, 0, 0.03),
-    0 8px 24px rgba(0, 0, 0, 0.04);
+.login-content {
+  width: 320px;
+  padding: 20px;
 }
 
 h1 {
   margin-bottom: 28px;
-  font-size: 20px;
-  font-weight: 600;
-  color: #111;
+  font-size: 24px;
+  font-weight: 800;
+  color: #0f172a;
   text-align: center;
+  letter-spacing: -0.02em;
 }
 
 .field {
@@ -185,51 +147,76 @@ h1 {
 
 input {
   width: 100%;
-  height: 42px;
-  padding: 0 14px;
-  font-size: 14px;
-  color: #111;
-
-  border-radius: 6px;
-  border: 1px solid #d1d5db;
-  background: #fff;
-
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  height: 48px;
+  padding: 0 16px;
+  font-size: 0.95rem;
+  color: #1e293b;
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  border-radius: 12px;
+  transition: all 0.2s;
+  user-select: text;
 }
 
 input::placeholder {
-  color: #9ca3af;
+  color: #94a3b8;
 }
 
 input:focus {
   outline: none;
+  background: white;
   border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
 }
 
-button {
-  width: 100%;
-  height: 44px;
-  margin-top: 8px;
+.error {
+  margin-top: 6px;
+  font-size: 13px;
+  color: #ef4444;
+  margin-left: 4px;
+}
 
-  background: #2563eb;
-  color: #fff;
+.server-error {
+  margin: 8px 0 16px;
   font-size: 14px;
-  font-weight: 500;
+  color: #ef4444;
+  text-align: center;
+  background: #fef2f2;
+  padding: 8px;
+  border-radius: 8px;
+}
 
+/* --- Button --- */
+.btn-lg-primary {
+  width: 100%;
+  height: 52px;
+  margin-top: 12px;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: white;
   border: none;
-  border-radius: 6px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 1rem;
+  box-shadow:
+    0 10px 25px rgba(37, 99, 235, 0.3),
+    inset 0 1px 0 rgba(255,255,255,0.2);
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   cursor: pointer;
-
-  transition: background 0.15s ease;
 }
 
-button:hover {
-  background: #1d4ed8;
+.btn-lg-primary:hover:not(:disabled) {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow:
+    0 15px 35px rgba(37, 99, 235, 0.4),
+    inset 0 1px 0 rgba(255,255,255,0.2);
 }
 
-button:disabled {
-  opacity: 0.6;
+.btn-lg-primary:disabled {
+  opacity: 0.7;
   cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+  background: #94a3b8;
 }
 </style>

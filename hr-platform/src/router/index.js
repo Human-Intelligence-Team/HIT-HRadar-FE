@@ -1,13 +1,9 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
-
 import PolicyView from '@/views/policy/PolicyView.vue'
 import NoticeView from '@/views/notice/NoticeView.vue'
-
 import AppLayout from '@/components/layout/AppLayout.vue'
 import AuthLayout from '@/components/layout/AuthLayout.vue'
-import LoginView from '@/views/auth/LoginView.vue'
-
 import TagView from '@/views/contents/tag/TagView.vue'
 import ContentsView from '@/views/contents/content/ContentsView.vue'
 import SalaryDashboardView from '@/views/salary/SalaryDashboardView.vue'
@@ -48,29 +44,75 @@ import CycleEditPage from '@/views/cycle/CycleEditPage.vue'
 import CycleAdminManageView from '@/views/cycle/CycleAdminManageView.vue'
 import CycleAdminDetailPage from '@/views/cycle/CycleAdminDetailPage.vue'
 import CycleAdminEditPage from '@/views/cycle/CycleAdminEditPage.vue'
-import CompanyGradeSettingPage from '@/views/grading/CompanyGradeSettingPage.vue'
-import DeptGradeStatusPage from '@/views/grading/DeptGradeStatusPage.vue'
-import AdminDeptGradeStatusPage from '@/views/grading/AdminDeptGradeStatusPage.vue'
-import IndividualGradePage from '@/views/grading/IndividualGradePage.vue'
-import IndividualGradeApprovePage from '@/views/grading/IndividualGradeApprovePage.vue'
-import MygradePage from '@/views/grading/MygradePage.vue'
-import AdminGradeObjectionPage from '@/views/grading/AdminGradeObjectionPage.vue'
-import AdminGradeObjectionDetailPage from '@/views/grading/AdminGradeObjectionDetailPage.vue'
+import CompanyGradeSettingPage from '@/views/grading/gradeSetting/CompanyGradeSettingPage.vue'
+import DeptGradeStatusPage from '@/views/grading/deptGrade/DeptGradeStatusPage.vue'
+import AdminDeptGradeStatusPage from '@/views/grading/deptGrade/AdminDeptGradeStatusPage.vue'
+import IndividualGradePage from '@/views/grading/individualGrade/IndividualGradePage.vue'
+import IndividualGradeApprovePage from '@/views/grading/individualGrade/IndividualGradeApprovePage.vue'
+import MygradePage from '@/views/grading/individualGrade/MygradePage.vue'
+import AdminGradeObjectionPage from '@/views/grading/gradeObjection/AdminGradeObjectionPage.vue'
+import AdminGradeObjectionDetailPage from '@/views/grading/gradeObjection/AdminGradeObjectionDetailPage.vue'
+import EvaluationTypeSetupPage from '@/views/evaluation/evalType/EvaluationTypeSetupPage.vue'
+import EvaluationFormBuilderPage from '@/views/evaluation/evalQusetion/EvaluationFormBuilderPage.vue'
+import EvaluationAssignmentSetupPage
+  from '@/views/evaluation/evalAssignment/EvaluationAssignmentSetupPage.vue'
+import EvaluationAssignmentStatusPage from '@/views/evaluation/evalAssignment/EvaluationAssignmentStatusPage.vue'
+import EvaluationResponsePage from '@/views/evaluation/evaluationResponse/EvaluationResponsePage.vue'
+import EvaluationResultPage from '@/views/evaluation/evaluationResponse/EvaluationResultPage.vue'
+import EvaluationMyResultPage from '@/views/evaluation/evaluationResponse/EvaluationMyResultPage.vue'
+
 import NoticeListView from '@/views/notice/NoticeListView.vue'
 import NoticeDetailView from '@/views/notice/NoticeDetailView.vue'
 import NoticeCreateView from '@/views/notice/NoticeCreateView.vue'
 import NoticeEditView from '@/views/notice/NoticeEditView.vue'
+import HomeView from '@/views/auth/HomeView.vue'
+import CompanyRegisterView from '@/views/auth/CompanyRegisterView.vue'
+import ApprovalMyListView from '@/views/approval/ApprovalMyListView.vue'
+import ApprovalInboxListView from '@/views/approval/ApprovalInboxListView.vue'
+import ApprovalRejectedListView from '@/views/approval/ApprovalRejectedListView.vue'
+import ApprovalAllListView from '@/views/approval/ApprovalAllListView.vue'
+import ApprovalCreateView from '@/views/approval/ApprovalCreateView.vue'
+import ApprovalAdminView from '@/views/approval/ApprovalAdminView.vue'
+import AdminLayout from '@/components/layout/AdminLayout.vue'
+import AdminComAppList from '@/views/admin/AdminComAppList.vue'
+import AdminUserAccountList from '@/views/admin/AdminUserAccountList.vue'
+import DepartmentListView from '@/views/department/DepartmentListView.vue'
+import DepartmentManageView from '@/views/department/DepartmentManageView.vue'
+
+import AttendanceIpPolicyView from '@/views/attendance/AttendanceIpPolicyView.vue'
+import AttendanceCommuteView from '@/views/attendance/AttendanceCommuteView.vue'
+import AttendanceDepartmentView from '@/views/attendance/AttendanceDepartmentView.vue'
+import MyAttendanceCalendarView from '@/views/attendance/MyAttendanceCalendarView.vue'
+import DepartmentAttendanceCalendarView from '@/views/attendance/DepartmentAttendanceCalendarView.vue'
+import AttendanceEmployeeDetailView from '@/views/attendance/AttendanceEmployeeDetailView.vue'
+
 
 const routes = [
+
+
   {
-    path: '/login',
-    component: AuthLayout,
-    children: [{ path: '', component: LoginView }],
+    path: '/register-company',
+    component: CompanyRegisterView,
   },
 
   {
-    path: '/',
-    component: AppLayout,
+    path: '/home',
+    component: AuthLayout,
+    children: [{ path: '', component: HomeView }],
+  },
+
+  {
+    path: '/admin',
+    component: AdminLayout,
+    meta: { requiresAuth: true, requiresAdmin: true },
+    children: [
+      { path: 'company-applications', component: AdminComAppList },
+      { path: 'user-accounts', component: AdminUserAccountList },
+    ]
+  },
+
+  {
+    path: '/', component: AppLayout,
     children: [
       { path: '', redirect: '/policy' },
       { path: 'policy', component: PolicyView },
@@ -85,13 +127,19 @@ const routes = [
         ]
       },
 
+      // 조직/부서 관리
+      { path: 'organization', component: DepartmentListView },
+      { path: 'department/manage', component: DepartmentManageView },
+
+
       //성과평가-목표관리
       { path: 'goal', component: GoalListView },
       { path: 'hr/goals', component: HRGoalDashboard },
-      { path: 'goal/:goalId', component: GoalDetailView},
-      { path:'to/goals',component: TeamOwnerGoalListView},
-      { path: '/goal/create', component: GoalCreateView},
-      { path: 'report', component: CompetencyReportView ,
+      { path: 'goal/:goalId', component: GoalDetailView },
+      { path: 'to/goals', component: TeamOwnerGoalListView },
+      { path: '/goal/create', component: GoalCreateView },
+      {
+        path: 'report', component: CompetencyReportView,
         children: [
           { path: '/all/competency/report', component: CompetencyReportAllListView },
           { path: '/all/competency/report/create', component: CompetencyReportAllCreateView },
@@ -102,7 +150,8 @@ const routes = [
         ]
       },
       { path: 'salary/dashboard', component: SalaryDashboardView },
-      { path: 'salary/basic', component: BasicSalaryView,
+      {
+        path: 'salary/basic', component: BasicSalaryView,
         children: [
           { path: '/all/salary/basic', component: BasicSalaryAllListView },
           { path: '/all/salary/basic/employee/:year', component: BasicSalaryEmployeeListView },
@@ -112,21 +161,25 @@ const routes = [
           { path: '/me/salary/history/:basicId', component: SalaryEmployeeHistoryView },
         ]
       },
-      { path: 'salary/compensation', component: CompensationSalaryView ,
+      {
+        path: 'salary/compensation', component: CompensationSalaryView,
         children: [
           { path: '/all/salary/compensation', component: CompensationSalaryAllListView },
           { path: '/all/salary/compensation/create', component: CompensationSalaryCreateView },
           { path: '/all/salary/compensation/detail/:compensationId', component: CompensationSalaryDetailView },
         ]
       },
-      { path: 'contents', component: ContentsView ,
+      {
+        path: 'contents', component: ContentsView,
         children: [
           { path: '/all/contents', component: ContentsListView },
           { path: '/all/contents/create', component: ContentsCreateView },
           { path: '/all/contents/update/:contentId', component: ContentsCreateView },
-          {path: '/all/contents/detail/:contentId', component: ContentsDetailView, props: true}
-        ]},
-      { path: 'contents/tag', component: TagView
+          { path: '/all/contents/detail/:contentId', component: ContentsDetailView, props: true }
+        ]
+      },
+      {
+        path: 'contents/tag', component: TagView
         , children: [
           { path: '/all/contents/tag', component: TagModalView },
         ]
@@ -150,7 +203,48 @@ const routes = [
       { path: '/hr/grading/list/approve', component: IndividualGradeApprovePage },
       { path: '/my/grading', component: MygradePage },
       { path: '/to/grading/objection', component: AdminGradeObjectionPage},
-      { path: '/hr/objections/:objectionId', name: 'AdminGradeObjectionDetailPage',component:AdminGradeObjectionDetailPage }
+      { path: '/hr/objections/:objectionId', name: 'AdminGradeObjectionDetailPage',component:AdminGradeObjectionDetailPage },
+
+      //평가
+      { path: '/hr/evaluation/type/setting', component: EvaluationTypeSetupPage },
+      { path: '/hr/evaluation/question/form/setting', component: EvaluationFormBuilderPage },
+      { path: '/hr/evaluation/assignment', component: EvaluationAssignmentSetupPage },
+      { path: '/hr/evaluation/assignment/status', component: EvaluationAssignmentStatusPage },
+      { path: '/evaluation/assignment/response', component: EvaluationResponsePage },
+      { path: '/hr/evaluation/response/result', component: EvaluationResultPage },
+      { path: '/evaluation/response/my/result', component: EvaluationMyResultPage },
+      { path: '/to/grading/objection', component: AdminGradeObjectionPage },
+      { path: '/hr/objections/:objectionId', name: 'AdminGradeObjectionDetailPage', component: AdminGradeObjectionDetailPage },
+
+
+      {
+        path: 'approval',
+        children: [
+          { path: 'my', component: ApprovalMyListView },          // 내 문서함
+          { path: 'inbox', component: ApprovalInboxListView },    // 결재 문서함
+          { path: 'rejected', component: ApprovalRejectedListView }, // 반려 문서함
+          { path: 'all', component: ApprovalAllListView },
+          { path: 'create', component: ApprovalCreateView },     // 전체 문서함(인사팀)
+          { path: 'admin', component: ApprovalAdminView, meta: { requiresAdmin: true } }, // 결재 관리(인사팀)
+        ],
+      },
+
+      { path: '/to/grading/objection', component: AdminGradeObjectionPage },
+      { path: '/hr/objections/:objectionId', name: 'AdminGradeObjectionDetailPage', component: AdminGradeObjectionDetailPage },
+
+      // 근태 관리
+      {
+        path: 'attendance',
+        redirect: '/attendance/commute', // 기본적으로 사원 출퇴근 관리 페이지로 리디렉션
+        children: [
+          { path: 'commute', component: AttendanceCommuteView }, // 사원 출퇴근 관리
+          { path: 'ip-policy', component: AttendanceIpPolicyView, meta: { requiresAdmin: true } }, // 인사팀 IP 정책 관리
+          { path: 'department', component: AttendanceDepartmentView, meta: { requiresAdmin: true } }, // 인사팀 부서 출퇴근 관리
+          { path: 'my-calendar', component: MyAttendanceCalendarView }, // 나의 근태 캘린더
+          { path: 'department-calendar', component: DepartmentAttendanceCalendarView, meta: { requiresAdmin: true } }, // 부서별 근태 캘린더 (인사팀)
+          { path: 'employee-detail/:employeeId/:workDate', name: 'AttendanceEmployeeDetail', component: AttendanceEmployeeDetailView, props: true }, // 사원 근태 상세 조회
+        ],
+      },
     ],
   },
 ]
@@ -163,14 +257,29 @@ const router = createRouter({
 router.beforeEach((to) => {
   const auth = useAuthStore()
 
+  const publicPaths = ['/home', '/register-company']
+  const isPublic = publicPaths.includes(to.path)
+
   // 로그인 안 했는데 보호 페이지 접근
-  if (!auth.isLoggedIn && to.path !== '/login') {
-    return '/login'
+  if (!auth.isLoggedIn && !isPublic) {
+    return { path: '/home', query: { redirect: to.fullPath } }
+  }
+
+  // 로그인 했는데, 관리자 페이지에 권한 없이 접근
+  if (to.meta.requiresAdmin && !auth.isAdmin) {
+    alert('접근 권한이 없습니다.');
+    return '/notice'; // 혹은 권한 없음 페이지로
   }
 
   // 로그인 했는데 로그인 페이지 접근
   if (auth.isLoggedIn && to.path === '/login') {
     return auth.firstAccessiblePath() || '/'
+  }
+  // 로그인 했는데 /home 접근하면 첫 접근 가능 페이지로 보냄
+  if (auth.isLoggedIn && isPublic) {
+    const next = auth.firstAccessiblePath?.()
+    // next가 '/', '/home', '' 같은 값이면 루프 나기 쉬우니 안전값 강제
+    return next && next !== '/' && next !== '/home' ? next : '/policy'
   }
 })
 

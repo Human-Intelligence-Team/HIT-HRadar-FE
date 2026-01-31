@@ -110,15 +110,15 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import { fetchCycles } from '@/api/cycleApi'
+import { fetchCycles } from '@/api/cycleApi.js'
 import {
   fetchDeptGradeStatusList,
   deleteDeptGrade,
   submitDeptGrade as submitDeptGradeApi,
-} from '@/api/DeptGradeApi'
+} from '@/api/DeptGradeApi.js'
 
-import DeptGradeAssignModal from '@/views/grading/DeptGradeAssignModal.vue'
-import { useAuthStore } from '@/stores/authStore'
+import DeptGradeAssignModal from '@/views/grading/deptGrade/DeptGradeAssignModal.vue'
+import { useAuthStore } from '@/stores/authStore.js'
 
 const auth = useAuthStore()
 const searchKeyword = ref('')

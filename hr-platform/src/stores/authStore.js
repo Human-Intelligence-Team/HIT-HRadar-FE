@@ -161,7 +161,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   const firstAccessiblePath = () => {
     if (!user.value) return '/login'
-    if (user.value.role === 'ADMIN') return '/policy'
+    if (user.value.role === 'ADMIN') return '/admin/company-applications'
     return '/notice'
   }
 

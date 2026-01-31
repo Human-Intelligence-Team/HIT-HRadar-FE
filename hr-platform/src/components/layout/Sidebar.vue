@@ -6,12 +6,13 @@
 
       <div class="nav-group has-flyout">
         <div class="nav-item">
-          <span>사원 · 조직 관리</span>
+          <span>사원 · 부서 관리</span>
           <span class="arrow">›</span>
         </div>
         <div class="flyout">
           <RouterLink to="/employee" class="flyout-item">사원 관리</RouterLink>
-          <RouterLink to="/organization" class="flyout-item">조직 관리</RouterLink>
+          <RouterLink to="/organization" class="flyout-item">부서 조회</RouterLink>
+          <RouterLink to="/department/manage" class="flyout-item">부서 정책 관리</RouterLink>
         </div>
       </div>
 
@@ -24,8 +25,11 @@
           <span class="arrow">›</span>
         </div>
         <div class="flyout">
-          <RouterLink to="/attendance/status" class="flyout-item">근태 현황</RouterLink>
-          <RouterLink to="/attendance/request" class="flyout-item">근태 신청</RouterLink>
+          <RouterLink to="/attendance/commute" class="flyout-item">나의 출퇴근 관리</RouterLink>
+          <RouterLink to="/attendance/my-calendar" class="flyout-item">나의 근태 캘린더</RouterLink>
+          <RouterLink v-if="auth.isAdmin" to="/attendance/ip-policy" class="flyout-item">IP 정책 관리</RouterLink>
+          <RouterLink v-if="auth.isAdmin" to="/attendance/department" class="flyout-item">부서 출퇴근 관리</RouterLink>
+          <RouterLink v-if="auth.isAdmin" to="/attendance/department-calendar" class="flyout-item">부서별 근태 캘린더</RouterLink>
         </div>
       </div>
 
@@ -53,6 +57,12 @@
         <div class="flyout">
           <RouterLink to="/cycles" class="flyout-item">회차 등록/조회</RouterLink>
           <RouterLink to="/hr/cycles" class="flyout-item">회차 등록/조회</RouterLink>
+          <RouterLink to="/hr/evaluation/type/setting" class="flyout-item">평가유형 생성/회차 포함</RouterLink>
+          <RouterLink to="/hr/evaluation/question/form/setting" class="flyout-item">문항지 생성</RouterLink>
+          <RouterLink to="/hr/evaluation/assignment" class="flyout-item">평가 배정</RouterLink>
+          <RouterLink to="/evaluation/assignment/response" class="flyout-item">다면 평가</RouterLink>
+          <RouterLink to="/hr/evaluation/response/result" class="flyout-item">평가 응답 조회</RouterLink>
+          <RouterLink to="/evaluation/response/my/result" class="flyout-item">평가 결과 조회</RouterLink>
         </div>
       </div>
 
@@ -89,6 +99,7 @@
       </div>
 
       <!-- 결재 관리 -->
+      <!-- 결재 관리 -->
       <div class="section-title">결재 관리</div>
 
       <div class="nav-group has-flyout">
@@ -97,7 +108,22 @@
           <span class="arrow">›</span>
         </div>
         <div class="flyout">
-          <!-- 확장 -->
+          <RouterLink to="/approval/create" class="flyout-item">결재 문서 등록</RouterLink>
+          <RouterLink to="/approval/my" class="flyout-item">내 문서함</RouterLink>
+          <RouterLink to="/approval/inbox" class="flyout-item">결재 문서함</RouterLink>
+          <RouterLink to="/approval/rejected" class="flyout-item">반려 문서함</RouterLink>
+          <RouterLink
+            to="/approval/all"
+            class="flyout-item"
+          >
+            전체 문서함
+          </RouterLink>
+          <RouterLink
+            to="/approval/admin"
+            class="flyout-item"
+          >
+            결재 관리(인사팀)
+          </RouterLink>
         </div>
       </div>
 
@@ -148,9 +174,23 @@
       >
         알림 관리
       </RouterLink>
+      <RouterLink
+        v-if="auth.isAdmin"
+        to="/admin/company-applications"
+        class="nav-item link"
+        active-class="active"
+      >
+        ❖ Admin Dashboard
+      </RouterLink>
     </nav>
   </aside>
 </template>
+
+<script>
+export default {
+  name: 'SidebarMenu'
+}
+</script>
 
 <script setup>
 import { useAuthStore } from '@/stores/authStore'
@@ -173,6 +213,7 @@ const can = (perm) => {
   background: #ffffff;
   border-right: 1px solid #e6e8ec;
   padding: 14px 10px;
+  z-index: 1000;
   font-family:
     Pretendard,
     -apple-system,
@@ -238,7 +279,7 @@ const can = (perm) => {
   padding: 6px;
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
   display: none;
-  z-index: 30;
+  z-index: 1010;
 }
 
 .has-flyout:hover .flyout {
