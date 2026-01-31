@@ -1,8 +1,8 @@
 <template>
   <div class="page">
     <div class="section-title">
-      <h1>결재 문서함</h1>
-      <div class="sub">나에게 결재 요청된 문서 목록입니다.</div>
+      <h1>참조 문서함</h1>
+      <div class="sub">내가 참조자로 지정된 결재 문서 목록입니다.</div>
     </div>
 
     <section class="card document-list">
@@ -36,18 +36,18 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { fetchApprovalTasks } from '@/api/approvalApi';
+import { fetchReferenceDocuments } from '@/api/approvalApi';
 
 const router = useRouter();
 const documents = ref([]);
 
 const fetchDocuments = async () => {
   try {
-    const response = await fetchApprovalTasks();
+    const response = await fetchReferenceDocuments();
     documents.value = response.data.data;
   } catch (error) {
-    alert('결재 문서 목록을 불러오는 데 실패했습니다.');
-    console.error('Failed to fetch approval tasks:', error);
+    alert('참조 문서 목록을 불러오는 데 실패했습니다.');
+    console.error('Failed to fetch reference documents:', error);
   }
 };
 

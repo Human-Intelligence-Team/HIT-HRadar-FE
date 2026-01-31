@@ -67,15 +67,11 @@ import NoticeCreateView from '@/views/notice/NoticeCreateView.vue'
 import NoticeEditView from '@/views/notice/NoticeEditView.vue'
 import HomeView from '@/views/auth/HomeView.vue'
 import CompanyRegisterView from '@/views/auth/CompanyRegisterView.vue'
-import ApprovalMyListView from '@/views/approval/ApprovalMyListView.vue'
-import ApprovalInboxListView from '@/views/approval/ApprovalInboxListView.vue'
-import ApprovalRejectedListView from '@/views/approval/ApprovalRejectedListView.vue'
-import ApprovalAllListView from '@/views/approval/ApprovalAllListView.vue'
-import ApprovalCreateView from '@/views/approval/ApprovalCreateView.vue'
-import ApprovalAdminView from '@/views/approval/ApprovalAdminView.vue'
+
 import AdminLayout from '@/components/layout/AdminLayout.vue'
 import AdminComAppList from '@/views/admin/AdminComAppList.vue'
 import AdminUserAccountList from '@/views/admin/AdminUserAccountList.vue'
+import ApprovalDocumentTypeManagementView from '@/views/admin/ApprovalDocumentTypeManagementView.vue'
 import DepartmentListView from '@/views/department/DepartmentListView.vue'
 import DepartmentManageView from '@/views/department/DepartmentManageView.vue'
 
@@ -108,6 +104,7 @@ const routes = [
     children: [
       { path: 'company-applications', component: AdminComAppList },
       { path: 'user-accounts', component: AdminUserAccountList },
+      { path: 'approval-document-types', component: ApprovalDocumentTypeManagementView, meta: { requiresAdmin: true } },
     ]
   },
 
@@ -217,20 +214,23 @@ const routes = [
       { path: '/hr/objections/:objectionId', name: 'AdminGradeObjectionDetailPage', component: AdminGradeObjectionDetailPage },
 
 
-      {
-        path: 'approval',
-        children: [
-          { path: 'my', component: ApprovalMyListView },          // 내 문서함
-          { path: 'inbox', component: ApprovalInboxListView },    // 결재 문서함
-          { path: 'rejected', component: ApprovalRejectedListView }, // 반려 문서함
-          { path: 'all', component: ApprovalAllListView },
-          { path: 'create', component: ApprovalCreateView },     // 전체 문서함(인사팀)
-          { path: 'admin', component: ApprovalAdminView, meta: { requiresAdmin: true } }, // 결재 관리(인사팀)
-        ],
-      },
 
       { path: '/to/grading/objection', component: AdminGradeObjectionPage },
       { path: '/hr/objections/:objectionId', name: 'AdminGradeObjectionDetailPage', component: AdminGradeObjectionDetailPage },
+
+      {
+        path: 'approval',
+        children: [
+          { path: 'create', component: () => import('@/views/approval/ApprovalCreateView.vue') },
+          { path: 'my-documents', component: () => import('@/views/approval/ApprovalMyListView.vue') },
+          { path: 'approval-tasks', component: () => import('@/views/approval/ApprovalInboxListView.vue') },
+          { path: 'rejected-documents', component: () => import('@/views/approval/ApprovalRejectedListView.vue') },
+          { path: 'references', component: () => import('@/views/approval/ApprovalReferenceListView.vue') },
+          { path: 'all-documents', component: () => import('@/views/approval/ApprovalAllListView.vue') },
+          { path: 'admin', component: () => import('@/views/admin/ApprovalDocumentTypeManagementView.vue'), meta: { requiresAdmin: true } },
+          { path: ':docId', component: () => import('@/views/approval/ApprovalDetailView.vue'), props: true },
+        ],
+      },
 
       // 근태 관리
       {

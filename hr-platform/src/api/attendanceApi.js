@@ -7,13 +7,13 @@ import axios from './axios';
  * @param {number} comId - 회사 ID
  */
 export const fetchIpPolicies = async (comId) => {
-  return axios.get('/admin/ip-policies', {
+  return axios.get('/api/v1/admin/ip-policies', {
     params: { comId }
   });
 };
 
 export const fetchActiveIpPolicies = async (comId) => {
-  return axios.get('/admin/ip-policies/active', {
+  return axios.get('/api/v1/admin/ip-policies/active', {
     params: { comId }
   });
 };
@@ -23,7 +23,7 @@ export const fetchActiveIpPolicies = async (comId) => {
  * @param {object} policyData - RegisterIpPolicyRequest
  */
 export const createIpPolicy = async (policyData) => {
-  return await axios.post(`/attendance/ip-policies`, policyData);
+  return await axios.post(`/api/v1/attendance/ip-policies`, policyData);
 };
 
 /**
@@ -32,7 +32,7 @@ export const createIpPolicy = async (policyData) => {
  * @param {object} policyData - UpdateIpPolicyRequest
  */
 export const updateIpPolicy = async (policyId, policyData) => {
-  return await axios.patch(`/attendance/ip-policies/${policyId}`, policyData);
+  return await axios.patch(`/api/v1/attendance/ip-policies/${policyId}`, policyData);
 };
 
 /**
@@ -41,7 +41,7 @@ export const updateIpPolicy = async (policyId, policyData) => {
  * @param {object} statusData - ChangeIpPolicyRequest ({ enabled: boolean })
  */
 export const changeIpPolicyStatus = async (policyId, statusData) => {
-  return await axios.patch(`/attendance/ip-policies/${policyId}/status`, statusData);
+  return await axios.patch(`/api/v1/attendance/ip-policies/${policyId}/status`, statusData);
 };
 
 
@@ -50,11 +50,11 @@ export const changeIpPolicyStatus = async (policyId, statusData) => {
  * @param {number} policyId - IP 정책 ID
  */
 export const deleteIpPolicy = async (policyId) => {
-  return await axios.delete(`/attendance/ip-policies/${policyId}`);
+  return await axios.delete(`/api/v1/attendance/ip-policies/${policyId}`);
 };
 
 export const fetchAttendanceIpPolicies = async (comId) => {
-  return axios.get('/admin/ip-policies/attendance', {
+  return axios.get('/api/v1/admin/ip-policies/attendance', {
     params: { comId }
   });
 };
@@ -66,7 +66,7 @@ export const fetchAttendanceIpPolicies = async (comId) => {
  * 출/퇴근 처리 (IP 기반)
  */
 export const processAttendance = async () => {
-  return await axios.post(`/attendance/check`);
+  return await axios.post(`/api/v1/attendance/check`);
 };
 
 /**
@@ -75,7 +75,7 @@ export const processAttendance = async () => {
  * @param {string} workDate - 조회 날짜 (YYYY-MM-DD)
  */
 export const fetchMyTodayAttendance = async (targetEmpId, workDate) => {
-  return await axios.get(`/api/attendance/detail`, { params: { targetEmpId, workDate } });
+  return await axios.get(`/api/v1/api/attendance/detail`, { params: { targetEmpId, workDate } });
 };
 
 
@@ -87,7 +87,7 @@ export const fetchAttendanceCalendar = async ({
   fromDate,
   toDate
 }) => {
-  return await axios.get('/api/attendance', {
+  return await axios.get('/api/v1/api/attendance', {
     params: {
       targetEmpId,
       targetDeptId,
@@ -102,7 +102,7 @@ export const fetchAttendanceDetail = async ({
   targetEmpId,
   workDate
 }) => {
-  return await axios.get('/api/attendance/detail', {
+  return await axios.get('/api/v1/api/attendance/detail', {
     params: {
       targetEmpId,
       workDate

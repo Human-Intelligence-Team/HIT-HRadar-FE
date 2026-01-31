@@ -109,11 +109,12 @@
         </div>
         <div class="flyout">
           <RouterLink to="/approval/create" class="flyout-item">결재 문서 등록</RouterLink>
-          <RouterLink to="/approval/my" class="flyout-item">내 문서함</RouterLink>
-          <RouterLink to="/approval/inbox" class="flyout-item">결재 문서함</RouterLink>
-          <RouterLink to="/approval/rejected" class="flyout-item">반려 문서함</RouterLink>
+          <RouterLink to="/approval/my-documents" class="flyout-item">내 문서함</RouterLink>
+          <RouterLink to="/approval/approval-tasks" class="flyout-item">결재 문서함</RouterLink>
+          <RouterLink to="/approval/rejected-documents" class="flyout-item">반려 문서함</RouterLink>
+          <RouterLink to="/approval/references" class="flyout-item">참조 문서함</RouterLink>
           <RouterLink
-            to="/approval/all"
+            to="/approval/all-documents"
             class="flyout-item"
           >
             전체 문서함
@@ -182,6 +183,7 @@
       >
         ❖ Admin Dashboard
       </RouterLink>
+
     </nav>
   </aside>
 </template>
