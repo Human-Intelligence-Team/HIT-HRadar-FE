@@ -29,15 +29,29 @@
         @drop.prevent="handleDrop"
         @dragover.prevent
         @paste="handlePaste"
-        v-html="form.content"
       ></div>
     </div>
 
     <!-- Attachments -->
     <div class="form-group">
       <label>첨부파일</label>
-      <input type="file" multiple @change="handleFileUpload" class="form-input-file" ref="fileInputRef" style="display: none;" />
-      <button type="button" @click="triggerFileInput" class="btn">파일 선택</button>
+      <input
+        type="file"
+        multiple
+        @change="handleFileUpload"
+        class="form-input-file"
+        ref="fileInputRef"
+        style="display: none"
+      />
+      <div
+        class="file-drop-zone"
+        @click="triggerFileInput"
+        @drop.prevent="handleFileDrop"
+        @dragover.prevent
+        @dragenter.prevent
+      >
+        <p>여기에 파일을 드래그 앤 드롭하거나 클릭하여 파일을 선택하세요.</p>
+      </div>
       <div v-if="form.attachments.length" class="file-list">
         <div v-for="(file, index) in form.attachments" :key="index" class="file-item">
           <span>{{ file.name }}</span>
@@ -148,6 +162,11 @@ function handleDrop(e) {
   uploadAndInsert(file)
 }
 
+function handleFileDrop(e) {
+  form.value.attachments.push(...e.dataTransfer.files)
+}
+
+
 function handlePaste(e) {
   const item = [...e.clipboardData.items].find((i) => i.type.startsWith('image/'))
   if (!item) return
@@ -215,9 +234,25 @@ function handleSubmit() {
   background-color: var(--panel);
   color: var(--text-main);
   outline: none;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  text-align: left; /* Added to ensure text aligns to the left */
 }
 .editor:focus {
   border-color: var(--primary);
+}
+.file-drop-zone {
+  border: 2px dashed var(--border);
+  border-radius: 6px;
+  padding: 20px;
+  text-align: center;
+  cursor: pointer;
+  background-color: var(--panel-translucent);
+  color: var(--text-sub);
+}
+.file-drop-zone:hover {
+  border-color: var(--primary);
+  background-color: var(--panel);
 }
 .file-list {
   margin-top: 10px;
