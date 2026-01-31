@@ -66,7 +66,7 @@ export const fetchAttendanceIpPolicies = async (comId) => {
  * 출/퇴근 처리 (IP 기반)
  */
 export const processAttendance = async () => {
-  return await axios.post(`/api/v1/attendance/check`);
+  return await axios.post(`api/v1/attendance/check`);
 };
 
 /**
@@ -75,7 +75,7 @@ export const processAttendance = async () => {
  * @param {string} workDate - 조회 날짜 (YYYY-MM-DD)
  */
 export const fetchMyTodayAttendance = async (targetEmpId, workDate) => {
-  return await axios.get(`/api/v1/api/attendance/detail`, { params: { targetEmpId, workDate } });
+  return await axios.get(`/api/v1/attendance/detail`, { params: { targetEmpId, workDate } });
 };
 
 
@@ -87,7 +87,7 @@ export const fetchAttendanceCalendar = async ({
   fromDate,
   toDate
 }) => {
-  return await axios.get('/api/v1/api/attendance', {
+  return await axios.get('/api/v1/attendance', {
     params: {
       targetEmpId,
       targetDeptId,
@@ -102,7 +102,7 @@ export const fetchAttendanceDetail = async ({
   targetEmpId,
   workDate
 }) => {
-  return await axios.get('/api/v1/api/attendance/detail', {
+  return await axios.get('/api/v1/attendance/detail', {
     params: {
       targetEmpId,
       workDate

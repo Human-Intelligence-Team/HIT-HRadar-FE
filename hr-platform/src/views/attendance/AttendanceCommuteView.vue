@@ -44,7 +44,6 @@
             <li><strong>날짜:</strong> {{ getTodayString() }}</li>
             <li><strong>이름:</strong> {{ userInfo.value?.name || '-' }}</li>
             <li><strong>부서:</strong> {{ userInfo.value?.department || '-' }}</li>
-            <li><strong>직급:</strong> {{ userInfo.value?.grade || '-' }}</li>
             <li><strong>근무 유형:</strong> {{ initialWorkInfo?.workType || '-' }}</li>
             <li><strong>근무 장소:</strong> {{ initialWorkInfo?.workplace || '-' }}</li>
           </ul>
@@ -63,7 +62,6 @@
               <tr>
                 <th>이름</th>
                 <th>부서</th>
-                <th>직급</th>
                 <th>상태</th>
                 <th>근무 시간</th>
                 <th>근무 장소</th>
@@ -152,7 +150,6 @@ const fetchInitialData = async () => {
         clockInTime: new Date(data.clockInTime).toLocaleString('ko-KR'),
         name: userInfo.value?.name,
         department: userInfo.value?.department, // from auth store for now
-        grade: userInfo.value?.grade, // from auth store for now
         workingType: data.workType,
         workplace: data.workPlace,
         ipAddress: data.ipAddress, // 이 정보가 응답에 포함되어 있다고 가정
