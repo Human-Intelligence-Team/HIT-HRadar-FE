@@ -45,8 +45,8 @@
             <li><strong>이름:</strong> {{ userInfo.value?.name || '-' }}</li>
             <li><strong>부서:</strong> {{ userInfo.value?.department || '-' }}</li>
             <li><strong>직급:</strong> {{ userInfo.value?.grade || '-' }}</li>
-            <li><strong>근무 유형:</strong> {{ initialWorkInfo.value.workType || '-' }}</li>
-            <li><strong>근무 장소:</strong> {{ initialWorkInfo.value.workplace || '-' }}</li>
+            <li><strong>근무 유형:</strong> {{ initialWorkInfo?.workType || '-' }}</li>
+            <li><strong>근무 장소:</strong> {{ initialWorkInfo?.workplace || '-' }}</li>
           </ul>
           <button class="btn btn-clock-in" @click="clockInOut">
             출근하기
