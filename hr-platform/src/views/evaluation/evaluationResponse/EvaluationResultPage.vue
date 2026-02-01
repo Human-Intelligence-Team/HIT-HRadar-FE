@@ -125,32 +125,24 @@
 
 
 <script setup>
-import { ref, watch } from 'vue'
-import { fetchCycleEvaluationTypes } from '@/api/cycleEvaluationTypeApi'
-import { fetchEvaluationSheet } from '@/api/evaluationSheetApi'
-import { fetchEvaluateeEvaluationResult } from '@/api/evaluationResponseApi'
-import { fetchCycles } from '@/api/cycleApi.js'
+  import { ref, watch } from 'vue'
+  import { fetchCycleEvaluationTypes } from '@/api/cycleEvaluationTypeApi'
+  import { fetchEvaluateeEvaluationResult } from '@/api/evaluationResponseApi'
+  import { fetchCycles } from '@/api/cycleApi.js'
 
-const selectedCycleId = ref('')
-const cycles = ref([])
+  /* ===============================
+  State
+  =============================== */
+  const selectedCycleId = ref('')
+  const selectedDeptId = ref('')
+  const selectedEmployeeId = ref('')
+  const selectedEvalTypeId = ref('')
 
-const departments = [{ id: 1, name: '개발팀' }]
+  const cycles = ref([])
+  const employees = ref([])
+  const evalTypes = ref([])
 
-const deptEmployees = {
-  1: [
-    { id: 1001, name: '김성수' },
-    { id: 1002, name: '이서연' },
-  ],
-}
-
-const selectedDeptId = ref('')
-const selectedEmployeeId = ref('')
-const selectedEvalTypeId = ref('')
-
-const employees = ref([])
-const evalTypes = ref([])
-
-const result = ref({
+  const result = ref({
   cycleId: null,
   cycleName: '',
   evalTypeId: null,
@@ -158,28 +150,38 @@ const result = ref({
   questions: [],
 })
 
-watch(
+  /* ===============================
+  Mock 조직 데이터
+  =============================== */
+  const departments = [{ id: 1, name: '개발팀' }]
+
+  const deptEmployees = {
+  1: [
+{ id: 1001, name: '김성수' },
+{ id: 1002, name: '이서연' },
+  ],
+}
+
+  /* ===============================
+  초기: 평가 회차 로딩
+  =============================== */
+  watch(
   () => true,
   async () => {
-    const res = await fetchCycles()
-    const list = res.data ?? []
+  const res = await fetchCycles()
+  const list = res.data ?? []
 
-    // IN_PROGRESS, CLOSED 만 허용
-    cycles.value = list.filter(
-      c => c.status === 'IN_PROGRESS' || c.status === 'CLOSED'
-    )
-  },
+  cycles.value = list.filter(
+  c => c.status === 'IN_PROGRESS' || c.status === 'CLOSED'
+  )
+},
   { immediate: true }
-)
+  )
 
-watch(selectedDeptId, (deptId) => {
-  selectedEmployeeId.value = ''
-  selectedEvalTypeId.value = ''
-  employees.value = deptEmployees[deptId] ?? []
-  evalTypes.value = []
-  result.value.questions = []
-})
-watch(selectedCycleId, () => {
+  /* ===============================
+  회차 변경 시 초기화
+  =============================== */
+  watch(selectedCycleId, () => {
   selectedDeptId.value = ''
   selectedEmployeeId.value = ''
   selectedEvalTypeId.value = ''
@@ -189,7 +191,22 @@ watch(selectedCycleId, () => {
   result.value.questions = []
 })
 
-watch(selectedEmployeeId, async (employeeId) => {
+  /* ===============================
+  부서 변경 시 사원 세팅
+  =============================== */
+  watch(selectedDeptId, (deptId) => {
+  selectedEmployeeId.value = ''
+  selectedEvalTypeId.value = ''
+
+  employees.value = deptEmployees[deptId] ?? []
+  evalTypes.value = []
+  result.value.questions = []
+})
+
+  /* ===============================
+  사원 선택 → 평가유형 전체 조회
+  =============================== */
+  watch(selectedEmployeeId, async (employeeId) => {
   selectedEvalTypeId.value = ''
   result.value.questions = []
 
@@ -198,109 +215,71 @@ watch(selectedEmployeeId, async (employeeId) => {
   const res = await fetchCycleEvaluationTypes(selectedCycleId.value)
   const types = res.data?.data ?? []
 
-
-  const enriched = await Promise.all(
-    types.map(async (t) => {
-      try {
-        const r = await fetchEvaluateeEvaluationResult(
-          employeeId,
-          selectedCycleId.value,
-          t.evalTypeId
-        )
-
-        const questions = r.data?.data?.questions ?? []
-
-        const hasResponse =
-          questions.length > 0 &&
-          questions.some(q => q.responses && q.responses.length > 0)
-
-        return {
-          ...t,
-          disabled: !hasResponse,
-        }
-      } catch {
-        return {
-          ...t,
-          disabled: true,
-        }
-      }
-    })
-  )
-
-  evalTypes.value = enriched
+  // 🔥 모든 평가유형 노출 (자기평가 포함)
+  evalTypes.value = types.map(t => ({
+  ...t,
+  disabled: false,
+}))
 })
 
-watch(selectedEvalTypeId, async (evalTypeId) => {
+  /* ===============================
+  평가유형 선택 → 결과 조회 (핵심)
+  =============================== */
+  watch(selectedEvalTypeId, async (evalTypeId) => {
   if (!evalTypeId || !selectedEmployeeId.value) return
 
-  const sheetRes = await fetchEvaluationSheet(
-    selectedCycleId.value,
-    evalTypeId
-  )
-
-  const sections = sheetRes.data?.data ?? []
-
-  const sheetQuestions = sections.flatMap(s =>
-    s.questions.map(q => ({
-      questionId: q.questionId,
-      questionType: q.questionType,
-      questionContent: q.questionContent,
-      responses: [],
-    }))
-  )
-
   const resultRes = await fetchEvaluateeEvaluationResult(
-    selectedEmployeeId.value,
-    selectedCycleId.value,
-    evalTypeId
+  selectedEmployeeId.value,
+  selectedCycleId.value,
+  evalTypeId
   )
 
-  const resultData = resultRes.data?.data
+  const data = resultRes.data?.data
+  if (!data) {
+  result.value.questions = []
+  return
+}
 
-  result.value.cycleId = resultData.cycleId
-  result.value.cycleName = resultData.cycleName
-  result.value.evalTypeId = resultData.evalTypeId
-  result.value.evalTypeName = resultData.evalTypeName
-
-  result.value.questions = sheetQuestions.map(q => {
-    const matched = resultData.questions.find(
-      rq => rq.questionId === q.questionId
-    )
-
-    return {
-      ...q,
-      responses: matched?.responses ?? [],
-    }
-  })
+  result.value.cycleId = data.cycleId
+  result.value.cycleName = data.cycleName
+  result.value.evalTypeId = data.evalTypeId
+  result.value.evalTypeName = data.evalTypeName
+  result.value.questions = data.questions ?? []
 })
 
-const averageScore = (responses) => {
-  if (!responses.length) return '-'
+  /* ===============================
+  Utils
+  =============================== */
+  const averageScore = (responses) => {
+  if (!responses || !responses.length) return '-'
   const sum = responses.reduce((a, r) => a + r.score, 0)
   return (sum / responses.length).toFixed(1)
 }
 
-const ratingDistribution = (responses) => {
+  const ratingDistribution = (responses) => {
+  if (!responses || !responses.length) return []
+
   const total = responses.length
   const map = {}
 
   responses.forEach(r => {
-    map[r.score] = (map[r.score] || 0) + 1
-  })
+  map[r.score] = (map[r.score] || 0) + 1
+})
 
   return Object.entries(map).map(([score, count]) => ({
-    score,
-    count,
-    percent: Math.round((count / total) * 100),
-  }))
+  score,
+  count,
+  percent: Math.round((count / total) * 100),
+}))
 }
 
-const cycleStatusLabel = (status) => {
+  const cycleStatusLabel = (status) => {
   if (status === 'IN_PROGRESS') return '진행 중'
   if (status === 'CLOSED') return '종료'
   return status
 }
 </script>
+
 
 
 <style scoped>

@@ -82,6 +82,7 @@ import MyAttendanceCalendarView from '@/views/attendance/MyAttendanceCalendarVie
 import DepartmentAttendanceCalendarView from '@/views/attendance/DepartmentAttendanceCalendarView.vue'
 import AttendanceEmployeeDetailView from '@/views/attendance/AttendanceEmployeeDetailView.vue'
 import MyDashboard from '@/views/dashboard/MyDashboard.vue'
+import EmpDashboard from '@/views/dashboard/EmpDashboard.vue'
 
 
 const routes = [
@@ -243,6 +244,7 @@ const routes = [
 
       //대시보드
       { path: '/my/dashboard', component: MyDashboard },
+      { path: '/hr/dashboard', component: EmpDashboard },
 
 
       {

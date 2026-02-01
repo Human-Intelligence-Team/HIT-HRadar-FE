@@ -36,38 +36,6 @@
         </div>
       </div>
 
-      <!-- 근태 관리 -->
-      <div class="section-title">근태 관리</div>
-
-      <div class="nav-group has-flyout">
-        <div class="nav-item">
-          <span>근태 관리</span>
-          <span class="arrow">›</span>
-        </div>
-        <div class="flyout">
-          <RouterLink to="/attendance/commute" class="flyout-item">나의 출퇴근 관리</RouterLink>
-          <RouterLink to="/attendance/my-calendar" class="flyout-item">나의 근태 캘린더</RouterLink>
-          <RouterLink v-if="auth.isAdmin" to="/attendance/ip-policy" class="flyout-item">IP 정책 관리</RouterLink>
-          <RouterLink v-if="auth.isAdmin" to="/attendance/department" class="flyout-item">부서 출퇴근 관리</RouterLink>
-          <RouterLink v-if="auth.isAdmin" to="/attendance/department-calendar" class="flyout-item">부서별 근태 캘린더</RouterLink>
-        </div>
-      </div>
-
-      <!-- 휴가 관리 -->
-      <div class="section-title">휴가 관리</div>
-
-      <div class="nav-group has-flyout">
-        <div class="nav-item">
-          <span>휴가 관리</span>
-          <span class="arrow">›</span>
-        </div>
-        <div class="flyout">
-          <RouterLink to="/leave/my-history" class="flyout-item">내 휴가 이력</RouterLink>
-          <RouterLink to="/leave/policy" class="flyout-item">휴가 정책 관리</RouterLink>
-          <RouterLink v-if="auth.isAdmin" to="/leave/admin/department-history" class="flyout-item">부서 휴가 이력</RouterLink>
-        </div>
-      </div>
-
       <!-- 성과 평가 -->
       <div class="section-title">성과 평가</div>
 
@@ -126,12 +94,46 @@
         </div>
         <div class="flyout">
           <RouterLink to="/my/dashboard" class="flyout-item">대시보드</RouterLink>
+          <RouterLink to="/hr/dashboard" class="flyout-item">사원 대시보드</RouterLink>
           <RouterLink to="/all/competency/report" class="flyout-item">리포트(인사팀)</RouterLink>
           <RouterLink to="/dept/competency/report" class="flyout-item">리포트(팀장)</RouterLink>
           <RouterLink to="/me/competency/report" class="flyout-item">리포트(개인)</RouterLink>
           <RouterLink to="/all/contents" class="flyout-item">학습컨텐츠 관리</RouterLink>
         </div>
       </div>
+
+      <!-- 근태 관리 -->
+      <div class="section-title">근태 관리</div>
+
+      <div class="nav-group has-flyout">
+        <div class="nav-item">
+          <span>근태 관리</span>
+          <span class="arrow">›</span>
+        </div>
+        <div class="flyout">
+          <RouterLink to="/attendance/commute" class="flyout-item">나의 출퇴근 관리</RouterLink>
+          <RouterLink to="/attendance/my-calendar" class="flyout-item">나의 근태 캘린더</RouterLink>
+          <RouterLink v-if="auth.isAdmin" to="/attendance/ip-policy" class="flyout-item">IP 정책 관리</RouterLink>
+          <RouterLink v-if="auth.isAdmin" to="/attendance/department" class="flyout-item">부서 출퇴근 관리</RouterLink>
+          <RouterLink v-if="auth.isAdmin" to="/attendance/department-calendar" class="flyout-item">부서별 근태 캘린더</RouterLink>
+        </div>
+      </div>
+
+      <!-- 휴가 관리 -->
+      <div class="section-title">휴가 관리</div>
+
+      <div class="nav-group has-flyout">
+        <div class="nav-item">
+          <span>휴가 관리</span>
+          <span class="arrow">›</span>
+        </div>
+        <div class="flyout">
+          <RouterLink to="/leave/my-history" class="flyout-item">내 휴가 이력</RouterLink>
+          <RouterLink to="/leave/policy" class="flyout-item">휴가 정책 관리</RouterLink>
+          <RouterLink v-if="auth.isAdmin" to="/leave/admin/department-history" class="flyout-item">부서 휴가 이력</RouterLink>
+        </div>
+      </div>
+
 
       <!-- 결재 관리 -->
       <!-- 결재 관리 -->
@@ -267,7 +269,7 @@ const can = (perm) => {
   background: #ffffff;
   border-right: 1px solid #e6e8ec;
   padding: 14px 10px;
-  z-index: 1000;
+  z-index: 100;
   font-family:
     Pretendard,
     -apple-system,
@@ -335,7 +337,7 @@ const can = (perm) => {
   padding: 6px;
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
   display: none;
-  z-index: 1010;
+  z-index: 1000;
 }
 
 .has-flyout:hover .flyout {

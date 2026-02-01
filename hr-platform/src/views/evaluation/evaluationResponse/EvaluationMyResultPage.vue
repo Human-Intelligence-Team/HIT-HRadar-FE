@@ -190,44 +190,20 @@ watch(selectedCycleId, async (cycleId) => {
 watch(selectedEvalTypeId, async (evalTypeId) => {
   if (!evalTypeId) return
 
-  const sheetRes = await fetchEvaluationSheet(
-    selectedCycleId.value,
-    evalTypeId
-  )
-
-  const sections = sheetRes.data?.data ?? []
-
-  const sheetQuestions = sections.flatMap(s =>
-    s.questions.map(q => ({
-      questionId: q.questionId,
-      questionType: q.questionType,
-      questionContent: q.questionContent,
-      responses: [],
-    }))
-  )
-
   const resultRes = await fetchMyEvaluationResult(
     selectedCycleId.value,
     evalTypeId
   )
 
   const resultData = resultRes.data?.data
+  if (!resultData) return
 
   result.value.cycleId = resultData.cycleId
   result.value.cycleName = resultData.cycleName
   result.value.evalTypeId = resultData.evalTypeId
   result.value.evalTypeName = resultData.evalTypeName
 
-  result.value.questions = sheetQuestions.map(q => {
-    const matched = resultData.questions.find(
-      rq => rq.questionId === q.questionId
-    )
-
-    return {
-      ...q,
-      responses: matched?.responses ?? [],
-    }
-  })
+  result.value.questions = resultData.questions ?? []
 })
 
 watch(selectedCycleId, () => {
