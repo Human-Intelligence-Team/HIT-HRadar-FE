@@ -1,12 +1,10 @@
 <template>
   <div class="page">
     <div class="section-title">
-      <h1>내 문서함</h1>
-      <div class="sub">내가 기안한 결재 문서 목록입니다.</div>
+      <h1>결재 문서 상세</h1>
     </div>
 
-    <section class="card document-list">
-      <table class="table">
+    <table class="table">
         <thead>
           <tr>
             <th>문서 ID</th>

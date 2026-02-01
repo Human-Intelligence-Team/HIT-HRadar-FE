@@ -4,7 +4,6 @@
     <div class="section-header">
       <div class="title-group">
         <h1>IP 정책 관리</h1>
-        <div class="sub">근태 관리 시 허용되는 IP 주소를 관리합니다.</div>
       </div>
       <div class="header-actions">
         <button class="btn primary" @click="openPolicyModal()">+ IP 정책 추가</button>

@@ -10,26 +10,29 @@
           <span class="arrow">›</span>
         </div>
         <div class="flyout">
-          <RouterLink to="/employee" class="flyout-item">사원 관리</RouterLink>
-          <RouterLink to="/organization" class="flyout-item">부서 조회</RouterLink>
+          <RouterLink to="/employee" class="flyout-item">사원 관리 (목록)</RouterLink>
+          <RouterLink to="/personnel/employees/list" class="flyout-item">사원 목록 조회</RouterLink>
+          <RouterLink to="/organization" class="flyout-item">부서 관리 (목록)</RouterLink>
+          <RouterLink to="/department/org-chart" class="flyout-item">조직도</RouterLink>
           <RouterLink to="/department/manage" class="flyout-item">부서 정책 관리</RouterLink>
+          <RouterLink to="/personnel/positions" class="flyout-item">직위 관리</RouterLink>
+          <RouterLink to="/personnel/positions/list" class="flyout-item">직위 목록 조회</RouterLink>
+          <RouterLink to="/personnel/history" class="flyout-item">인사 발령 이력</RouterLink>
         </div>
       </div>
 
-      <!-- 근태 관리 -->
-      <div class="section-title">근태 관리</div>
-
+      <!-- 회사 관리 -->
+      <div class="section-title">회사 관리</div>
       <div class="nav-group has-flyout">
         <div class="nav-item">
-          <span>근태 관리</span>
+          <span>회사 정보 관리</span>
           <span class="arrow">›</span>
         </div>
         <div class="flyout">
-          <RouterLink to="/attendance/commute" class="flyout-item">나의 출퇴근 관리</RouterLink>
-          <RouterLink to="/attendance/my-calendar" class="flyout-item">나의 근태 캘린더</RouterLink>
-          <RouterLink v-if="auth.isAdmin" to="/attendance/ip-policy" class="flyout-item">IP 정책 관리</RouterLink>
-          <RouterLink v-if="auth.isAdmin" to="/attendance/department" class="flyout-item">부서 출퇴근 관리</RouterLink>
-          <RouterLink v-if="auth.isAdmin" to="/attendance/department-calendar" class="flyout-item">부서별 근태 캘린더</RouterLink>
+          <RouterLink to="/company/my" class="flyout-item">내 회사 정보</RouterLink>
+          <RouterLink to="/company/my-manage" class="flyout-item">내 회사 관리</RouterLink>
+          <RouterLink to="/company/roles" class="flyout-item">역할/권한 관리</RouterLink>
+          <RouterLink v-if="auth.isAdmin" to="/company/manage" class="flyout-item">회사 정보 관리 (전체)</RouterLink>
         </div>
       </div>
 
@@ -90,13 +93,47 @@
           <span class="arrow">›</span>
         </div>
         <div class="flyout">
-          <RouterLink to="/dashboard" class="flyout-item">대시보드</RouterLink>
+          <RouterLink to="/my/dashboard" class="flyout-item">대시보드</RouterLink>
+          <RouterLink to="/hr/dashboard" class="flyout-item">사원 대시보드</RouterLink>
           <RouterLink to="/all/competency/report" class="flyout-item">리포트(인사팀)</RouterLink>
           <RouterLink to="/dept/competency/report" class="flyout-item">리포트(팀장)</RouterLink>
           <RouterLink to="/me/competency/report" class="flyout-item">리포트(개인)</RouterLink>
           <RouterLink to="/all/contents" class="flyout-item">학습컨텐츠 관리</RouterLink>
         </div>
       </div>
+
+      <!-- 근태 관리 -->
+      <div class="section-title">근태 관리</div>
+
+      <div class="nav-group has-flyout">
+        <div class="nav-item">
+          <span>근태 관리</span>
+          <span class="arrow">›</span>
+        </div>
+        <div class="flyout">
+          <RouterLink to="/attendance/commute" class="flyout-item">나의 출퇴근 관리</RouterLink>
+          <RouterLink to="/attendance/my-calendar" class="flyout-item">나의 근태 캘린더</RouterLink>
+          <RouterLink v-if="auth.isAdmin" to="/attendance/ip-policy" class="flyout-item">IP 정책 관리</RouterLink>
+          <RouterLink v-if="auth.isAdmin" to="/attendance/department" class="flyout-item">부서 출퇴근 관리</RouterLink>
+          <RouterLink v-if="auth.isAdmin" to="/attendance/department-calendar" class="flyout-item">부서별 근태 캘린더</RouterLink>
+        </div>
+      </div>
+
+      <!-- 휴가 관리 -->
+      <div class="section-title">휴가 관리</div>
+
+      <div class="nav-group has-flyout">
+        <div class="nav-item">
+          <span>휴가 관리</span>
+          <span class="arrow">›</span>
+        </div>
+        <div class="flyout">
+          <RouterLink to="/leave/my-history" class="flyout-item">내 휴가 이력</RouterLink>
+          <RouterLink to="/leave/policy" class="flyout-item">휴가 정책 관리</RouterLink>
+          <RouterLink v-if="auth.isAdmin" to="/leave/admin/department-history" class="flyout-item">부서 휴가 이력</RouterLink>
+        </div>
+      </div>
+
 
       <!-- 결재 관리 -->
       <!-- 결재 관리 -->
@@ -166,14 +203,40 @@
       >
         공지 관리
       </RouterLink>
+
       <RouterLink
-        v-if="auth.isAdmin"
-        to="/admin/company-applications"
+        v-if="can('ALERT_MANAGE')"
+        to="/alert"
         class="nav-item link"
         active-class="active"
       >
-        ❖ Admin Dashboard
+        알림 관리
       </RouterLink>
+
+      <!-- 마이페이지 -->
+      <div class="section-title">마이페이지</div>
+      <div class="nav-group has-flyout">
+        <div class="nav-item">
+          <span>내 정보 관리</span>
+          <span class="arrow">›</span>
+        </div>
+        <div class="flyout">
+          <RouterLink to="/my-profile" class="flyout-item">내 정보 조회/수정</RouterLink>
+          <RouterLink to="/my-department" class="flyout-item">내 부서 조회</RouterLink>
+        </div>
+      </div>
+
+      <!-- 시스템 관리 (ADMIN) -->
+      <div class="section-title" v-if="auth.isAdmin">시스템 관리</div>
+      <div class="nav-group has-flyout" v-if="auth.isAdmin">
+        <div class="nav-item">
+          <span>권한/설정</span>
+          <span class="arrow">›</span>
+        </div>
+        <div class="flyout">
+          <RouterLink to="/admin/permissions" class="flyout-item">권한 레지스트리</RouterLink>
+        </div>
+      </div>
 
     </nav>
   </aside>
@@ -206,12 +269,14 @@ const can = (perm) => {
   background: #ffffff;
   border-right: 1px solid #e6e8ec;
   padding: 14px 10px;
-  z-index: 1000;
+  z-index: 100;
   font-family:
     Pretendard,
     -apple-system,
     BlinkMacSystemFont,
     sans-serif;
+  position: relative; /* Create stacking context */
+  z-index: 1000; /* Ensure flyout is above content */
 }
 
 /* ===== Layout ===== */
@@ -272,7 +337,7 @@ const can = (perm) => {
   padding: 6px;
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
   display: none;
-  z-index: 1010;
+  z-index: 1000;
 }
 
 .has-flyout:hover .flyout {

@@ -24,8 +24,8 @@
         <tbody>
           <tr v-for="dept in departments" :key="dept.deptId || dept.id">
             <td class="font-medium">{{ dept.deptName || dept.departmentName }}</td>
-            <td>{{ dept.parentDeptName || dept.parentDepartmentName || '-' }}</td>
-            <td>{{ dept.managerName || '-' }}</td>
+            <td>{{ getParentName(dept.parentDeptId || dept.parentDepartmentId) }}</td>
+            <td>{{ getManagerName(dept.managerEmpId || dept.managerId, dept.managerName) }}</td>
             <td>
               <div class="action-buttons">
                 <button class="btn-sm btn-edit" @click="openEditModal(dept)">수정</button>
@@ -33,9 +33,9 @@
               </div>
             </td>
           </tr>
-           <tr v-if="departments.length === 0">
+          <tr v-if="departments.length === 0">
              <td colspan="4" class="text-center py-4">등록된 부서가 없습니다.</td>
-           </tr>
+          </tr>
         </tbody>
       </table>
     </div>
@@ -73,9 +73,30 @@
             </select>
           </div>
 
-          <!-- Optional: Manager ID or Name if API supports it often IDs are used -->
-          <!-- For now simplified as per likely DTO -->
-          
+          <div class="form-group">
+            <label>부서장</label>
+            <div class="input-group-picker">
+              <input 
+                type="text" 
+                class="input-modern" 
+                :value="form.managerName || '선택 안 함'" 
+                readonly 
+                placeholder="부서장을 선택하세요"
+              />
+              <button type="button" class="btn-picker" @click="openPicker">
+                <i class="pi pi-search"></i> 찾기
+              </button>
+              <button 
+                v-if="form.managerId" 
+                type="button" 
+                class="btn-clear" 
+                @click="form.managerId = null; form.managerName = ''"
+              >
+                삭제
+              </button>
+            </div>
+          </div>
+
           <div class="modal-footer">
             <button type="button" class="btn-secondary" @click="closeModal">취소</button>
             <button type="submit" class="btn-primary" :disabled="submitting">
@@ -85,6 +106,14 @@
         </form>
       </div>
     </div>
+    
+    <!-- Employee Picker -->
+    <EmployeePickerModal 
+      :isVisible="showPicker"
+      :employees="employees"
+      @close="closePicker"
+      @select="handlePickEmployee"
+    />
   </div>
 </template>
 
@@ -96,9 +125,13 @@ import {
   updateDepartment, 
   deleteDepartment 
 } from '@/api/departmentApi'
+import { fetchEmployees } from '@/api/employeeApi'
+import EmployeePickerModal from '@/components/common/EmployeePickerModal.vue'
 
 const departments = ref([])
+const employees = ref([]) 
 const showModal = ref(false)
+const showPicker = ref(false) // State for Picker Modal
 const isEditMode = ref(false)
 const submitting = ref(false)
 const editId = ref(null)
@@ -106,46 +139,84 @@ const editId = ref(null)
 const form = ref({
   deptName: '',
   deptPhone: '',
-  parentDeptId: null
+  parentDeptId: null,
+  managerId: null,
+  managerName: '' // For display
 })
 
-// Filter out itself from parent options when editing to avoid cycles
 const parentOptions = computed(() => {
   if (!isEditMode.value) return departments.value
-  return departments.value.filter(d => d.deptId !== editId.value)
+  return departments.value.filter(d => (d.deptId || d.id) !== editId.value)
 })
 
 onMounted(() => {
   fetchDepartments()
+  loadEmployees()
 })
 
 const fetchDepartments = async () => {
   try {
     const res = await getAllDepartmentsByCompany()
-    departments.value = ensureArray(res.data?.data?.departments || res.data?.data)
+    const rawData = res.data?.data?.departments || res.data?.data || []
+    departments.value = Array.isArray(rawData) ? rawData : []
   } catch (err) {
-    console.error(err)
+    console.error('부서 목록 로드 실패:', err)
   }
 }
 
-const ensureArray = (data) => Array.isArray(data) ? data : []
+const loadEmployees = async () => {
+  try {
+    const res = await fetchEmployees({ size: 1000 })
+    console.log('Employee Fetch Res:', res.data) // Debug Log
+    // Try multiple paths: content (Page), employees (List wrap), or direct array
+    employees.value = res.data?.data?.content || res.data?.data?.employees || res.data?.data || []
+  } catch (e) { console.error('Failed to load employees', e) }
+}
+
+const getParentName = (parentId) => {
+  if (!parentId) return '-'
+  const parent = departments.value.find(d => (d.deptId || d.id) == parentId) // Loose comparison
+  return parent ? (parent.deptName || parent.departmentName) : '-'
+}
+
+const getManagerName = (managerId, managerNameFromApi) => {
+  if (managerNameFromApi) return managerNameFromApi
+  if (!managerId) return '-'
+  // Loose comparison to handle number vs string mismatch
+  const emp = employees.value.find(e => (e.empId || e.id) == managerId)
+  return emp ? emp.name : '-'
+}
 
 const openCreateModal = () => {
   isEditMode.value = false
   editId.value = null
-  form.value = { deptName: '', deptPhone: '', parentDeptId: null }
+  form.value = { deptName: '', deptPhone: '', parentDeptId: null, managerId: null, managerName: '' }
   showModal.value = true
 }
 
 const openEditModal = (dept) => {
   isEditMode.value = true
-  editId.value = dept.deptId || dept.id // Depending on response field
+  editId.value = dept.deptId || dept.id 
+  
+  // Map backend field managerEmpId to form managerId
+  const currentManagerId = dept.managerEmpId || dept.managerId || null
+
   form.value = {
-    deptName: dept.deptName || dept.departmentName,
-    deptPhone: dept.deptPhoneNo || dept.deptPhone || '',
-    parentDeptId: dept.parentDeptId || dept.parentDepartmentId || null
+    deptName: dept.deptName || dept.departmentName || '',
+    deptPhone: dept.deptPhone || dept.deptPhoneNo || '', 
+    parentDeptId: dept.parentDeptId || dept.parentDepartmentId || null,
+    managerId: currentManagerId,
+    managerName: getManagerName(currentManagerId, dept.managerName)
   }
   showModal.value = true
+}
+
+const openPicker = () => { showPicker.value = true }
+const closePicker = () => { showPicker.value = false }
+
+const handlePickEmployee = (emp) => {
+  form.value.managerId = emp.empId || emp.id
+  form.value.managerName = emp.name
 }
 
 const closeModal = () => {
@@ -153,37 +224,43 @@ const closeModal = () => {
 }
 
 const handleSubmit = async () => {
+  if (!form.value.deptName) return alert('부서명은 필수입니다.')
+  
   submitting.value = true
   try {
+    const payload = {
+      deptName: form.value.deptName,
+      deptPhone: form.value.deptPhone || '',
+      parentDeptId: form.value.parentDeptId,
+      managerEmpId: form.value.managerId // Send as managerEmpId to match DTO
+    }
+
     if (isEditMode.value) {
-      await updateDepartment(editId.value, {
-        deptName: form.value.deptName,
-        deptPhone: form.value.deptPhone,
-        parentDeptId: form.value.parentDeptId
-      })
+      await updateDepartment(editId.value, payload)
       alert('성공적으로 수정되었습니다.')
     } else {
-      await createDepartment({
-        deptName: form.value.deptName,
-        deptPhone: form.value.deptPhone,
-        parentDeptId: form.value.parentDeptId
-      })
+      await createDepartment(payload)
       alert('성공적으로 생성되었습니다.')
     }
     closeModal()
     fetchDepartments()
   } catch (err) {
-    alert('오류가 발생했습니다: ' + (err.response?.data?.message || err.message))
+    const errMsg = err.response?.data?.message || err.message
+    console.error('API 에러 상세:', err.response?.data)
+    alert('오류 발생: ' + errMsg)
   } finally {
     submitting.value = false
   }
 }
 
 const confirmDelete = async (dept) => {
-  if (!confirm(`${dept.departmentName} 부서를 삭제하시겠습니까?`)) return
+  const targetId = dept.deptId || dept.id
+  const targetName = dept.deptName || dept.departmentName
+  
+  if (!confirm(`[${targetName}] 부서를 삭제하시겠습니까?`)) return
   
   try {
-    await deleteDepartment(dept.id)
+    await deleteDepartment(targetId)
     alert('삭제되었습니다.')
     fetchDepartments()
   } catch (err) {
@@ -275,10 +352,35 @@ const confirmDelete = async (dept) => {
 .input-modern {
   padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.95rem;
   transition: all 0.2s;
+  outline: none; /* Prevent default outline */
 }
-.input-modern:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+.input-modern:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+
+/* Fix Autofill Yellow */
+.input-modern:-webkit-autofill,
+.input-modern:-webkit-autofill:hover, 
+.input-modern:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0px 1000px white inset !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
 
 .modal-footer { display: flex; justify-content: flex-end; gap: 12px; margin-top: 32px; }
+
+.input-group-picker {
+  display: flex; gap: 8px; align-items: center;
+}
+.input-group-picker .input-modern { flex: 1; background: #f8fafc; cursor: default; }
+.btn-picker {
+  background: white; border: 1px solid #cbd5e1;
+  padding: 10px 16px; border-radius: 8px; cursor: pointer;
+  display: flex; align-items: center; gap: 6px; color: #475569; font-weight: 600;
+  transition: all 0.2s;
+}
+.btn-picker:hover { background: #f1f5f9; border-color: #94a3b8; }
+.btn-clear {
+  background: #fee2e2; border: none; color: #ef4444; padding: 10px 12px; border-radius: 8px; cursor: pointer; font-weight: 600;
+}
+.btn-clear:hover { background: #fecaca; }
 
 @keyframes slideUp {
   from { opacity: 0; transform: translateY(20px); }
