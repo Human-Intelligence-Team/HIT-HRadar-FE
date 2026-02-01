@@ -1,0 +1,552 @@
+<template>
+  <section class="page">
+    <!-- ===== Page Title (평가 배정 페이지와 동일) ===== -->
+    <button class="back-btn" @click="goBack">
+      <span class="icon">←</span>
+      <span class="text">평가 배정 관리</span>
+    </button>
+    <div class="section-title">
+      <div>
+        <h1>평가 배정 상태</h1>
+        <div class="sub">
+          부서별 평가 배정 상태 및 평가자 · 피평가자 연결 구조를 확인합니다.
+        </div>
+      </div>
+    </div>
+
+    <div class="layout">
+      <!-- ================= LEFT : Department ================= -->
+      <aside class="dept-panel">
+        <div class="dept-title">부서</div>
+
+        <ul class="dept-list">
+          <li
+            v-for="d in departments"
+            :key="d.deptId"
+            :class="{ active: selectedDepartment === d.name }"
+            @click="selectedDepartment = d.name"
+          >
+            {{ d.name }}
+            <span class="count">
+              {{ departmentAssignments(d.name).length }}
+            </span>
+          </li>
+        </ul>
+      </aside>
+
+      <!-- ================= RIGHT ================= -->
+      <section class="content-panel">
+        <div v-if="!selectedDepartment" class="empty-state">
+          <div class="emoji">📊</div>
+          <div class="text">
+            왼쪽에서 부서를 선택하면<br />
+            평가 배정 현황을 확인할 수 있어요
+          </div>
+        </div>
+
+        <template v-else>
+          <!-- ===== Header ===== -->
+          <div class="content-header">
+            <h2>{{ selectedDepartment }} 평가 배정 현황</h2>
+
+            <div class="summary">
+              <span class="chip done">
+                배정 완료 {{ assignedCount }}
+              </span>
+              <span class="chip pending">
+                미배정 {{ unassignedCount }}
+              </span>
+            </div>
+          </div>
+
+          <!-- ===== Assignment Cards ===== -->
+          <div class="assignment-grid">
+            <div
+              v-for="emp in departmentEmployees"
+              :key="emp.id"
+              class="assignment-card"
+              :class="{ unassigned: !hasAssignment(emp.id) }"
+            >
+              <!-- Employee -->
+              <div class="employee">
+                <div class="name">{{ emp.name }}</div>
+                <div class="meta">{{ emp.position }}</div>
+
+              </div>
+
+              <!-- Assignment Detail -->
+              <div v-if="hasAssignment(emp.id)" class="assignment-detail">
+                <div
+                  v-for="a in assignmentsByEvaluator(emp.id)"
+                  :key="`${a.evalTypeId}-${a.evaluateeId}`"
+                  class="relation"
+                >
+                  <div class="type">
+                    {{ a.evalTypeName }}
+                  </div>
+
+                  <div class="arrow">
+                    {{ emp.name }}
+                    <span>→</span>
+                    {{ a.evaluateeName }}
+                  </div>
+
+                </div>
+              </div>
+
+
+              <div v-else class="no-assignment">
+                이 평가자는 아직 배정된 평가가 없습니다.
+              </div>
+            </div>
+          </div>
+        </template>
+      </section>
+    </div>
+  </section>
+</template>
+
+
+<script setup>
+import { ref, computed, watch } from 'vue'
+import { fetchDeptEvaluationAssignmentDetails } from '@/api/evaluationAssignmentApi'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+
+const goBack = () => {
+  router.back()
+}
+/* =========================
+ * state
+ * ========================= */
+
+const selectedDepartment = ref('')
+const assignments = ref([])
+
+/**
+ * 임시 사원 데이터
+ * (추후 사원 API로 교체 예정)
+ */
+const employees = ref([
+  { id: 1001, name: '김성수', department: '개발팀', position: '대리', deptId: 1 },
+  { id: 1002, name: '이서연', department: '기획팀', position: '과장', deptId: 2 },
+  { id: 1003, name: '박민수', department: '인사팀', position: '사원', deptId: 3 },
+  { id: 1004, name: '정유진', department: '개발팀', position: '차장', deptId: 1 },
+])
+
+/**
+ * 부서 목록 (임시)
+ */
+const departments = [
+  { deptId: 1, name: '개발팀' },
+  { deptId: 2, name: '기획팀' },
+  { deptId: 3, name: '인사팀' },
+]
+
+/* =========================
+ * computed
+ * ========================= */
+
+//선택된 부서 객체
+const selectedDept = computed(() =>
+  departments.find(d => d.name === selectedDepartment.value)
+)
+
+//선택된 부서 사원 목록
+const departmentEmployees = computed(() => {
+  if (!selectedDept.value) return []
+  return employees.value.filter(
+    e => e.deptId === selectedDept.value.deptId
+  )
+})
+
+//실제 배정된 평가
+const realAssignments = computed(() =>
+  assignments.value.filter(
+    a => a.evaluatorId && a.evaluateeId
+  )
+)
+
+//부서별 실제 배정 개수
+const departmentAssignments = (deptName) => {
+  const dept = departments.find(d => d.name === deptName)
+  if (!dept) return []
+  return realAssignments.value.filter(a => a.deptId === dept.deptId)
+}
+
+
+const hasAssignment = (empId) =>
+  realAssignments.value.some(a => a.evaluatorId === empId)
+
+//평가자 기준 실제 배정 목록
+const assignmentsByEvaluator = (empId) =>
+  realAssignments.value.filter(a => a.evaluatorId === empId)
+
+//통계
+const assignedCount = computed(() =>
+  departmentEmployees.value.filter(e => hasAssignment(e.id)).length
+)
+
+const unassignedCount = computed(() =>
+  departmentEmployees.value.length - assignedCount.value
+)
+
+/* =========================
+ * watch
+ * ========================= */
+
+//부서기준 평가 배정 조회
+watch(selectedDepartment, async (deptName) => {
+  assignments.value = []
+
+  const dept = departments.find(d => d.name === deptName)
+  if (!dept) return
+
+  try {
+    const res = await fetchDeptEvaluationAssignmentDetails(dept.deptId)
+    assignments.value = res.data?.data ?? []
+  } catch (e) {
+    assignments.value = []
+  }
+})
+</script>
+
+<style scoped>
+/* =========================
+  Base Layout
+========================= */
+.page{
+  max-width: 1160px;
+  margin: 0 auto;
+  padding: 28px 18px 48px;
+}
+.section-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+.section-title h1 {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+/* =========================
+  Layout
+========================= */
+.layout {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 32px;
+}
+
+/* =========================
+  Left : Department Panel
+========================= */
+.dept-panel {
+  background: #3a69d6;
+  color: #e5e7eb;
+  border-radius: 20px;
+  padding: 24px 20px;
+}
+
+.dept-title {
+  font-size: 14px;
+  font-weight: 800;
+  margin-bottom: 16px;
+  color: #ffffff;
+}
+
+.dept-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.dept-list li {
+  padding: 12px 14px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 700;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: 0.15s ease;
+}
+
+.dept-list li:not(.active):hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.dept-list li.active {
+  background: rgba(255, 255, 255, 0.42);
+  color: white;
+}
+
+.count {
+  font-size: 11px;
+  font-weight: 800;
+  background: rgba(255, 255, 255, 0.15);
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+
+/* =========================
+  Right : Content Panel
+========================= */
+.content-panel {
+  background: white;
+  border-radius: 24px;
+  padding: 32px;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.08);
+}
+
+/* =========================
+  Empty State
+========================= */
+.empty-state {
+  padding: 120px 0;
+  text-align: center;
+  color: #9ca3af;
+}
+
+.empty-state .emoji {
+  font-size: 42px;
+  margin-bottom: 16px;
+}
+
+.empty-state .text {
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* =========================
+  Header + Summary
+========================= */
+.content-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 28px;
+}
+
+.content-header h2 {
+  font-size: 22px;
+  font-weight: 900;
+}
+
+.summary {
+  display: flex;
+  gap: 10px;
+}
+
+.chip {
+  font-size: 12px;
+  font-weight: 800;
+  padding: 6px 14px;
+  border-radius: 999px;
+}
+
+.chip.done {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.chip.pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+/* =========================
+  Assignment Grid
+========================= */
+.assignment-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+/* =========================
+  Assignment Card
+========================= */
+.assignment-card {
+  background: #f9fafb;
+  border-radius: 20px;
+  padding: 20px;
+  border: 1px solid #e5e7eb;
+  transition: 0.2s ease;
+}
+
+.assignment-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 26px rgba(15, 23, 42, 0.08);
+}
+
+.assignment-card:not(.unassigned) {
+  border-left: 6px solid #6366f1;
+}
+
+.assignment-card.unassigned {
+  opacity: 0.55;
+}
+
+/* =========================
+  Employee Header
+========================= */
+.employee {
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px dashed #e5e7eb;
+}
+
+.employee .name {
+  font-size: 16px;
+  font-weight: 900;
+}
+
+.employee .meta {
+  font-size: 12px;
+  color: #64748b;
+}
+
+/* =========================
+  Status Badge
+========================= */
+.status {
+  font-size: 11px;
+  font-weight: 900;
+  padding: 5px 12px;
+  border-radius: 999px;
+}
+
+.status.done {
+  background: #22c55e;
+  color: white;
+}
+
+.status.pending {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+/* =========================
+  Assignment Detail
+========================= */
+.assignment-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* =========================
+  Relation Card
+========================= */
+.relation {
+  background: white;
+  border-radius: 14px;
+  padding: 14px;
+  border: 1px solid #e5e7eb;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* =========================
+  Eval Type Badge
+========================= */
+.type {
+  display: inline-block;
+  background: linear-gradient(135deg, #6366f1, #4f46e5);
+  color: white;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  align-self: flex-start;
+}
+
+/* =========================
+  Arrow (Evaluator → Evaluatee)
+========================= */
+.arrow {
+  font-size: 14px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.arrow span {
+  color: #6366f1;
+  font-weight: 900;
+}
+
+/* =========================
+  Assignment Status
+========================= */
+.assign-status {
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.assign-status.pending {
+  color: #f59e0b;
+}
+
+.assign-status.submitted {
+  color: #16a34a;
+}
+
+.assign-status.none {
+  color: #9ca3af;
+  font-style: italic;
+}
+
+/* =========================
+  No Assignment
+========================= */
+.no-assignment {
+  margin-top: 12px;
+  padding: 14px;
+  background: #f1f5f9;
+  border-radius: 14px;
+  font-size: 13px;
+  color: #6b7280;
+  text-align: center;
+}
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 18px;
+
+  padding: 8px 14px;
+  border-radius: 999px;
+
+  background: #f1f5f9;
+  color: #334155;
+
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+
+  border: none;
+  transition: all 0.15s ease;
+}
+
+.back-btn:hover {
+  background: #e0e7ff;
+  color: #4338ca;
+  transform: translateX(-2px);
+}
+
+.back-btn .icon {
+  font-size: 16px;
+  font-weight: 900;
+}
+
+
+</style>
+
+

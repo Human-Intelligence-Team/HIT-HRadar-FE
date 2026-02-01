@@ -1,4 +1,4 @@
-import api from './axios.js';
+ import api from './axios.js';
 
 /* ---------------------------
  * 로그인
@@ -24,6 +24,7 @@ export function refreshApi() {
 export function logoutApi() {
   return api.post('/api/auth/logout');
 }
+
 
 //
 // /* ---------------------------
