@@ -13,7 +13,7 @@
           @click="currentTab = tab.id"
         >
           {{ tab.name }}
-          <span v-if="documents.length > 0 && currentTab === tab.id" class="count">{{ documents.length }}</span>
+          <span v-if="counts[tab.id] > 0" class="count">{{ counts[tab.id] }}</span>
         </button>
       </div>
 
@@ -75,6 +75,13 @@ const tabs = [
   { id: 'references', name: '참조된 문서' }
 ];
 
+const counts = ref({
+  my: 0,
+  inbox: 0,
+  rejected: 0,
+  references: 0
+});
+
 const fetchDocuments = async () => {
   loading.value = true;
   try {
@@ -91,14 +98,35 @@ const fetchDocuments = async () => {
     
     if (response && response.data && response.data.data) {
       documents.value = response.data.data;
+      // Update count for current tab immediately
+      counts.value[currentTab.value] = documents.value.length;
     } else {
       documents.value = [];
+      counts.value[currentTab.value] = 0;
     }
   } catch (error) {
     console.error('Failed to fetch documents:', error);
     documents.value = [];
   } finally {
     loading.value = false;
+  }
+};
+
+const fetchAllCounts = async () => {
+  try {
+    const [myRes, inboxRes, rejectedRes, refRes] = await Promise.allSettled([
+      fetchMyDocuments(),
+      fetchApprovalTasks(),
+      fetchRejectedDocuments(),
+      fetchReferenceDocuments()
+    ]);
+
+    if (myRes.status === 'fulfilled') counts.value.my = myRes.value.data.data?.length || 0;
+    if (inboxRes.status === 'fulfilled') counts.value.inbox = inboxRes.value.data.data?.length || 0;
+    if (rejectedRes.status === 'fulfilled') counts.value.rejected = rejectedRes.value.data.data?.length || 0;
+    if (refRes.status === 'fulfilled') counts.value.references = refRes.value.data.data?.length || 0;
+  } catch (error) {
+    console.error('Failed to fetch counts:', error);
   }
 };
 
@@ -133,6 +161,7 @@ const getStatusClass = (status) => {
 
 onMounted(() => {
   fetchDocuments();
+  fetchAllCounts();
 });
 </script>
 
