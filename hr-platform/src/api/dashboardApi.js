@@ -37,3 +37,18 @@ export const fetchEmpJobSatisfaction = (selectedEmpId) => {
     params: { empId: selectedEmpId }
   })
 }
+
+/**
+ * 업무 안정성 조회 API
+ */
+export const fetchJobStable = (startYm, endYm) => {
+  return axios.get("/api/v1/my-dashboard/rejections/monthly", {
+    params: { startYm, endYm}
+  })
+}
+
+export const fetchEmpJobStable = (empId, startYm, endYm) => {
+  return axios.get("/api/v1/my-dashboard/rejections/monthly/emp", {
+    params: { empId, startYm, endYm}
+  })
+}

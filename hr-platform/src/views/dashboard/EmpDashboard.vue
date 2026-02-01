@@ -82,6 +82,20 @@
           />
         </div>
       </DashboardCard>
+      <!-- 업무 안정성 -->
+      <DashboardCard
+        title="업무 안정성"
+        desc="최근 1년간 월별 이슈 발생 추이"
+        class="job-satisfaction-card"
+      >
+        <JobStabilityLineChart
+          v-if="stabilityLoaded"
+          :labels="stability.labels"
+          :values="stability.values"
+        />
+        <div v-else class="loading">불러오는 중...</div>
+      </DashboardCard>
+
     </section>
 
     <div v-else class="empty-state">
@@ -97,6 +111,9 @@ import ContributionBarChart from '@/components/dashboard/ContributionBarChart.vu
 import CollaborationRadarChart from '@/components/dashboard/CollaborationRadarChart.vue'
 import JobSatisfactionBarChart from '@/components/dashboard/JobSatisfactionBarChart.vue'
 import JobSatisfactionGaugeChart from '@/components/dashboard/JobSatisfactionGaugeChart.vue'
+import dayjs from 'dayjs'
+import JobStabilityLineChart from '@/components/dashboard/JobStabilityLineChart.vue'
+import { fetchEmpJobStable } from '@/api/dashboardApi'
 
 import {
   fetchEmpContribution,
@@ -133,6 +150,15 @@ const loaded = ref({
   contribution: false,
   collaboration: false
 })
+const stability = ref({
+  labels: [],
+  values: []
+})
+
+const stabilityLoaded = ref(false)
+const startYm = dayjs().subtract(6, 'month').format('YYYY-MM')
+const endYm = dayjs().add(6, 'month').format('YYYY-MM')
+
 
 // ===== Watch =====
 watch(selectedDeptId, deptId => {
@@ -145,20 +171,25 @@ watch(selectedEmpId, async empId => {
 
   loaded.value.contribution = false
   loaded.value.collaboration = false
+  stabilityLoaded.value = false
 
-  const [c1, c2, c3] = await Promise.all([
+  const [c1, c2, c3, c4] = await Promise.all([
     fetchEmpContribution(empId),
     fetchEmpCollaboration(empId),
-    fetchEmpJobSatisfaction(empId)
+    fetchEmpJobSatisfaction(empId),
+    fetchEmpJobStable(empId, startYm, endYm)
   ])
 
   contribution.value = c1.data.data
   collaboration.value = c2.data.data
   job.value = c3.data.data
+  stability.value = c4.data.data
 
   loaded.value.contribution = true
   loaded.value.collaboration = true
+  stabilityLoaded.value = true
 })
+
 </script>
 
 <style scoped>
