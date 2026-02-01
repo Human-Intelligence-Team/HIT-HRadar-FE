@@ -90,7 +90,7 @@
           <span class="arrow">›</span>
         </div>
         <div class="flyout">
-          <RouterLink to="/dashboard" class="flyout-item">대시보드</RouterLink>
+          <RouterLink to="/my/dashboard" class="flyout-item">대시보드</RouterLink>
           <RouterLink to="/all/competency/report" class="flyout-item">리포트(인사팀)</RouterLink>
           <RouterLink to="/dept/competency/report" class="flyout-item">리포트(팀장)</RouterLink>
           <RouterLink to="/me/competency/report" class="flyout-item">리포트(개인)</RouterLink>

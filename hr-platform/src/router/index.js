@@ -81,6 +81,7 @@ import AttendanceDepartmentView from '@/views/attendance/AttendanceDepartmentVie
 import MyAttendanceCalendarView from '@/views/attendance/MyAttendanceCalendarView.vue'
 import DepartmentAttendanceCalendarView from '@/views/attendance/DepartmentAttendanceCalendarView.vue'
 import AttendanceEmployeeDetailView from '@/views/attendance/AttendanceEmployeeDetailView.vue'
+import MyDashboard from '@/views/dashboard/MyDashboard.vue'
 
 
 const routes = [
@@ -212,11 +213,13 @@ const routes = [
       { path: '/evaluation/response/my/result', component: EvaluationMyResultPage },
       { path: '/to/grading/objection', component: AdminGradeObjectionPage },
       { path: '/hr/objections/:objectionId', name: 'AdminGradeObjectionDetailPage', component: AdminGradeObjectionDetailPage },
-
-
-
       { path: '/to/grading/objection', component: AdminGradeObjectionPage },
       { path: '/hr/objections/:objectionId', name: 'AdminGradeObjectionDetailPage', component: AdminGradeObjectionDetailPage },
+
+
+      //대시보드
+      { path: '/my/dashboard', component: MyDashboard },
+
 
       {
         path: 'approval',
