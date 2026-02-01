@@ -1,8 +1,7 @@
 <template>
   <section class="page">
     <div class="page-header">
-      <h1>부서 휴가 이력 (인사팀)</h1>
-      <p>부서별, 직원별 휴가 사용 현황을 조회하고 관리합니다.</p>
+      <h1>부서 휴가 이력</h1>
     </div>
 
     <!-- 필터링 및 검색 -->
@@ -90,7 +89,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, watch, onMounted } from 'vue';
 
 const filters = ref({
   startDate: '',
@@ -104,13 +103,6 @@ const isLoading = ref(true);
 const allLeaves = ref([]); // This would be fetched from the backend
 const filteredLeaves = ref([]);
 
-// TODO: The backend needs an API to fetch department-wide leave data with filters.
-// Mocking data for UI development purposes.
-const mockData = [
-  { leaveId: 101, requestedAt: '2024-07-28T10:00:00Z', departmentName: '개발팀', employeeName: '김개발', leaveType: '연차', startDate: '2024-08-01', endDate: '2024-08-02', reason: '여름 휴가', approvalStatus: 'APPROVED', leaveDays: 2 },
-  { leaveId: 102, requestedAt: '2024-07-29T11:00:00Z', departmentName: '인사팀', employeeName: '이인사', leaveType: '연차', startDate: '2024-08-05', endDate: '2024-08-05', reason: '병원 진료', approvalStatus: 'APPROVED', leaveDays: 1 },
-  { leaveId: 103, requestedAt: '2024-07-30T09:30:00Z', departmentName: '개발팀', employeeName: '박코더', leaveType: '병가', startDate: '2024-08-01', endDate: '2024-08-01', reason: '몸살', approvalStatus: 'REJECTED', leaveDays: 1 },
-];
 
 const applyFilters = () => {
     isLoading.value = true;
@@ -156,8 +148,8 @@ const getStatusBadgeClass = (status) => {
 
 
 onMounted(() => {
-    allLeaves.value = mockData;
-    filteredLeaves.value = mockData;
+    allLeaves.value = [];
+    filteredLeaves.value = [];
     isLoading.value = false;
 });
 

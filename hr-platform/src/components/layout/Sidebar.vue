@@ -43,7 +43,7 @@
         </div>
         <div class="flyout">
           <RouterLink to="/leave/my-history" class="flyout-item">내 휴가 이력</RouterLink>
-          <RouterLink v-if="auth.isAdmin" to="/leave/admin/policy" class="flyout-item">휴가 정책 관리</RouterLink>
+          <RouterLink to="/leave/policy" class="flyout-item">휴가 정책 관리</RouterLink>
           <RouterLink v-if="auth.isAdmin" to="/leave/admin/department-history" class="flyout-item">부서 휴가 이력</RouterLink>
         </div>
       </div>

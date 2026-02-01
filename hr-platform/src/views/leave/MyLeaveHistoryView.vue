@@ -4,7 +4,6 @@
     <div class="user-info-header">
       <div class="user-details">
         <h2>{{ userInfo.name }}님 ({{ userInfo.department }})</h2>
-        <p>올해 ({{ currentYear }}.01.01 - {{ currentYear }}.12.31) 연차 현황</p>
       </div>
     </div>
 

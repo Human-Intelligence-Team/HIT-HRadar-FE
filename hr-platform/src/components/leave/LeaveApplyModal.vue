@@ -15,7 +15,7 @@
                 <label for="docType">결재 문서 종류</label>
                 <select id="docType" v-model="approvalInfo.documentTypeId" required>
                   <option disabled value="">문서 종류 선택</option>
-                  <option v-for="type in documentTypes" :key="type.id" :value="type.id">
+                  <option v-for="type in documentTypes" :key="type.typeId" :value="type.typeId">
                     {{ type.name }}
                   </option>
                 </select>
@@ -26,8 +26,12 @@
               </div>
             </div>
             <div class="form-field">
-              <label>결재선</label>
-              <DepartmentEmployeeSelector @update:approval-line="updateApprovalLine" />
+              <label>결재선 (결재자)</label>
+              <DepartmentEmployeeSelector v-model="approvalInfo.approverIds" hint="결재할 사원을 선택하세요." />
+            </div>
+            <div class="form-field">
+              <label>참조선 (참조자)</label>
+              <DepartmentEmployeeSelector v-model="approvalInfo.referenceIds" hint="참조할 사원을 선택하세요." />
             </div>
           </div>
 
@@ -46,7 +50,12 @@
               </div>
               <div class="form-field">
                 <label for="leaveType">휴가 종류</label>
-                <input type="text" id="leaveType" v-model="leaveInfo.leaveType" required placeholder="예: 연차, 병가">
+                <select id="leaveType" v-model="leaveInfo.leaveType" required>
+                  <option disabled value="">휴가 종류 선택</option>
+                  <option v-for="policy in leavePolicies" :key="policy.policyId" :value="policy.typeName">
+                    {{ policy.typeName }}
+                  </option>
+                </select>
               </div>
               <div class="form-field">
                 <label for="leaveUnitType">휴가 단위</label>
@@ -90,8 +99,9 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { createLeaveDraft, applyLeave } from '@/api/leaveApi';
-import { getDocumentTypes } from '@/api/approvalApi';
+import { useAuthStore } from '@/stores/authStore';
+import { createLeaveDraft, applyLeave, getLeavePolicies } from '@/api/leaveApi';
+import { fetchApprovalDocumentTypes  } from '@/api/approvalApi';
 import DepartmentEmployeeSelector from '@/components/approval/DepartmentEmployeeSelector.vue';
 
 const emit = defineEmits(['close', 'submitted']);
@@ -105,12 +115,14 @@ const router = useRouter();
 
 const isSubmitting = ref(false);
 const documentTypes = ref([]);
+const leavePolicies = ref([]);
+const authStore = useAuthStore();
 
 const approvalInfo = ref({
   documentTypeId: '',
   title: `[휴가신청] ${new Date().getFullYear()}년`,
-  approvers: [],
-  referrers: [],
+  approverIds: [],
+  referenceIds: [],
 });
 
 const leaveInfo = ref({
@@ -124,21 +136,24 @@ const leaveInfo = ref({
 });
 
 
-const updateApprovalLine = ({ approvers, referrers }) => {
-  approvalInfo.value.approvers = approvers;
-  approvalInfo.value.referrers = referrers;
-};
+// updateApprovalLine is removed as we use v-model
 
 const fetchInitialData = async () => {
   try {
-    const docTypesRes = await getDocumentTypes();
-    documentTypes.value = docTypesRes.data.data.filter(t => t.isActive);
+    const [docTypesRes, policiesRes] = await Promise.all([
+      fetchApprovalDocumentTypes(),
+      getLeavePolicies(authStore.user?.companyId)
+    ]);
+
+    documentTypes.value = docTypesRes.data.data.filter(t => t.active);
+    leavePolicies.value = policiesRes.data.data || [];
+
     if (props.availableGrants.length > 0) {
       leaveInfo.value.grantId = props.availableGrants[0].grantId;
     }
   } catch (error) {
-    console.error('결재 문서 종류 로딩 실패:', error);
-    alert('결재 문서 종류를 불러오는 데 실패했습니다.');
+    console.error('초기 데이터 로딩 실패:', error);
+    alert('데이터를 불러오는 데 실패했습니다.');
   }
 };
 
@@ -151,8 +166,8 @@ const submitLeaveApplication = async () => {
       documentTypeId: approvalInfo.value.documentTypeId,
       title: approvalInfo.value.title,
       content: leaveInfo.value.reason,
-      approvers: approvalInfo.value.approvers,
-      referrers: approvalInfo.value.referrers
+      approvers: approvalInfo.value.approverIds,
+      referrers: approvalInfo.value.referenceIds
     };
 
     const draftResponse = await createLeaveDraft(draftRequest);

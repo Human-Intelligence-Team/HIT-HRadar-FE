@@ -1,35 +1,15 @@
-import { authenticatedApi } from './axios';
+import api from '@/api/axios'
 
-// =================================================================
-// 휴가 정책 (관리자)
-// =================================================================
-
-/**
- * 회사 ID로 모든 휴가 정책을 조회합니다.
- * @param {number} companyId - 회사 ID
- * @returns {Promise<axios.ApiResponse<any>>}
- */
 export const getLeavePolicies = (companyId) => {
-    return authenticatedApi.get(`/api/v1/admin/leave-policies?companyId=${companyId}`);
-};
+  return api.get('/api/v1/leave-policies', {
+    params: { companyId },
+  })
+}
 
-/**
- * 새로운 휴가 정책을 생성합니다.
- * @param {object} policyData - 생성할 정책 데이터
- * @param {string} policyData.typeCode - 정책 유형 코드
- * @param {string} policyData.typeName - 정책명
- * @param {string} policyData.unitCode - 단위 코드
- * @param {number} policyData.unitDays - 단위 일수
- * @returns {Promise<axios.ApiResponse<any>>}
- */
 export const createLeavePolicy = (policyData) => {
-    return authenticatedApi.post('/api/v1/admin/leave-policies', policyData);
-};
+  return api.post('/api/v1/admin/leave-policies', policyData)
+}
 
-
-// =================================================================
-// 휴가 신청 및 조회
-// =================================================================
 
 /**
  * 휴가 신청을 위한 임시 결재 문서를 생성합니다.
@@ -37,7 +17,7 @@ export const createLeavePolicy = (policyData) => {
  * @returns {Promise<axios.ApiResponse<string>>} docId를 포함하는 응답
  */
 export const createLeaveDraft = (draftData) => {
-    return authenticatedApi.post('/api/v1/leave/draft', draftData);
+  return api.post('/api/v1/leave/draft', draftData);
 }
 
 /**
@@ -47,7 +27,7 @@ export const createLeaveDraft = (draftData) => {
  * @returns {Promise<axios.ApiResponse<string>>}
  */
 export const applyLeave = (docId, leaveData) => {
-    return authenticatedApi.post(`/api/v1/leave/${docId}`, leaveData);
+  return api.post(`/api/v1/leave/${docId}`, leaveData);
 }
 
 /**
@@ -55,7 +35,7 @@ export const applyLeave = (docId, leaveData) => {
  * @returns {Promise<axios.ApiResponse<any[]>>}
  */
 export const getMyLeaves = () => {
-    return authenticatedApi.get('/api/v1/leave');
+  return api.get('/api/v1/leave');
 };
 
 /**
@@ -64,7 +44,7 @@ export const getMyLeaves = () => {
  * @returns {Promise<axios.ApiResponse<any>>}
  */
 export const getLeaveDetail = (leaveId) => {
-    return authenticatedApi.get(`/api/v1/leave/${leaveId}`);
+  return api.get(`/api/v1/leave/${leaveId}`);
 };
 
 /**
@@ -73,5 +53,5 @@ export const getLeaveDetail = (leaveId) => {
  * @returns {Promise<axios.ApiResponse<any>>}
  */
 export const getLeaveGrant = (grantId) => {
-    return authenticatedApi.get(`/api/v1/leave/grant/${grantId}`);
+  return api.get(`/api/v1/leave/grant/${grantId}`);
 };

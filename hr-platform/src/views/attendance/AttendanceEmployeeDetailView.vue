@@ -4,10 +4,6 @@
     <div class="view-header">
       <div class="title-group">
         <h1>사원 근태 상세 조회</h1>
-        <div class="sub">
-          {{ attendanceDetail?.empName ?? employeeId }} 님의
-          {{ workDate }} 근태 상세 정보
-        </div>
       </div>
     </div>
 

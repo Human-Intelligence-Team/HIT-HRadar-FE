@@ -2,10 +2,9 @@
   <section class="page">
     <div class="page-header">
       <h1>휴가 정책 관리</h1>
-      <p>회사의 휴가 정책을 생성하고 관리합니다.</p>
     </div>
 
-    <div class="content">
+    <div :class="['content', { 'single-column': !authStore.isAdmin }]">
       <!-- 정책 목록 -->
       <div class="policy-list-card">
         <h2>등록된 휴가 정책</h2>
@@ -22,8 +21,8 @@
         </div>
       </div>
 
-      <!-- 새 정책 생성 -->
-      <div class="create-policy-card">
+      <!-- 새 정책 생성 (관리자 전용) -->
+      <div v-if="authStore.isAdmin" class="create-policy-card">
         <h2>새 휴가 정책 생성</h2>
         <form @submit.prevent="handleCreatePolicy" class="policy-form">
           <div class="form-grid">
@@ -57,53 +56,60 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
-import { useAuthStore } from '@/stores/authStore';
-import { getLeavePolicies, createLeavePolicy } from '@/api/leaveApi';
+import { ref, onMounted } from 'vue'
+import { useAuthStore } from '@/stores/authStore'
+import { getLeavePolicies, createLeavePolicy } from '@/api/leaveApi'
 
-const authStore = useAuthStore();
-const policies = ref([]);
+const authStore = useAuthStore()
+const policies = ref([])
 const newPolicy = ref({
   typeName: '',
   typeCode: '',
   unitCode: '',
   unitDays: 1,
-});
+})
 
 const loadPolicies = async () => {
+  if (!authStore.user?.companyId) return; // ✅ 수정: user 객체 내에서 가져오기
+
   try {
-    const response = await getLeavePolicies(authStore.companyId);
-    policies.value = response.data.data || [];
+    const response = await getLeavePolicies(authStore.user.companyId)
+    policies.value = response.data.data || []
   } catch (error) {
-    console.error('휴가 정책을 불러오는 중 오류 발생:', error);
-    alert('휴가 정책을 불러오는 데 실패했습니다.');
+    console.error('휴가 정책을 불러오는 중 오류 발생:', error)
+    alert('휴가 정책을 불러오는 데 실패했습니다.')
   }
-};
+}
+
+onMounted(loadPolicies)
 
 const handleCreatePolicy = async () => {
   if (!newPolicy.value.typeName || !newPolicy.value.typeCode || !newPolicy.value.unitCode) {
-    alert('모든 필드를 입력해주세요.');
-    return;
+    alert('모든 필드를 입력해주세요.')
+    return
   }
 
   try {
-    await createLeavePolicy(newPolicy.value);
-    alert('새로운 휴가 정책이 생성되었습니다.');
+    await createLeavePolicy({
+      ...newPolicy.value,
+      companyId: authStore.user.companyId
+    })
+    alert('새로운 휴가 정책이 생성되었습니다.')
+
     newPolicy.value = {
       typeName: '',
       typeCode: '',
       unitCode: '',
       unitDays: 1,
-    };
-    await loadPolicies(); // 목록 새로고침
-  } catch (error) {
-    console.error('휴가 정책 생성 중 오류 발생:', error);
-    const errorMessage = error.response?.data?.message || '휴가 정책 생성에 실패했습니다.';
-    alert(errorMessage);
-  }
-};
+    }
 
-onMounted(loadPolicies);
+    await loadPolicies() // 목록 새로고침
+  } catch (error) {
+    console.error('휴가 정책 생성 중 오류 발생:', error)
+    const message = error.response?.data?.message || '휴가 정책 생성에 실패했습니다.'
+    alert(message)
+  }
+}
 </script>
 
 <style scoped>
@@ -132,6 +138,12 @@ onMounted(loadPolicies);
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 2rem;
+}
+
+.content.single-column {
+  grid-template-columns: 1fr;
+  max-width: 800px;
+  margin: 0 auto;
 }
 
 .policy-list-card,

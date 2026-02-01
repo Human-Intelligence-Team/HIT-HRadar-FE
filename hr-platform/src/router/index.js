@@ -183,24 +183,26 @@ const routes = [
       },
 
       //회차
-      { path: 'cycles', component: CycleManageView},
+      { path: 'cycles', component: CycleManageView },
       { path: 'cycles/:cycleId/edit', component: CycleEditPage },
-      { path: 'cycles/:cycleId',
+      {
+        path: 'cycles/:cycleId',
         name: 'CycleDetail',
-        component: CycleDetailPage},
-      { path: 'hr/cycles', component: CycleAdminManageView},
-      { path: 'hr/cycles/:cycleId', component: CycleAdminDetailPage},
-      { path: '/hr/cycles/:cycleId/edit', component: CycleAdminEditPage},
+        component: CycleDetailPage
+      },
+      { path: 'hr/cycles', component: CycleAdminManageView },
+      { path: 'hr/cycles/:cycleId', component: CycleAdminDetailPage },
+      { path: '/hr/cycles/:cycleId/edit', component: CycleAdminEditPage },
 
       //등급
-      { path: 'grade/setting', component: CompanyGradeSettingPage},
-      { path: 'grading/list', component: DeptGradeStatusPage},
+      { path: 'grade/setting', component: CompanyGradeSettingPage },
+      { path: 'grading/list', component: DeptGradeStatusPage },
       { path: '/hr/grading/list', component: AdminDeptGradeStatusPage },
       { path: '/to/grading/list', component: IndividualGradePage },
       { path: '/hr/grading/list/approve', component: IndividualGradeApprovePage },
       { path: '/my/grading', component: MygradePage },
-      { path: '/to/grading/objection', component: AdminGradeObjectionPage},
-      { path: '/hr/objections/:objectionId', name: 'AdminGradeObjectionDetailPage',component:AdminGradeObjectionDetailPage },
+      { path: '/to/grading/objection', component: AdminGradeObjectionPage },
+      { path: '/hr/objections/:objectionId', name: 'AdminGradeObjectionDetailPage', component: AdminGradeObjectionDetailPage },
 
       //평가
       { path: '/hr/evaluation/type/setting', component: EvaluationTypeSetupPage },
@@ -227,7 +229,7 @@ const routes = [
           { path: 'rejected-documents', component: () => import('@/views/approval/ApprovalRejectedListView.vue') },
           { path: 'references', component: () => import('@/views/approval/ApprovalReferenceListView.vue') },
           { path: 'all-documents', component: () => import('@/views/approval/ApprovalAllListView.vue') },
-          { path: 'admin', component: () => import('@/views/admin/ApprovalDocumentTypeManagementView.vue'), meta: { requiresAdmin: true } },
+          { path: 'admin', component: () => import('@/views/admin/ApprovalDocumentTypeManagementView.vue') },
           { path: ':docId', component: () => import('@/views/approval/ApprovalDetailView.vue'), props: true },
         ],
       },
@@ -238,10 +240,10 @@ const routes = [
         redirect: '/attendance/commute', // 기본적으로 사원 출퇴근 관리 페이지로 리디렉션
         children: [
           { path: 'commute', component: AttendanceCommuteView }, // 사원 출퇴근 관리
-          { path: 'ip-policy', component: AttendanceIpPolicyView, meta: { requiresAdmin: true } }, // 인사팀 IP 정책 관리
-          { path: 'department', component: AttendanceDepartmentView, meta: { requiresAdmin: true } }, // 인사팀 부서 출퇴근 관리
+          { path: 'ip-policy', component: AttendanceIpPolicyView }, // 인사팀 IP 정책 관리
+          { path: 'department', component: AttendanceDepartmentView }, // 인사팀 부서 출퇴근 관리
           { path: 'my-calendar', component: MyAttendanceCalendarView }, // 나의 근태 캘린더
-          { path: 'department-calendar', component: DepartmentAttendanceCalendarView, meta: { requiresAdmin: true } }, // 부서별 근태 캘린더 (인사팀)
+          { path: 'department-calendar', component: DepartmentAttendanceCalendarView }, // 부서별 근태 캘린더 (인사팀)
           { path: 'employee-detail/:employeeId/:workDate', name: 'AttendanceEmployeeDetail', component: AttendanceEmployeeDetailView, props: true }, // 사원 근태 상세 조회
         ],
       },
@@ -251,7 +253,7 @@ const routes = [
         path: 'leave',
         children: [
           { path: 'my-history', component: () => import('@/views/leave/MyLeaveHistoryView.vue') },
-          { path: 'admin/policy', component: () => import('@/views/leave/LeavePolicyAdminView.vue'), meta: { requiresAdmin: true } },
+          { path: 'policy', component: () => import('@/views/leave/LeavePolicyAdminView.vue') },
           { path: 'admin/department-history', component: () => import('@/views/leave/DepartmentLeaveHistoryView.vue'), meta: { requiresAdmin: true } },
         ],
       },

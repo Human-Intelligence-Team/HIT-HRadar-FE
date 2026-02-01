@@ -3,7 +3,6 @@
     <div class="view-header">
       <div class="title-group">
         <h1>부서별 근태 캘린더</h1>
-        <div class="sub">부서별 월별 근무 및 휴가 현황을 확인합니다.</div>
       </div>
       <div class="header-actions">
         <div class="form-group">
@@ -19,6 +18,13 @@
       <div v-if="loading" class="calendar-loading">캘린더 데이터를 불러오는 중...</div>
       <FullCalendar v-else :options="calendarOptions" />
     </div>
+
+    <!-- 근무 상세 정보 모달 -->
+    <AttendanceDetailModal
+      :is-open="isModalOpen"
+      :attendance="selectedAttendance"
+      @close="isModalOpen = false"
+    />
   </section>
 </template>
 
@@ -31,7 +37,7 @@ import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import bootstrap5Plugin from '@fullcalendar/bootstrap5';
 import { fetchAttendanceCalendar } from '@/api/attendanceApi';
-// import { fetchDepartments } from '@/api/deptApi'; // 부서 목록을 가져오는 API가 있다면 사용
+import AttendanceDetailModal from '@/components/attendance/AttendanceDetailModal.vue';
 
 const auth = useAuthStore();
 const router = useRouter();
@@ -46,6 +52,10 @@ const selectedDepartmentId = ref(''); // 기본값: 전체 부서
 
 const calendarEvents = ref([]);
 const loading = ref(false);
+
+// 모달 관련 상태
+const isModalOpen = ref(false);
+const selectedAttendance = ref(null);
 
 const calendarOptions = ref({
   plugins: [dayGridPlugin, interactionPlugin, bootstrap5Plugin],
@@ -64,12 +74,12 @@ const calendarOptions = ref({
     }
   },
   eventClick: (info) => {
-    // 사원 근태 상세 조회 페이지로 이동
-    const employeeId = info.event.extendedProps.employeeId;
-    const workDate = info.event.startStr; // 이벤트 시작 날짜 (YYYY-MM-DD)
-    if (employeeId) {
-      router.push({ name: 'AttendanceEmployeeDetail', params: { employeeId: employeeId, workDate: workDate } });
-    }
+    // 모달 표시
+    selectedAttendance.value = {
+      ...info.event.extendedProps,
+      workDate: info.event.startStr,
+    };
+    isModalOpen.value = true;
   },
   datesSet: async (dateInfo) => {
     if (companyId.value) {
@@ -117,16 +127,14 @@ const fetchCalendarEvents = async (startDate, endDate) => {
 
     let events = [];
     if (response.data) {
-      // AttendanceListResponseDto[]를 받아서 처리. 각 dto는 여러 직원의 기록을 포함할 수 있음.
       response.data.forEach(deptRecord => {
-        // AttendanceListResponseDto의 구조에 따라 매핑
-        // 예시: AttendanceListResponseDto가 empId, name, records: [{workDate, workPlace, workType, status}]
-        // 캘린더 이벤트는 하루 단위로 각 직원마다 생성
         deptRecord.attendanceRecords.forEach(record => {
           const date = record.workDate;
-          const title = `${deptRecord.employeeName}: ${record.status || record.workPlace || record.workType || '미지정'}`;
+          const status = record.status || (record.checkInTime ? '출근중' : '결근');
+          const title = `${deptRecord.employeeName}: ${status}`;
+          
           events.push({
-            id: `dept-${deptRecord.employeeId}-${date}`, // 고유 ID
+            id: `dept-${deptRecord.employeeId}-${date}`,
             title: title,
             date: date,
             allDay: true,
@@ -134,7 +142,8 @@ const fetchCalendarEvents = async (startDate, endDate) => {
               type: 'department-attendance',
               employeeId: deptRecord.employeeId,
               employeeName: deptRecord.employeeName,
-              status: record.status,
+              deptName: deptRecord.deptName,
+              status: status,
               workType: record.workType,
               workPlace: record.workPlace
             }
