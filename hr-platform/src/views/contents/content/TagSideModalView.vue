@@ -1,51 +1,148 @@
 <script setup>
+import { onMounted, reactive, ref } from 'vue'
+import { createTag, fetchTags } from '@/api/tagApi.js'
+const submitting = ref(false)
+const errorMessage = ref('')
+const tags = ref([])
+const tagCount = ref(0)
 const emit = defineEmits(['close'])
+const tagData = reactive({
+  tagName: '',
+})
 
 const isModalOpen = () => {
   emit('close')
 }
 
-const tagCreate = () => {
-  alert("등록하시겠습니까?")
+// 태그 조회
+const getTagList = async () => {
+  // validation
+  submitting.value = true
+
+  try {
+    let result = await fetchTags(null)
+    let data = result.data
+
+    console.log(data)
+    if (data.success) {
+      tags.value = data.data.tags
+      tagCount.value = data.data.tags.length
+    }
+  } catch (e) {
+    console.log(e)
+    errorMessage.value = e.message || '태그 조회 중 오류가 발생했습니다.'
+    alert(errorMessage.value)
+  } finally {
+    submitting.value = false
+    tagData.tagName = ''
+  }
 }
 
-const tagDelete = () => {
-  alert("삭제하시겠습니까?");
+// 태그 validation
+const tagCheck = (tagName) => {
+  let tag = tagName.trim()
+
+  if (!tag) {
+    alert('태그명을 입력해 주세요.')
+    return
+  }
+
+  if (tag.length > 45) {
+    alert('태그는 최대 45자까지 입력이 가능합니다.')
+    return
+  }
+
+  return tagName
 }
+
+
+// 태그 등록
+const tagAdd = async () => {
+  submitting.value = true
+
+  // validation
+  let tag = tagCheck(tagData.tagName)
+  if (!tag) {
+    return
+  }
+
+  submitting.value = true
+
+  const payload = {
+    tagName: tag,
+  }
+
+  try {
+    let result = await createTag(payload)
+    let data = result.data.success
+
+    console.log(data)
+    if (data) {
+      alert('태그 등록되었습니다.')
+    }
+  } catch (e) {
+    if (e.status === 400) {
+      alert(e.customMessage)
+    } else {
+      console.log(e)
+      errorMessage.value = e.message || '태그 등록 중 오류가 발생했습니다.'
+      alert(errorMessage.value)
+    }
+  } finally {
+    submitting.value = false
+    tagData.tagName = ''
+    getTagList()
+  }
+}
+
+onMounted(() => {
+  getTagList()
+})
 </script>
 
 <template>
   <div class="side-box">
     <div class="side-header">
       <span class="side-box-title">태그 목록</span>
-      <span  @click="isModalOpen()" >X</span>
+      <span @click="isModalOpen()">X</span>
     </div>
     <div class="side-search">
       <div>
         <th>태그명</th>
-        <td><input class="input " type="text"></td>
+        <td>
+          <input
+            class="input"
+            type="text"
+            placeholder="태그명"
+            size="45"
+            v-model="tagData.tagName"
+          />
+        </td>
       </div>
-      <div>
-        <button class="btn primary" @click="tagCreate">등록</button>
+      <div class="btn-box">
+        <button type="button"
+                class="btn primary"
+                @click="tagAdd"
+        >등록</button>
       </div>
     </div>
+
+    <div class="modal-hr"></div>
+
     <div class="side-content">
+      <span class="total-span">총 {{ tagCount }} 개</span>
       <table class="table">
         <thead class="tbl-hd">
-        <tr>
-          <th style="width:40%;">태그 명</th>
-          <th style="width:40%;">사용 개수</th>
-        </tr>
+          <tr>
+            <th style="width: 40%">태그 명</th>
+            <th style="width: 40%">사용 개수</th>
+          </tr>
         </thead>
         <tbody class="tbl-bd">
-        <tr>
-          <td>영업</td>
-          <td>30</td>
-        </tr>
-        <tr>
-          <td>영업</td>
-          <td>30</td>
-        </tr>
+          <tr v-for="tag in tags" :key="tag.tagId">
+            <td>{{ tag.tagName }}</td>
+            <td>{{ tag.tagCount }}</td>
+          </tr>
         </tbody>
       </table>
     </div>
@@ -55,8 +152,13 @@ const tagDelete = () => {
 <style scoped>
 @import '@/views/contents/style/sideBox.css';
 
-.table th {
+
+th {
   width: 20%;
+}
+
+.table th {
+  width: 30%;
   text-align: center;
   vertical-align: middle;
   background-color: #eaf0ff;
@@ -66,5 +168,20 @@ const tagDelete = () => {
   width: 30%;
   text-align: center;
   vertical-align: middle;
+}
+
+.modal-hr {
+  border: 1px solid var(--border);
+  margin: 10px;
+}
+
+.side-content {
+  height: 300px;
+  overflow-y: scroll;
+}
+
+.total-span {
+  font-weight: bold;
+  font-size: 13px;
 }
 </style>

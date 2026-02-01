@@ -42,6 +42,8 @@ import HRGoalDashboard from '@/views/goal/HRGoalDashboard.vue'
 import GoalDetailView from '@/views/goal/GoalDetailView.vue'
 import TeamOwnerGoalListView from '@/views/goal/TeamOwnerGoalListView.vue'
 import GoalCreateView from '@/views/goal/GoalCreateView.vue'
+import ContentsCustomCodeView
+  from '@/views/contents/content/ContentsCustomCodeView.vue'
 
 const routes = [
   {
@@ -68,7 +70,7 @@ const routes = [
         children: [
           { path: '/all/competency/report', component: CompetencyReportAllListView },
           { path: '/all/competency/report/create', component: CompetencyReportAllCreateView },
-          { path: '/all/competency/report/employee/:year', component: CompetencyReportEmployeeAllListView },
+          { path: '/all/competency/report/employee', component: CompetencyReportEmployeeAllListView },
           { path: '/dept/competency/report', component: CompetencyReportDeptListView },
           { path: '/me/competency/report', component: CompetencyReportMeListView },
           { path: '/me/competency/report/detail/:competencyReportId', component: CompetencyReportDetailView },
@@ -95,6 +97,7 @@ const routes = [
       { path: 'contents', component: ContentsView ,
         children: [
           { path: '/all/contents', component: ContentsListView },
+          { path: '/all/contents/customCode', component: ContentsCustomCodeView },
           { path: '/all/contents/create', component: ContentsCreateView },
           { path: '/all/contents/update/:contentId', component: ContentsCreateView },
           {path: '/all/contents/detail/:contentId', component: ContentsDetailView, props: true}

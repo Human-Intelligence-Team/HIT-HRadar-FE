@@ -14,7 +14,7 @@
       <BaseCard>
         <div class="card-hd">
           <div>
-            <h2>공지 목록</h2>
+            <h2>공지 </h2>
             <div class="desc">제목 클릭 → 상세</div>
           </div>
         </div>
