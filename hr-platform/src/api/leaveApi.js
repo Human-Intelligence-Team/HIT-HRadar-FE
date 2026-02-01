@@ -4,7 +4,7 @@ import axios from './axios';
  * 현재 사용자의 휴가 목록을 조회합니다.
  */
 export const fetchMyLeaves = async () => {
-  return await axios.get(`/leave`);
+  return await axios.get(`/api/v1/leave`);
 };
 
 /**
@@ -12,7 +12,7 @@ export const fetchMyLeaves = async () => {
  * @param {number} leaveId - 휴가 ID
  */
 export const fetchLeaveDetail = async (leaveId) => {
-  return await axios.get(`/leave/${leaveId}`);
+  return await axios.get(`/api/v1/leave/${leaveId}`);
 };
 
 /**
@@ -20,5 +20,5 @@ export const fetchLeaveDetail = async (leaveId) => {
  * @param {number} grantId - 부여 ID
  */
 export const fetchLeaveGrant = async (grantId) => {
-  return await axios.get(`/leave/grant/${grantId}`);
+  return await axios.get(`api/v1/leave/grant/${grantId}`);
 };

@@ -1,168 +1,271 @@
 <template>
-  <section class="approval-create-view">
-    <!-- 동적 컴포넌트 렌더링 -->
-    <component
-      v-if="activeComponent"
-      :is="activeComponent"
-      :form-definition="formDefinition"
-      :initial-data="initialData"
-      @back="resetStep"
-      @save="startForm"
-      @select-template="startFormWithTemplate"
-      @select-document="startFormFromCopy"
-    />
-
-    <!-- 시작 옵션 선택 (currentStep이 null일 때만 보임) -->
-    <div v-else>
-      <!-- 타이틀 -->
-      <div class="section-title">
-        <div>
-          <h1>결재 문서 작성</h1>
-          <div class="sub">어떻게 문서를 작성하시겠어요?</div>
-        </div>
-      </div>
-
-      <!-- 시작 옵션 선택 -->
-      <div class="option-grid">
-        <!-- 1. 템플릿으로 시작하기 -->
-        <div class="option-card" @click="handleOptionClick('template')">
-          <div class="card-icon-wrapper">
-            <svg class="card-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-          </div>
-          <div class="card-content">
-            <h2 class="card-title">템플릿으로 시작하기</h2>
-            <p class="card-description">공식 또는 나만의 템플릿으로 빠르게 문서를 작성합니다.</p>
-          </div>
-        </div>
-
-        <!-- 2. 빈 양식으로 시작하기 -->
-        <div class="option-card" @click="handleOptionClick('custom')">
-          <div class="card-icon-wrapper" style="background-color: #E0F2F1;"><svg class="card-icon" style="color: #14B8A6;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg></div>
-          <div class="card-content">
-            <h2 class="card-title">빈 양식으로 시작하기</h2>
-            <p class="card-description">원하는 항목을 직접 구성하여 새로운 양식을 만듭니다.</p>
-          </div>
-        </div>
-
-        <!-- 3. 이전 문서 복사하기 -->
-        <div class="option-card" @click="handleOptionClick('copy')">
-          <div class="card-icon-wrapper" style="background-color: #FEF3C7;"><svg class="card-icon" style="color: #FBBF24;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg></div>
-          <div class="card-content">
-            <h2 class="card-title">이전 문서 복사하기</h2>
-            <p class="card-description">기존에 작성한 문서를 복사하여 새 문서를 작성합니다.</p>
-          </div>
-        </div>
-      </div>
+  <div class="page">
+    <div class="section-title">
+      <h1>결재 문서 등록</h1>
+      <div class="sub">새로운 결재 문서를 작성하거나 임시 저장된 문서를 수정합니다.</div>
     </div>
-  </section>
+
+    <section class="card form-card">
+      <DocumentTypeSelector label="문서 유형" v-model="form.docType" />
+
+      <div class="form-group">
+        <label for="title">제목</label>
+        <input type="text" id="title" v-model="form.title" class="input-field" placeholder="제목을 입력하세요." />
+      </div>
+
+      <div class="form-group">
+        <label for="content">본문</label>
+        <textarea id="content" v-model="form.content" class="input-field" rows="5" placeholder="내용을 입력하세요."></textarea>
+      </div>
+
+      <DepartmentEmployeeSelector label="결재자" v-model="form.approverIds" hint="결재자를 검색하여 추가하세요." />
+
+      <DepartmentEmployeeSelector label="참조자 (선택 사항)" v-model="form.referenceIds" hint="참조자를 검색하여 추가하세요. (선택 사항)" />
+
+      <div class="form-group">
+        <label for="payload">추가 정보 (JSON 형식, 선택 사항)</label>
+        <textarea id="payload" v-model="payloadInput" class="input-field" rows="5" placeholder="{ &quot;key&quot;: &quot;value&quot; } (선택 사항)"></textarea>
+        <small class="hint">문서 유형에 따라 필요한 추가 정보를 JSON 형태로 입력하세요.</small>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn btn-secondary" @click="saveDraft">임시저장</button>
+        <button class="btn btn-primary" @click="handleSubmitApproval">상신</button>
+      </div>
+    </section>
+  </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
-import TemplateSelector from './TemplateSelector.vue';
-import FormBuilder from './FormBuilder.vue';
-import PreviousDocumentSelector from './PreviousDocumentSelector.vue';
-import FormRenderer from './FormRenderer.vue';
+import { ref, onMounted, computed } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import DocumentTypeSelector from '@/components/approval/DocumentTypeSelector.vue';
+import DepartmentEmployeeSelector from '@/components/approval/DepartmentEmployeeSelector.vue';
+import {
+  createApprovalDraft,
+  submitApproval,
+  fetchApprovalDetail,
+} from '@/api/approvalApi';
 
-const currentStep = ref(null); // null, 'template', 'custom', 'copy', 'rendering'
-const formDefinition = ref(null);
-const initialData = ref(null);
+const route = useRoute();
+const router = useRouter();
 
-const activeComponent = computed(() => {
-  switch (currentStep.value) {
-    case 'template': return TemplateSelector;
-    case 'custom': return FormBuilder;
-    case 'copy': return PreviousDocumentSelector;
-    case 'rendering': return FormRenderer;
-    default: return null;
+const docId = ref(null);
+const form = ref({
+  docType: '',
+  title: '',
+  content: '',
+  approverIds: [],
+  referenceIds: [],
+});
+const payloadInput = ref('');
+
+const payload = computed(() => {
+  try {
+    return payloadInput.value ? JSON.parse(payloadInput.value) : null;
+  } catch (e) {
+    console.error('Invalid JSON payload:', e);
+    alert('추가 정보가 올바른 JSON 형식이 아닙니다.');
+    return null;
   }
 });
 
-const handleOptionClick = (step) => {
-  currentStep.value = step;
+onMounted(async () => {
+  if (route.params.id) {
+    docId.value = parseInt(route.params.id);
+    try {
+      const response = await fetchApprovalDetail(docId.value);
+      const detail = response.data.data;
+      if (detail) {
+        form.value.docType = detail.docType;
+        form.value.title = detail.title;
+        form.value.content = detail.content;
+        form.value.approverIds = detail.approverIds || [];
+        form.value.referenceIds = detail.referenceIds || [];
+        // payloadInput.value = JSON.stringify(detail.payload, null, 2); // If payload is returned
+      }
+    } catch (error) {
+      alert('결재 문서를 불러오는 데 실패했습니다.');
+      console.error('Failed to fetch approval detail:', error);
+      docId.value = null;
+    }
+  }
+});
+
+const validateForm = () => {
+  if (!form.value.docType) {
+    alert('문서 유형을 선택해주세요.');
+    return false;
+  }
+  if (!form.value.title.trim()) {
+    alert('제목을 입력해주세요.');
+    return false;
+  }
+  if (!form.value.content.trim()) {
+    alert('본문을 입력해주세요.');
+    return false;
+  }
+  if (form.value.approverIds.length === 0) {
+    alert('결재자를 1명 이상 지정해주세요.');
+    return false;
+  }
+  if (payloadInput.value && !payload.value) {
+    // payload computed property already handles invalid JSON and alerts
+    return false;
+  }
+  return true;
 };
 
-const resetStep = () => {
-  currentStep.value = null;
-  formDefinition.value = null;
-  initialData.value = null;
+const saveDraft = async () => {
+  if (!validateForm()) return;
+
+  try {
+    const request = {
+      docType: form.value.docType,
+      title: form.value.title,
+      content: form.value.content,
+      approverIds: form.value.approverIds,
+      referenceIds: form.value.referenceIds,
+      payload: payload.value,
+    };
+    const response = await createApprovalDraft(request);
+    alert('문서가 임시저장되었습니다. 문서 ID: ' + response.data.data);
+    router.push(`/approval/my-documents`); // Navigate to my documents list
+  } catch (error) {
+    alert('임시저장에 실패했습니다.');
+    console.error('Failed to save draft:', error);
+  }
 };
 
-// FormBuilder에서 '저장'시 호출
-const startForm = (definition) => {
-  formDefinition.value = definition;
-  initialData.value = {}; // 새 양식이므로 초기 데이터 없음
-  currentStep.value = 'rendering';
-};
+const handleSubmitApproval = async () => {
+  if (!validateForm()) return;
 
-// TemplateSelector에서 '선택'시 호출
-const startFormWithTemplate = (template) => {
-  // 실제로는 template.id를 이용해 전체 formDefinition을 가져와야 함
-  // 지금은 목업 데이터로 대체
-  formDefinition.value = {
-    title: template.name,
-    fields: [
-      { id: 0, type: 'text', name: '제목', label: '제목', placeholder: '제목을 입력하세요' },
-      { id: 1, type: 'textarea', name: '내용', label: '내용', placeholder: '내용을 입력하세요' }
-    ]
-  };
-  initialData.value = {};
-  currentStep.value = 'rendering';
-};
+  try {
+    let currentDocId = docId.value;
+    if (!currentDocId) {
+      // If it's a new document, save as draft first then submit
+      const draftRequest = {
+        docType: form.value.docType,
+        title: form.value.title,
+        content: form.value.content,
+              approverIds: form.value.approverIds,
+              referenceIds: form.value.referenceIds,        payload: payload.value,
+      };
+      const draftResponse = await createApprovalDraft(draftRequest); // This will save as DRAFT first
+      currentDocId = draftResponse.data.data;
+    }
 
-// PreviousDocumentSelector에서 '복사'시 호출
-const startFormFromCopy = (doc) => {
-  // 실제로는 doc.id를 이용해 formDefinition과 formData를 모두 가져와야 함
-  // 지금은 목업 데이터로 대체
-  formDefinition.value = {
-    title: `(복사) ${doc.title}`,
-    fields: [
-      { id: 0, type: 'text', name: '제목', label: '제목' },
-    ]
-  };
-  initialData.value = { 0: `(복사) ${doc.title}` }; // 복사된 데이터
-  currentStep.value = 'rendering';
+    await submitApproval(currentDocId); // Then submit the document
+    alert('문서가 성공적으로 상신되었습니다.');
+    router.push(`/approval/my-documents`); // Navigate to my documents list
+  } catch (error) {
+    alert('문서 상신에 실패했습니다.');
+    console.error('Failed to submit approval:', error);
+  }
 };
-
 </script>
 
 <style scoped>
-.approval-create-view {
-  padding: 16px;
-  height: 100%;
+.page {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 32px 16px;
 }
-.section-title { margin-bottom: 24px; }
-.section-title h1 { font-size: 20px; font-weight: 700; }
-.section-title .sub { font-size: 14px; color: #6b7280; margin-top: 4px; }
-.option-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
-.option-card {
-  display: flex;
-  align-items: center;
-  gap: 20px;
+
+.section-title {
+  margin-bottom: 20px;
+}
+
+.section-title h1 {
+  font-size: 24px;
+  font-weight: bold;
+  color: #333;
+}
+
+.section-title .sub {
+  margin-top: 8px;
+  font-size: 14px;
+  color: #666;
+}
+
+.card {
+  background: #ffffff;
+  border-radius: 12px;
   padding: 24px;
-  border: 1px solid var(--border, #e5e7eb);
-  border-radius: 14px;
-  background-color: var(--card, #ffffff);
-  cursor: pointer;
-  transition: all 0.2s ease-in-out;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
 }
-.option-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  border-color: #2563eb;
+
+.form-group {
+  margin-bottom: 20px;
 }
-.card-icon-wrapper {
-  flex-shrink: 0;
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
+
+.form-group label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.input-field {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #333;
+  box-sizing: border-box;
+}
+
+.input-field:focus {
+  border-color: #007bff;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
+}
+
+textarea.input-field {
+  resize: vertical;
+}
+
+.hint {
+  font-size: 12px;
+  color: #888;
+  margin-top: 4px;
+  display: block;
+}
+
+.form-actions {
   display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: #E0E7FF;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 30px;
 }
-.card-icon { width: 28px; height: 28px; color: #4F46E5; }
-.card-content { text-align: left; }
-.card-title { font-size: 16px; font-weight: 600; color: var(--text-main, #111827); margin: 0 0 4px; }
-.card-description { font-size: 13px; color: var(--text-sub, #6b7280); margin: 0; line-height: 1.5; }
+
+.btn {
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: background-color 0.2s ease;
+}
+
+.btn-primary {
+  background-color: #007bff;
+  color: #ffffff;
+}
+
+.btn-primary:hover {
+  background-color: #0056b3;
+}
+
+.btn-secondary {
+  background-color: #6c757d;
+  color: #ffffff;
+}
+
+.btn-secondary:hover {
+  background-color: #5a6268;
+}
 </style>
