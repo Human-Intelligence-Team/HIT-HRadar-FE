@@ -3,13 +3,19 @@
     <div class="view-header">
       <div class="title-group">
         <h1>나의 근태 캘린더</h1>
-        <div class="sub">월별 근무 및 휴가 현황을 확인합니다.</div>
       </div>
     </div>
     <div class="calendar-container card">
       <div v-if="loading" class="calendar-loading">캘린더 데이터를 불러오는 중...</div>
       <FullCalendar v-else :options="calendarOptions" />
     </div>
+
+    <!-- 근무 상세 정보 모달 -->
+    <AttendanceDetailModal
+      :is-open="isModalOpen"
+      :attendance="selectedAttendance"
+      @close="isModalOpen = false"
+    />
   </section>
 </template>
 
@@ -21,6 +27,7 @@ import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import bootstrap5Plugin from '@fullcalendar/bootstrap5';
 import { fetchAttendanceCalendar } from '@/api/attendanceApi';
+import AttendanceDetailModal from '@/components/attendance/AttendanceDetailModal.vue';
 
 const auth = useAuthStore();
 const employeeId = computed(() => auth.user?.employeeId);
@@ -28,6 +35,10 @@ const departmentId = computed(() => auth.user?.deptId); // Assuming deptId is av
 
 const calendarEvents = ref([]);
 const loading = ref(false);
+
+// 모달 관련 상태
+const isModalOpen = ref(false);
+const selectedAttendance = ref(null);
 
 const calendarOptions = ref({
   plugins: [dayGridPlugin, interactionPlugin, bootstrap5Plugin],
@@ -59,12 +70,12 @@ const calendarOptions = ref({
     }
   },
   eventClick: (info) => {
-    // 사원 근태 상세 조회 페이지로 이동
-    const employeeId = info.event.extendedProps.employeeId;
-    const workDate = info.event.startStr; // 이벤트 시작 날짜 (YYYY-MM-DD)
-    if (employeeId && workDate) {
-      router.push({ name: 'AttendanceEmployeeDetail', params: { employeeId: employeeId, workDate: workDate } });
-    }
+    // 모달 표시
+    selectedAttendance.value = {
+      ...info.event.extendedProps,
+      workDate: info.event.startStr,
+    };
+    isModalOpen.value = true;
   }
 });
 
@@ -84,10 +95,13 @@ const fetchCalendarEvents = async (startDate, endDate) => {
 
     // 근태 데이터 처리
     if (attendanceResponse.data) {
-      attendanceResponse.data.forEach(deptRecord => { // deptRecord is AttendanceListResponseDto
+      attendanceResponse.data.forEach(deptRecord => {
         deptRecord.attendanceRecords.forEach(record => {
           const date = record.workDate;
-          const title = `${deptRecord.employeeName}: ${record.workPlace || '미지정'} - ${record.workType || '미지정'}`;
+          // 상태 표시: 출근 여부에 따른 기본 상태 설정
+          const status = record.status || (record.checkInTime ? '출근중' : '결근');
+          const title = `${deptRecord.employeeName}: ${status}`;
+          
           events.push({
             id: `att-${deptRecord.employeeId}-${date}`,
             title: title,
@@ -95,8 +109,10 @@ const fetchCalendarEvents = async (startDate, endDate) => {
             allDay: true,
             extendedProps: {
               type: 'attendance',
-              employeeId: deptRecord.employeeId, // Essential for detail view navigation
+              employeeId: deptRecord.employeeId,
               employeeName: deptRecord.employeeName,
+              deptName: deptRecord.deptName,
+              status: status,
               workType: record.workType,
               workPlace: record.workPlace
             }

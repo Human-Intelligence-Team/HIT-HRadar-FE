@@ -4,7 +4,6 @@
     <div class="view-header">
       <div class="title-group">
         <h1>부서 출퇴근 관리</h1>
-        <div class="sub">각 부서별 직원들의 출퇴근 기록을 확인하고 관리합니다.</div>
       </div>
     </div>
 

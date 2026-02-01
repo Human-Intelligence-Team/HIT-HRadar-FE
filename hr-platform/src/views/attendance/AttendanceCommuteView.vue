@@ -3,7 +3,6 @@
     <div class="view-header">
       <div class="title-group">
         <h1>나의 출퇴근 관리</h1>
-        <div class="sub">오늘의 출퇴근 기록 및 부서원 현황을 확인합니다.</div>
       </div>
     </div>
 
@@ -73,7 +72,7 @@
                 <td colspan="6" class="no-results">부서원 현황을 불러오는 중...</td>
               </tr>
               <tr v-else-if="departmentMembers.length === 0">
-                <td colspan="6" class="no-results">부서원 현황을 불러올 수 없습니다.</td>
+                <td colspan="6" class="no-results">등록된 부서원이 없습니다.</td>
               </tr>
               <template v-else>
                 <tr v-for="member in departmentMembers" :key="member.employeeId">
@@ -94,7 +93,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import { useAuthStore } from '@/stores/authStore';
 import {
   processAttendance,
@@ -161,20 +160,20 @@ const fetchInitialData = async () => {
   try {
     const { data } = await fetchMyTodayAttendance(employeeId.value, getTodayString());
 
-    if (data?.attendanceStatusType === 'CHECK_IN')  {
-      // 출근 상태
+    if (data && data.checkInTime && !data.checkOutTime)  {
+      // 출근한 상태 (퇴근 기록 없음)
       clockInInfo.value = {
-        clockInTime: extractTime(data.clockInTime),
+        clockInTime: extractTime(data.checkInTime),
         name: userInfo.value?.name || '-',
         department: userInfo.value?.department || '-',
-        workingType: data.workType || '-',
+        workingType: data.workType || '-', // AttendanceDetailResponseDto에 workType이 있는지 확인 필요
         workplace: data.workPlace || 'OFFICE',
         ipAddress: data.ipAddress || '-',
         workDate: data.workDate || getTodayString(),
         overtimeStatus: data.overtimeStatus || '없음'
       };
     } else {
-      // 미출근
+      // 미출근 또는 이미 퇴근함
       clockInInfo.value = null;
       initialWorkInfo.value.workType = data?.workType || '-';
       initialWorkInfo.value.workplace = data?.workPlace || '-';
@@ -265,10 +264,16 @@ const getMemberStatusClass = (status) => {
 /* =====================
    라이프사이클
 ===================== */
+watch([employeeId, departmentId], ([newEmp, newDept]) => {
+  if (newEmp && newDept) {
+    fetchInitialData();
+  }
+}, { immediate: true });
+
 onMounted(() => {
   updateCurrentTime();
   intervalId = setInterval(updateCurrentTime, 1000);
-  fetchInitialData();
+  // fetchInitialData() is now called by the watcher
 });
 
 onUnmounted(() => {
