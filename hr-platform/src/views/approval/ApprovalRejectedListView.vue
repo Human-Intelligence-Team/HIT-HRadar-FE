@@ -2,7 +2,6 @@
   <div class="page">
     <div class="section-title">
       <h1>반려 문서함</h1>
-      <div class="sub">내가 기안한 문서 중 반려된 결재 문서 목록입니다.</div>
     </div>
 
     <section class="card document-list">
