@@ -13,31 +13,23 @@
         </select>
       </div>
 
-      <!-- Employee Search/List within selected department -->
+      <!-- Employee Selector (Dropdown Style) -->
       <div class="employee-selector-wrapper">
-        <input
-          type="text"
-          v-model="employeeSearchQuery"
-          @keyup.enter="filterEmployees"
-          placeholder="사원 이름 검색..."
-          class="input-field employee-search"
-        />
-        <button @click="filterEmployees" class="btn btn-search">검색</button>
+        <select 
+          v-model="tempSelectedEmployeeId" 
+          @change="handleEmployeeSelect" 
+          class="input-field employee-select"
+          :disabled="!selectedDeptId"
+        >
+          <option value="">-- 사원 선택 --</option>
+          <option v-for="employee in filteredEmployees" :key="employee.accId" :value="employee.accId">
+            {{ employee.name }} ({{ employee.accId }})
+          </option>
+        </select>
       </div>
     </div>
 
-    <div v-if="filteredEmployees.length > 0" class="employee-results-dropdown">
-      <ul class="results-list">
-        <li
-          v-for="employee in filteredEmployees"
-          :key="employee.accId"
-          @click="selectEmployee(employee)"
-          class="result-item"
-        >
-          {{ employee.name }} ({{ employee.accId }})
-        </li>
-      </ul>
-    </div>
+    <!-- Results list removed as it's now integrated into the select -->
 
     <div v-if="selectedEmployees.length > 0" class="selected-tags">
       <span v-for="employee in selectedEmployees" :key="employee.accId" class="employee-tag">
@@ -74,19 +66,14 @@ const emit = defineEmits(['update:modelValue']);
 
 const departments = ref([]);
 const selectedDeptId = ref('');
-const allEmployeesInDept = ref([]); // All employees fetched for the selected department
-const employeeSearchQuery = ref('');
-const searchResults = ref([]); // Filtered employees based on employeeSearchQuery
-const selectedEmployees = ref([]); // Stores { accId, name } objects
+const allEmployeesInDept = ref([]);
+const selectedEmployees = ref([]);
+const tempSelectedEmployeeId = ref('');
 
 // --- Computed Properties ---
 const filteredEmployees = computed(() => {
-  let employeesToFilter = employeeSearchQuery.value.trim()
-    ? searchResults.value
-    : allEmployeesInDept.value;
-
-  // Filter out already selected employees
-  return employeesToFilter.filter(
+  // Filter out already selected employees from the current department members
+  return allEmployeesInDept.value.filter(
     (employee) => !selectedEmployees.value.some((selected) => selected.accId === employee.accId)
   );
 });
@@ -125,29 +112,24 @@ const fetchDepartments = async () => {
 
 const fetchEmployeesByDepartment = async (deptId) => {
   try {
-    // Assuming fetchUserAccounts can take deptId as a parameter
     const response = await fetchUserAccounts({ deptId: deptId });
     allEmployeesInDept.value = response.data.data.map(user => ({
       accId: user.accId || user.employeeId,
       name: user.name || user.employeeName,
     }));
-    // Also update searchResults to reflect the full list initially
-    searchResults.value = [...allEmployeesInDept.value];
   } catch (error) {
     console.error(`부서 ID ${deptId}의 사원 목록을 불러오는 데 실패했습니다:`, error);
     allEmployeesInDept.value = [];
-    searchResults.value = [];
   }
 };
 
-const filterEmployees = () => {
-  if (!employeeSearchQuery.value.trim()) {
-    searchResults.value = [...allEmployeesInDept.value];
-    return;
+const handleEmployeeSelect = () => {
+  if (!tempSelectedEmployeeId.value) return;
+  const employee = allEmployeesInDept.value.find(e => e.accId === tempSelectedEmployeeId.value);
+  if (employee) {
+    selectEmployee(employee);
   }
-  searchResults.value = allEmployeesInDept.value.filter(employee =>
-    employee.name.toLowerCase().includes(employeeSearchQuery.value.trim().toLowerCase())
-  );
+  tempSelectedEmployeeId.value = ''; // Reset select after adding
 };
 
 const selectEmployee = (employee) => {
@@ -155,8 +137,6 @@ const selectEmployee = (employee) => {
     selectedEmployees.value.push(employee);
     emitSelectedEmployeeIds();
   }
-  employeeSearchQuery.value = ''; // Clear search query after selection
-  searchResults.value = [...allEmployeesInDept.value]; // Reset search results display
 };
 
 const removeEmployee = (employeeToRemove) => {
@@ -192,12 +172,17 @@ onMounted(() => {
 
 .selector-group {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   gap: 10px;
+  align-items: flex-start;
 }
 
-.department-select-wrapper,
+.department-select-wrapper {
+  flex: 1;
+}
+
 .employee-selector-wrapper {
+  flex: 2;
   display: flex;
   gap: 8px;
 }

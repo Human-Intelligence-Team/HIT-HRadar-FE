@@ -2,7 +2,6 @@
   <div class="page">
     <div class="section-title">
       <h1>결재 문서 상세</h1>
-      <div class="sub">결재 문서의 상세 정보 및 진행 상황을 확인합니다.</div>
     </div>
 
     <section v-if="document" class="card approval-detail-card">

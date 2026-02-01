@@ -50,6 +50,21 @@
         </div>
       </div>
 
+      <!-- 휴가 관리 -->
+      <div class="section-title">휴가 관리</div>
+
+      <div class="nav-group has-flyout">
+        <div class="nav-item">
+          <span>휴가 관리</span>
+          <span class="arrow">›</span>
+        </div>
+        <div class="flyout">
+          <RouterLink to="/leave/my-history" class="flyout-item">내 휴가 이력</RouterLink>
+          <RouterLink to="/leave/policy" class="flyout-item">휴가 정책 관리</RouterLink>
+          <RouterLink v-if="auth.isAdmin" to="/leave/admin/department-history" class="flyout-item">부서 휴가 이력</RouterLink>
+        </div>
+      </div>
+
       <!-- 성과 평가 -->
       <div class="section-title">성과 평가</div>
 
