@@ -12,6 +12,11 @@ export const submitApproval = (docId) => {
   return api.post(`/api/v1/approvals/${docId}/submit`);
 };
 
+// 결재 문서 신규 생성 및 바로 상신
+export const submitNewApproval = (requestData) => {
+  return api.post('/api/v1/approvals/submit', requestData);
+};
+
 // 승인 (Approve)
 export const approveApproval = (docId) => {
   return api.post(`/api/v1/approvals/${docId}/approve`);

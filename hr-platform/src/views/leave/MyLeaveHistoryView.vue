@@ -81,7 +81,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
 import { useAuthStore } from '@/stores/authStore';
-import { getMyLeaves } from '@/api/leaveApi'; 
+import { getMyLeaves, getMyLeaveGrants } from '@/api/leaveApi';
 import LeaveApplyModal from '@/components/leave/LeaveApplyModal.vue';
 
 const authStore = useAuthStore();
@@ -119,12 +119,8 @@ const reloadData = async () => {
   isLoading.value = true;
   try {
     // 1. Fetch Grants
-    // TODO: There's no API to get all grants for a user. Mocking.
-    const grantsResponse = { data: { data: [
-        { grantId: 1, year: 2024, totalDays: 15, remainingDays: 10.5 },
-        { grantId: 2, year: 2023, totalDays: 1, remainingDays: 0 },
-    ]}};
-    availableGrants.value = grantsResponse.data.data;
+    const grantsResponse = await getMyLeaveGrants();
+    availableGrants.value = grantsResponse.data.data || [];
 
     // 2. Fetch Leave History
     const leavesResponse = await getMyLeaves();

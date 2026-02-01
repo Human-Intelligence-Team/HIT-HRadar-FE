@@ -23,6 +23,15 @@
       <hr />
 
       <ApprovalLineDisplay :steps="document.approvalSteps" />
+      
+      <div v-if="document.references && document.references.length > 0" class="approval-references">
+        <h3>참조자</h3>
+        <div class="reference-list">
+          <span v-for="ref in document.references" :key="ref.referenceId" class="reference-item">
+            {{ ref.referrerName }} ({{ ref.referrerId }})
+          </span>
+        </div>
+      </div>
 
       <hr />
 
@@ -36,7 +45,7 @@
         <div v-else class="comment-list-container">
           <div v-for="comment in document.comments" :key="comment.commentId" :class="['comment-item', { 'is-reply': comment.parentCommentId }]">
             <div class="comment-header">
-              <span class="comment-writer">{{ comment.writerId }}</span>
+              <span class="comment-writer">{{ comment.writerName || comment.writerId }}</span>
               <span class="comment-date">{{ formatDate(comment.createdAt) }}</span>
               <button v-if="canAddComment" @click="replyTo(comment)" class="btn-small btn-reply">답글</button>
             </div>
@@ -67,6 +76,7 @@
 
       <div class="action-buttons">
         <!-- Conditional rendering based on user role and document status -->
+        <button v-if="canSubmit" class="btn btn-primary" @click="submit">상신</button>
         <button v-if="canWithdraw" class="btn btn-secondary" @click="withdraw">회수</button>
         <button v-if="canApprove" class="btn btn-primary" @click="approve">승인</button>
         <button v-if="canReject" class="btn btn-danger" @click="showRejectModal = true">반려</button>
@@ -97,6 +107,7 @@ import ApprovalLineDisplay from '@/components/approval/ApprovalLineDisplay.vue';
 import ApprovalHistoryDisplay from '@/components/approval/ApprovalHistoryDisplay.vue';
 import {
   fetchApprovalDetail,
+  submitApproval,
   approveApproval,
   rejectApproval,
   withdrawApproval,
@@ -119,6 +130,10 @@ const fetchDocumentDetail = async () => {
   try {
     const response = await fetchApprovalDetail(docId.value);
     document.value = response.data.data;
+    console.log('Document loaded:', document.value);
+    console.log('Current User ID:', currentUserId.value);
+    console.log('Document Writer ID:', document.value.writerId);
+    console.log('Document Status:', document.value.status);
   } catch (error) {
     alert('문서 상세 정보를 불러오는 데 실패했습니다.');
     console.error('Failed to fetch approval detail:', error);
@@ -126,31 +141,41 @@ const fetchDocumentDetail = async () => {
   }
 };
 
+const canSubmit = computed(() => {
+  if (!document.value || !currentUserId.value) return false;
+  const isDraft = document.value.status === 'DRAFT' || document.value.status === 'TEMP'; // Check for TEMP just in case
+  const isOwner = Number(document.value.writerId) === Number(currentUserId.value);
+  console.log('canSubmit check:', { status: document.value.status, writerId: document.value.writerId, currentUserId: currentUserId.value, isDraft, isOwner });
+  return isDraft && isOwner;
+});
+
 const canWithdraw = computed(() => {
   if (!document.value || !currentUserId.value) return false;
   // Assuming the backend handles the specific logic for isWithdrawable
   // and the current user is the writer of the document
   // This is a simplified check, actual logic should be robust
   return (
-    document.value.status === 'DRAFT' || document.value.status === 'IN_PROGRESS'
-    // && document.value.writerId === currentUserId.value // Need writerId from detail response
+    (document.value.status === 'IN_PROGRESS' || document.value.status === 'DRAFT') &&
+     Number(document.value.writerId) === Number(currentUserId.value)
   );
 });
 
+const currentAccId = computed(() => authStore.user?.userId);
+
 const canApprove = computed(() => {
-  if (!document.value || !currentUserId.value) return false;
+  if (!document.value || !currentAccId.value) return false;
   // Check if current user is the PENDING approver in approvalSteps
   const currentStep = document.value.approvalSteps?.find(
-    (step) => step.status === 'PENDING' && step.approverId === currentUserId.value
+    (step) => step.status === 'PENDING' && Number(step.approverId) === Number(currentAccId.value)
   );
   return document.value.status === 'IN_PROGRESS' && !!currentStep;
 });
 
 const canReject = computed(() => {
-  if (!document.value || !currentUserId.value) return false;
+  if (!document.value || !currentAccId.value) return false;
   // Check if current user is the PENDING approver in approvalSteps
   const currentStep = document.value.approvalSteps?.find(
-    (step) => step.status === 'PENDING' && step.approverId === currentUserId.value
+    (step) => step.status === 'PENDING' && Number(step.approverId) === Number(currentAccId.value)
   );
   return document.value.status === 'IN_PROGRESS' && !!currentStep;
 });
@@ -205,6 +230,18 @@ const cancelReply = () => {
   newCommentContent.value = '';
 };
 
+
+const submit = async () => {
+  if (!confirm('문서를 상신하시겠습니까?')) return;
+  try {
+    await submitApproval(docId.value);
+    alert('문서가 상신되었습니다.');
+    fetchDocumentDetail(); // Refresh document state
+  } catch (error) {
+    alert('문서 상신에 실패했습니다.');
+    console.error('Failed to submit:', error);
+  }
+};
 
 const approve = async () => {
   if (!confirm('문서를 승인하시겠습니까?')) return;
@@ -348,6 +385,24 @@ onMounted(() => {
   margin-bottom: 15px;
   border-bottom: 1px solid #eee;
   padding-bottom: 8px;
+}
+
+.approval-references {
+  margin-top: 30px;
+}
+
+.reference-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.reference-item {
+  background-color: #f1f3f5;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 14px;
+  color: #495057;
 }
 
 .detail-content p {

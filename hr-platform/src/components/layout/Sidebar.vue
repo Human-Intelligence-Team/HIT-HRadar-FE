@@ -32,7 +32,7 @@
           <RouterLink to="/company/my" class="flyout-item">내 회사 정보</RouterLink>
           <RouterLink to="/company/my-manage" class="flyout-item">내 회사 관리</RouterLink>
           <RouterLink to="/company/roles" class="flyout-item">역할/권한 관리</RouterLink>
-          <RouterLink v-if="auth.isAdmin" to="/company/manage" class="flyout-item">회사 정보 관리 (전체)</RouterLink>
+          <RouterLink to="/company/manage" class="flyout-item">회사 정보 관리 (전체)</RouterLink>
         </div>
       </div>
 
@@ -113,9 +113,9 @@
         <div class="flyout">
           <RouterLink to="/attendance/commute" class="flyout-item">나의 출퇴근 관리</RouterLink>
           <RouterLink to="/attendance/my-calendar" class="flyout-item">나의 근태 캘린더</RouterLink>
-          <RouterLink v-if="auth.isAdmin" to="/attendance/ip-policy" class="flyout-item">IP 정책 관리</RouterLink>
-          <RouterLink v-if="auth.isAdmin" to="/attendance/department" class="flyout-item">부서 출퇴근 관리</RouterLink>
-          <RouterLink v-if="auth.isAdmin" to="/attendance/department-calendar" class="flyout-item">부서별 근태 캘린더</RouterLink>
+          <RouterLink to="/attendance/ip-policy" class="flyout-item">IP 정책 관리</RouterLink>
+          <RouterLink to="/attendance/department" class="flyout-item">부서 출퇴근 관리</RouterLink>
+          <RouterLink to="/attendance/department-calendar" class="flyout-item">부서별 근태 캘린더</RouterLink>
         </div>
       </div>
 
@@ -130,7 +130,7 @@
         <div class="flyout">
           <RouterLink to="/leave/my-history" class="flyout-item">내 휴가 이력</RouterLink>
           <RouterLink to="/leave/policy" class="flyout-item">휴가 정책 관리</RouterLink>
-          <RouterLink v-if="auth.isAdmin" to="/leave/admin/department-history" class="flyout-item">부서 휴가 이력</RouterLink>
+          <RouterLink to="/leave/admin/department-history" class="flyout-item">부서 휴가 이력</RouterLink>
         </div>
       </div>
 
@@ -146,10 +146,7 @@
         </div>
         <div class="flyout">
           <RouterLink to="/approval/create" class="flyout-item">결재 문서 등록</RouterLink>
-          <RouterLink to="/approval/my-documents" class="flyout-item">내 문서함</RouterLink>
-          <RouterLink to="/approval/approval-tasks" class="flyout-item">결재 문서함</RouterLink>
-          <RouterLink to="/approval/rejected-documents" class="flyout-item">반려 문서함</RouterLink>
-          <RouterLink to="/approval/references" class="flyout-item">참조 문서함</RouterLink>
+          <RouterLink to="/approval/my-documents" class="flyout-item">결재 문서함</RouterLink>
           <RouterLink
             to="/approval/all-documents"
             class="flyout-item"
@@ -226,9 +223,9 @@
         </div>
       </div>
 
-      <!-- 시스템 관리 (ADMIN) -->
-      <div class="section-title" v-if="auth.isAdmin">시스템 관리</div>
-      <div class="nav-group has-flyout" v-if="auth.isAdmin">
+      <!-- 시스템 관리 -->
+      <div class="section-title">시스템 관리</div>
+      <div class="nav-group has-flyout">
         <div class="nav-item">
           <span>권한/설정</span>
           <span class="arrow">›</span>

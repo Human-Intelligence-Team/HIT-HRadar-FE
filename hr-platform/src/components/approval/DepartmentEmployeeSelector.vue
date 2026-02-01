@@ -11,6 +11,14 @@
             {{ dept.deptName }}
           </option>
         </select>
+        <button 
+          v-if="allowDeptSelection && selectedDeptId" 
+          @click="selectEntireDepartment" 
+          class="btn-dept-select"
+          type="button"
+        >
+          부서 전체 선택
+        </button>
       </div>
 
       <!-- Employee Selector (Dropdown Style) -->
@@ -29,8 +37,6 @@
       </div>
     </div>
 
-    <!-- Results list removed as it's now integrated into the select -->
-
     <div v-if="selectedEmployees.length > 0" class="selected-tags">
       <span v-for="employee in selectedEmployees" :key="employee.accId" class="employee-tag">
         {{ employee.name }} ({{ employee.accId }})
@@ -38,7 +44,10 @@
       </span>
     </div>
 
-    <small v-if="hint" class="hint">{{ hint }}</small>
+    <small v-if="hint" class="hint">
+      {{ hint }} 
+      <template v-if="maxItems < 99"> (최대 {{ maxItems }}명)</template>
+    </small>
   </div>
 </template>
 
@@ -46,6 +55,8 @@
 import { ref, watch, onMounted, computed, defineProps, defineEmits } from 'vue';
 import { getAllDepartmentsByCompany } from '@/api/departmentApi';
 import { fetchUserAccounts } from '@/api/userAccount'; // Assuming this can take deptId
+
+import { useAuthStore } from '@/stores/authStore';
 
 const props = defineProps({
   label: {
@@ -60,9 +71,18 @@ const props = defineProps({
     type: Array, // Expecting an array of employee IDs
     default: () => [],
   },
+  maxItems: {
+    type: Number,
+    default: 100,
+  },
+  allowDeptSelection: {
+    type: Boolean,
+    default: false,
+  }
 });
 
 const emit = defineEmits(['update:modelValue']);
+const authStore = useAuthStore();
 
 const departments = ref([]);
 const selectedDeptId = ref('');
@@ -72,17 +92,18 @@ const tempSelectedEmployeeId = ref('');
 
 // --- Computed Properties ---
 const filteredEmployees = computed(() => {
-  // Filter out already selected employees from the current department members
+  const currentUserId = Number(authStore.user?.employeeId);
+  // Filter out already selected employees AND current user
   return allEmployeesInDept.value.filter(
-    (employee) => !selectedEmployees.value.some((selected) => selected.accId === employee.accId)
+    (employee) => 
+      !selectedEmployees.value.some((selected) => selected.accId === employee.accId) &&
+      Number(employee.accId) !== currentUserId
   );
 });
 
 // --- Watchers ---
 watch(selectedDeptId, async (newDeptId) => {
   allEmployeesInDept.value = [];
-  employeeSearchQuery.value = '';
-  searchResults.value = [];
   if (newDeptId) {
     await fetchEmployeesByDepartment(newDeptId);
   }
@@ -104,7 +125,7 @@ watch(() => props.modelValue, (newVal) => {
 const fetchDepartments = async () => {
   try {
     const response = await getAllDepartmentsByCompany();
-    departments.value = response.data.data;
+    departments.value = response.data.data.departments || [];
   } catch (error) {
     console.error('부서 목록을 불러오는 데 실패했습니다:', error);
   }
@@ -113,7 +134,8 @@ const fetchDepartments = async () => {
 const fetchEmployeesByDepartment = async (deptId) => {
   try {
     const response = await fetchUserAccounts({ deptId: deptId });
-    allEmployeesInDept.value = response.data.data.map(user => ({
+    const userList = response.data.data.accounts || [];
+    allEmployeesInDept.value = userList.map(user => ({
       accId: user.accId || user.employeeId,
       name: user.name || user.employeeName,
     }));
@@ -125,11 +147,42 @@ const fetchEmployeesByDepartment = async (deptId) => {
 
 const handleEmployeeSelect = () => {
   if (!tempSelectedEmployeeId.value) return;
+  
+  if (selectedEmployees.value.length >= props.maxItems) {
+    alert(`최대 ${props.maxItems}명까지 선택 가능합니다.`);
+    tempSelectedEmployeeId.value = '';
+    return;
+  }
+
   const employee = allEmployeesInDept.value.find(e => e.accId === tempSelectedEmployeeId.value);
   if (employee) {
     selectEmployee(employee);
   }
   tempSelectedEmployeeId.value = ''; // Reset select after adding
+};
+
+const selectEntireDepartment = () => {
+  const currentDept = departments.value.find(d => d.deptId === selectedDeptId.value);
+  
+  // 이미 선택된 인원 제외하고 추가 가능한 인원 계산
+  const toAdd = allEmployeesInDept.value.filter(
+    emp => !selectedEmployees.value.some(s => s.accId === emp.accId)
+  );
+
+  if (selectedEmployees.value.length + toAdd.length > props.maxItems) {
+    alert(`부서 전체 인원(${toAdd.length}명)을 추가하면 최대 인원(${props.maxItems}명)을 초과합니다.`);
+    return;
+  }
+
+  if (toAdd.length === 0) {
+    alert('이미 해당 부서의 모든 인원이 선택되었습니다.');
+    return;
+  }
+
+  if (confirm(`${currentDept.deptName}의 모든 사원(${toAdd.length}명)을 추가하시겠습니까?`)) {
+    selectedEmployees.value.push(...toAdd);
+    emitSelectedEmployeeIds();
+  }
 };
 
 const selectEmployee = (employee) => {
@@ -220,6 +273,24 @@ onMounted(() => {
   background-color: #0056b3;
 }
 
+.btn-dept-select {
+  margin-top: 8px;
+  width: 100%;
+  padding: 8px;
+  background-color: #f0f0f0;
+  border: 1px solid #dcdcdc;
+  border-radius: 6px;
+  font-size: 12px;
+  color: #555;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-dept-select:hover {
+  background-color: #e0e0e0;
+  color: #333;
+}
+
 .employee-results-dropdown {
   position: absolute;
   /* Adjust top dynamically if needed, or place it after the selector-group */
@@ -260,27 +331,47 @@ onMounted(() => {
   margin-top: 10px;
 }
 
+.selected-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 12px;
+}
+
 .employee-tag {
   display: inline-flex;
   align-items: center;
-  background-color: #e0e0e0;
-  padding: 6px 10px;
-  border-radius: 15px;
+  background-color: #e8f3ff;
+  padding: 8px 14px;
+  border-radius: 12px;
   font-size: 13px;
-  color: #333;
+  color: #3182f6;
+  font-weight: 500;
+  border: 1px solid #d0e5ff;
+  transition: all 0.2s;
+}
+
+.employee-tag:hover {
+  background-color: #dbeaff;
 }
 
 .remove-tag-btn {
   background: none;
   border: none;
-  color: #777;
-  font-size: 14px;
-  margin-left: 5px;
+  color: #3182f6;
+  font-size: 16px;
+  margin-left: 8px;
   cursor: pointer;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.7;
 }
 
 .remove-tag-btn:hover {
-  color: #dc3545;
+  opacity: 1;
+  color: #1b64da;
 }
 
 .hint {

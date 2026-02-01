@@ -121,16 +121,11 @@ const routes = [
     children: [
       { path: '', redirect: '/policy' },
       { path: 'policy', component: PolicyView },
-      {
-        path: 'notice',
-        component: NoticeView,
-        children: [
-          { path: '', name: 'notice-list', component: NoticeListView, meta: { permission: 'NOTICE_READ' } },
-          { path: 'create', name: 'notice-create', component: NoticeCreateView, meta: { permission: 'NOTICE_MANAGE' } },
-          { path: ':id', name: 'notice-detail', component: NoticeDetailView, props: true, meta: { permission: 'NOTICE_READ' } },
-          { path: ':id/edit', name: 'notice-edit', component: NoticeEditView, props: true, meta: { permission: 'NOTICE_MANAGE' } },
-        ]
-      },
+      { path: 'notice', name: 'notice-list', component: NoticeListView, meta: { permission: 'NOTICE_READ' } },
+      { path: 'notice/create', name: 'notice-create', component: NoticeCreateView, meta: { permission: 'NOTICE_MANAGE' } },
+      { path: 'notice/:id', name: 'notice-detail', component: NoticeDetailView, props: true, meta: { permission: 'NOTICE_READ' } },
+      { path: 'notice/:id/edit', name: 'notice-edit', component: NoticeEditView, props: true, meta: { permission: 'NOTICE_MANAGE' } },
+      { path: 'alert', name: 'alert-list', component: () => import('@/views/notice/AlertListView.vue'), meta: { permission: 'ALERT_MANAGE' } },
 
       // 조직/부서/사원 관리
       { path: 'organization', component: DepartmentListView, meta: { permission: 'DEPT_READ' } },
@@ -252,9 +247,6 @@ const routes = [
         children: [
           { path: 'create', component: () => import('@/views/approval/ApprovalCreateView.vue') },
           { path: 'my-documents', component: () => import('@/views/approval/ApprovalMyListView.vue') },
-          { path: 'approval-tasks', component: () => import('@/views/approval/ApprovalInboxListView.vue') },
-          { path: 'rejected-documents', component: () => import('@/views/approval/ApprovalRejectedListView.vue') },
-          { path: 'references', component: () => import('@/views/approval/ApprovalReferenceListView.vue') },
           { path: 'all-documents', component: () => import('@/views/approval/ApprovalAllListView.vue') },
           { path: 'admin', component: () => import('@/views/admin/ApprovalDocumentTypeManagementView.vue') },
           { path: ':docId', component: () => import('@/views/approval/ApprovalDetailView.vue'), props: true },
@@ -281,7 +273,7 @@ const routes = [
         children: [
           { path: 'my-history', component: () => import('@/views/leave/MyLeaveHistoryView.vue') },
           { path: 'policy', component: () => import('@/views/leave/LeavePolicyAdminView.vue') },
-          { path: 'admin/department-history', component: () => import('@/views/leave/DepartmentLeaveHistoryView.vue'), meta: { requiresAdmin: true } },
+          { path: 'admin/department-history', component: () => import('@/views/leave/DepartmentLeaveHistoryView.vue') },
         ],
       },
 
