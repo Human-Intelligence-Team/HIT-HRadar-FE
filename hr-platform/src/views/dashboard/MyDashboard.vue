@@ -32,7 +32,7 @@
         desc="업무·환경·성장 관점 종합 분석"
         class="job-satisfaction-card"
       >
-        <!-- ⭐ 여기! -->
+        <!--  여기! -->
         <div class="job-satisfaction-layout">
           <JobSatisfactionGaugeChart
             :percentage="job.gauge.percentage"
@@ -44,6 +44,20 @@
           />
         </div>
       </DashboardCard>
+      <!-- 업무 안정성 -->
+      <DashboardCard
+        title="업무 안정성"
+        desc="최근 1년간 월별 이슈 발생 추이"
+        class="job-satisfaction-card"
+      >
+        <JobStabilityLineChart
+          v-if="stabilityLoaded"
+          :labels="stability.labels"
+          :values="stability.values"
+        />
+        <div v-else class="loading">데이터를 불러오는 중입니다...</div>
+      </DashboardCard>
+
     </section>
   </section>
 </template>
@@ -56,7 +70,27 @@ import CollaborationRadarChart from '@/components/dashboard/CollaborationRadarCh
 import { fetchMyContribution, fetchMyCollaboration } from '@/api/dashboardApi'
 import JobSatisfactionBarChart from '@/components/dashboard/JobSatisfactionBarChart.vue'
 import JobSatisfactionGaugeChart from '@/components/dashboard/JobSatisfactionGaugeChart.vue'
-import { fetchJobSatisfaction } from '@/api/dashboardApi'
+import { fetchJobSatisfaction, fetchJobStable} from '@/api/dashboardApi'
+import dayjs from 'dayjs'
+import JobStabilityLineChart from '@/components/dashboard/JobStabilityLineChart.vue'
+
+
+//업무 안정성
+const stability = ref({
+  labels: [],
+  values: []
+})
+const stabilityLoaded = ref(false)
+
+const now = dayjs()
+const startYm = dayjs().subtract(6, 'month').format('YYYY-MM')
+const endYm = dayjs().add(6, 'month').format('YYYY-MM')
+
+const loadJobStable = async () => {
+  const res = await fetchJobStable(startYm, endYm)
+  stability.value = res.data.data
+  stabilityLoaded.value = true
+}
 
 const categories = ref([])
 const values = ref([])
@@ -102,6 +136,7 @@ onMounted(() => {
   loadContribution()
   loadCollaboration()
   loadJob()
+  loadJobStable()
 })
 
 
