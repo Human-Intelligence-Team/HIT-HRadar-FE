@@ -6,7 +6,6 @@ import NoticeView from '@/views/notice/NoticeView.vue'
 
 import AppLayout from '@/components/layout/AppLayout.vue'
 import AuthLayout from '@/components/layout/AuthLayout.vue'
-import LoginView from '@/views/auth/LoginView.vue'
 
 import TagView from '@/views/contents/tag/TagView.vue'
 import ContentsView from '@/views/contents/content/ContentsView.vue'
