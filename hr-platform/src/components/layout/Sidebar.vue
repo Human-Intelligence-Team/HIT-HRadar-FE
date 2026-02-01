@@ -166,15 +166,6 @@
       >
         공지 관리
       </RouterLink>
-
-      <RouterLink
-        v-if="can('ALERT_MANAGE')"
-        to="/alert"
-        class="nav-item link"
-        active-class="active"
-      >
-        알림 관리
-      </RouterLink>
       <RouterLink
         v-if="auth.isAdmin"
         to="/admin/company-applications"

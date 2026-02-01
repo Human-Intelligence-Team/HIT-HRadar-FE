@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
 import PolicyView from '@/views/policy/PolicyView.vue'
+import PolicyDetailView from '@/views/policy/PolicyDetailView.vue'
 import NoticeView from '@/views/notice/NoticeView.vue'
 import AppLayout from '@/components/layout/AppLayout.vue'
 import AuthLayout from '@/components/layout/AuthLayout.vue'
@@ -112,7 +113,13 @@ const routes = [
     path: '/', component: AppLayout,
     children: [
       { path: '', redirect: '/policy' },
-      { path: 'policy', component: PolicyView },
+      {
+        path: 'policy',
+        children: [
+          { path: '', name: 'policy', component: PolicyView },
+          { path: ':id', name: 'policy-detail', component: PolicyDetailView, props: true },
+        ]
+      },
       {
         path: 'notice',
         component: NoticeView,
