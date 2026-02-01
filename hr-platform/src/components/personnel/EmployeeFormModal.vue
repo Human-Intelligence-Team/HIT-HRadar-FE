@@ -66,6 +66,14 @@
             </select>
           </div>
 
+          <!-- Roles (Read-Only) -->
+          <div class="form-group" v-if="targetEmp && targetEmp.roles && targetEmp.roles.length > 0">
+            <label>부여된 역할</label>
+            <div class="roles-display">
+                <span v-for="role in targetEmp.roles" :key="role" class="role-badge">{{ role }}</span>
+            </div>
+          </div>
+
           <!-- 개인 상세 정보 -->
           <div class="form-group">
             <label>성별</label>
@@ -361,4 +369,10 @@ select.input {
 .btn.primary { background: var(--primary); color: white; }
 .btn.secondary { background: #f3f4f6; color: var(--text-main); }
 .btn:disabled { opacity: 0.7; cursor: not-allowed; }
+
+.roles-display { display: flex; flex-wrap: wrap; gap: 6px; padding: 4px 0; }
+.role-badge { 
+    background: #f1f5f9; color: #475569; font-size: 12px; padding: 4px 8px; 
+    border-radius: 4px; border: 1px solid #e2e8f0; font-weight: 500;
+}
 </style>

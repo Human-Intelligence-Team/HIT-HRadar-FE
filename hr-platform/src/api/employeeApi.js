@@ -60,8 +60,17 @@ export function updateEmployeeProfile(empId, data) {
  * 사원 삭제
  * DELETE /employees/{empId}
  */
+// ... (previous content)
 export function deleteEmployee(empId) {
     return api.delete(`/api/v1/employees/${empId}`)
+}
+
+/**
+ * 사원 역할 수정
+ * PUT /employees/{empId}/roles
+ */
+export function updateEmployeeRoles(empId, roleIds) {
+    return api.put(`/api/v1/employees/${empId}/roles`, { roleIds })
 }
 
 // --- CSV Bulk Registration ---

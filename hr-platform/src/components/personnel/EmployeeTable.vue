@@ -3,14 +3,15 @@
     <table class="modern-table">
       <thead>
         <tr>
-          <th width="60"></th> <!-- Avatar -->
+          <th width="60"></th> <!-- 아바타 -->
           <th width="100">사번</th>
           <th>사원 정보</th>
           <th>부서</th>
           <th>직위</th>
+          <th>역할</th>
           <th class="text-center" width="80">상태</th>
           <th>연락처</th>
-          <th v-if="isAdmin" width="180" class="text-center" style="padding-left: 55px">관리</th>
+          <th v-if="isAdmin" width="240" class="text-center" style="padding-left: 55px">관리</th>
         </tr>
       </thead>
       <tbody>
@@ -20,28 +21,27 @@
           class="hover-row clickable-row"
           @click="$emit('view', emp)"
         >
-          <!-- Avatar -->
+          <!-- 아바타 -->
           <td class="text-center">
              <div class="avatar-circle">
                <i class="pi pi-user"></i>
              </div>
           </td>
           
-          <!-- Employee No -->
+          <!-- 사번 -->
           <td>
              <span class="emp-no-text">{{ emp.employeeNo || emp.empNo || '-' }}</span>
           </td>
 
-          <!-- Name & ID -->
+          <!-- 이름 & ID -->
           <td>
             <div class="emp-identity">
               <span class="emp-name">{{ emp.name }}</span>
               <span class="emp-email">{{ emp.email || emp.loginId || '-' }}</span>
-              <!-- Fallback ID if needed: <span class="emp-id-sub">{{ emp.employeeNo }}</span> -->
             </div>
           </td>
 
-          <!-- Department (Try nested field first, then Map Lookup) -->
+          <!-- 부서 -->
           <td>
             <div class="dept-info">
                <span class="dept-text">
@@ -50,33 +50,46 @@
             </div>
           </td>
 
-          <!-- Position -->
+          <!-- 직위 -->
           <td>
             <span class="badge position-badge">
               {{ emp.position?.posName || posMap[emp.positionId] || emp.posName || '-' }}
             </span>
           </td>
 
-          <!-- Status -->
+          <!-- 역할 -->
+          <td>
+            <div class="roles-tags">
+                <span v-for="role in (emp.roles || [])" :key="role" class="role-tag">{{ role }}</span>
+                <span v-if="(!emp.roles || emp.roles.length === 0)" class="text-sub">-</span>
+            </div>
+          </td>
+
+          <!-- 상태 -->
           <td class="text-center">
              <span :class="['status-badge', (emp.status === 'RESIGNED' ? 'resigned' : 'active')]">
                {{ emp.status === 'RESIGNED' ? '퇴직' : '재직' }}
              </span>
           </td>
 
-          <!-- Contact (Phone) -->
+          <!-- 연락처 -->
           <td>
              <span class="text-sub">{{ emp.phoneNo || emp.phone || '-' }}</span>
           </td>
 
-          <!-- Actions -->
+          <!-- 관리 기능 -->
           <td v-if="isAdmin" class="text-center action-cell" @click.stop>
              <div class="action-buttons centered">
-                <!-- Edit -->
+                <!-- 역할 배정 -->
+                <button class="btn-action role" @click.stop="$emit('role', emp)" title="역할 부여">
+                  <i class="pi pi-shield"></i>
+                  <span>역할</span>
+                </button>
+                <!-- 수정 -->
                 <button class="btn-action edit" @click.stop="$emit('edit', emp)">
                   <span>수정</span>
                 </button>
-                <!-- Delete -->
+                <!-- 삭제 -->
                 <button class="btn-action delete" @click.stop="$emit('delete', emp)">
                   <span>삭제</span>
                 </button>
@@ -158,7 +171,7 @@ defineEmits(['appointment', 'history', 'edit', 'delete', 'view'])
   margin: 0 4px;
 }
 
-/* Avatar */
+/* 아바타 */
 .avatar-circle {
   width: 36px; height: 36px;
   background: #e0e7ff;
@@ -170,7 +183,7 @@ defineEmits(['appointment', 'history', 'edit', 'delete', 'view'])
   margin: 0 auto;
 }
 
-/* Identity */
+/* 사원 정보 */
 .emp-identity {
   display: flex;
   flex-direction: column;
@@ -192,7 +205,7 @@ defineEmits(['appointment', 'history', 'edit', 'delete', 'view'])
   letter-spacing: 0.5px;
 }
 
-/* Position Badge */
+/* 직위 배지 */
 .position-badge {
   display: inline-flex;
   padding: 4px 10px;
@@ -203,14 +216,14 @@ defineEmits(['appointment', 'history', 'edit', 'delete', 'view'])
   color: #059669; /* Emerald */
 }
 
-/* Actions */
+/* 액션 버튼 */
 .action-buttons {
   display: flex;
   justify-content: flex-end;
   gap: 8px;
 }
 
-/* Modern Action Buttons */
+/* 모던 액션 버튼 스타일 */
 .btn-action {
   display: flex;
   align-items: center;
@@ -268,6 +281,20 @@ defineEmits(['appointment', 'history', 'edit', 'delete', 'view'])
   text-align: center;
   padding: 60px;
 }
+.roles-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+.role-tag { font-size: 11px; background: #f1f5f9; color: #475569; padding: 2px 6px; border-radius: 4px; border: 1px solid #e2e8f0; }
+
+.btn-action.role {
+  color: #8b5cf6;
+  background: #f5f3ff;
+  border-color: #ede9fe;
+}
+.btn-action.role:hover {
+  background: #8b5cf6;
+  color: white;
+  border-color: #8b5cf6;
+}
+
 .empty-state {
   display: flex;
   flex-direction: column;

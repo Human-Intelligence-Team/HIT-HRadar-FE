@@ -73,7 +73,7 @@
             <div class="field-item">
               <div class="label">이메일</div>
               <div v-if="!isEditMode" class="value">{{ employee.email || '-' }}</div>
-              <input v-else v-model="form.email" class="input" type="email" placeholder="example@company.com" />
+              <textarea v-else v-model="form.email" class="input auto-expand" placeholder="example@company.com" rows="1" @input="autoResize"></textarea>
             </div>
             <div class="field-item">
               <div class="label">휴대전화</div>
@@ -91,11 +91,21 @@
             <h3><i class="pi pi-user"></i> 개인 정보</h3>
             <div class="field-item">
               <div class="label">생년월일</div>
-              <div class="value">{{ employee.birth || '-' }}</div>
+              <div v-if="!isEditMode" class="value">{{ employee.birth || '-' }}</div>
+              <input v-else v-model="form.birth" class="input" placeholder="YYYYMMDD" maxlength="8" />
             </div>
             <div class="field-item">
               <div class="label">성별</div>
-              <div class="value">{{ genderMap[employee.gender] || employee.gender || '-' }}</div>
+              <div v-if="!isEditMode" class="value">{{ genderMap[employee.gender] || employee.gender || '-' }}</div>
+              <select v-else v-model="form.gender" class="input">
+                <option value="MALE">남성</option>
+                <option value="FEMALE">여성</option>
+              </select>
+            </div>
+            <div class="field-item full-width">
+              <div class="label">비고</div>
+              <div v-if="!isEditMode" class="value">{{ employee.note || '-' }}</div>
+              <textarea v-else v-model="form.note" class="input auto-expand" placeholder="비고 사항 입력" rows="3" @input="autoResize"></textarea>
             </div>
           </div>
         </div>
@@ -154,7 +164,10 @@ const genderMap = {
 const form = reactive({
   email: '',
   extNo: '',
-  phoneNo: ''
+  phoneNo: '',
+  note: '',
+  birth: '',
+  gender: ''
 })
 
 const pwForm = reactive({
@@ -185,6 +198,9 @@ const syncForm = () => {
     form.email = employee.value.email || ''
     form.extNo = employee.value.extNo || ''
     form.phoneNo = employee.value.phoneNo || ''
+    form.note = employee.value.note || ''
+    form.birth = employee.value.birth || ''
+    form.gender = employee.value.gender || ''
 }
 
 const cancelEdit = () => {
@@ -236,247 +252,248 @@ const handlePasswordChange = async () => {
     }
 }
 
+const autoResize = (event) => {
+    const element = event.target
+    element.style.height = 'auto'
+    element.style.height = element.scrollHeight + 'px'
+}
+
 onMounted(loadData)
 </script>
 
 <style scoped>
-.page-container {
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 32px 20px;
+/* Toss-style Design System */
+:root {
+  --toss-blue: #3182f6;
+  --toss-blue-dark: #1b64da;
+  --toss-grey-bg: #f2f4f6;
+  --toss-grey-100: #f9fafb;
+  --toss-grey-200: #e5e8eb;
+  --toss-grey-300: #b1b8c0;
+  --toss-grey-400: #8b95a1;
+  --toss-grey-500: #6b7684;
+  --toss-grey-700: #333d4b;
+  --toss-grey-900: #191f28;
 }
 
+.page-container {
+    max-width: 720px; /* More mobile-app like width */
+    margin: 0 auto;
+    padding: 40px 20px 80px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    color: #333d4b;
+}
+
+/* Header */
 .page-header {
     display: flex;
-    align-items: flex-end;
+    align-items: center;
     justify-content: space-between;
-    margin-bottom: 32px;
+    margin-bottom: 24px;
 }
 .page-header h1 {
     font-size: 26px;
     font-weight: 700;
-    color: #1a1a1a;
-    margin-bottom: 4px;
+    color: #191f28;
+    margin: 0;
+    letter-spacing: -0.5px;
 }
 .subtitle {
-    font-size: 14px;
-    color: #666;
-    margin: 0;
+    display: none; /* Minimalist header, hide subtitle */
 }
 
-.actions {
-    display: flex;
-    gap: 8px;
-}
-
-/* Enhanced Buttons */
+/* Buttons */
 .btn {
-    padding: 10px 18px;
-    border-radius: 8px;
-    font-size: 14px;
+    padding: 12px 18px;
+    border-radius: 12px;
+    font-size: 15px;
     font-weight: 600;
     border: none;
     cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    transition: all 0.2s;
-}
-.btn-primary { background: #0f172a; color: white; }
-.btn-primary:hover { background: #334155; }
-.btn-secondary { background: #f1f5f9; color: #475569; }
-.btn-secondary:hover { background: #e2e8f0; }
-.btn-ghost { background: transparent; color: #64748b; }
-.btn-ghost:hover { background: #f8fafc; color: #334155; }
-.btn-warning { background: #fff7ed; color: #c2410c; border: 1px solid #ffedd5; }
-.btn-warning:hover { background: #ffedd5; }
-.btn-outline { background: white; border: 1px solid #e2e8f0; color: #475569; }
-.btn-outline:hover { background: #f8fafc; border-color: #cbd5e1; }
-.btn-xs { padding: 4px 10px; font-size: 12px; }
-
-/* Enhanced Cards */
-.card {
-    background: white;
-    border-radius: 16px;
-    border: 1px solid #e2e8f0;
-    padding: 32px;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-    margin-bottom: 24px;
-}
-
-/* Profile Header */
-.profile-header {
-    display: flex;
-    gap: 32px;
-    align-items: center;
-}
-@media (max-width: 600px) {
-    .profile-header { flex-direction: column; text-align: center; }
-    .avatar-area { margin: 0 auto; }
-}
-
-.avatar-lg {
-    width: 120px;
-    height: 120px;
-    border-radius: 50%;
-    background: #f8fafc;
+    transition: all 0.2s cubic-bezier(0.25, 0.1, 0.25, 1);
     display: flex;
     align-items: center;
     justify-content: center;
+    gap: 6px;
+}
+.btn:active { transform: scale(0.96); }
+
+.btn-primary { 
+    background: #3182f6; 
+    color: white; 
+    box-shadow: 0 4px 10px rgba(49, 130, 246, 0.2);
+}
+.btn-primary:hover { background: #1b64da; }
+
+.btn-ghost { background: transparent; color: #6b7684; }
+.btn-ghost:hover { background: rgba(0,0,0,0.04); color: #333d4b; }
+
+.btn-outline { 
+    background: white; 
+    border: 1px solid #e5e8eb; 
+    color: #6b7684; 
+    padding: 8px 12px;
+}
+.btn-warning {
+    background-color: #ffeaea;
+    color: #e63946;
+}
+.btn-xs { font-size: 13px; border-radius: 8px; }
+
+/* Cards */
+.card {
+    background: white;
+    border-radius: 24px; /* Super rounded */
+    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.04); /* Very soft shadow */
+    padding: 30px;
+    margin-bottom: 20px;
+    border: none;
+    transition: transform 0.2s;
+}
+.card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.06); }
+
+/* Profile Header Section */
+.profile-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    margin-bottom: 40px;
+}
+.avatar-lg {
+    width: 100px; height: 100px;
+    border-radius: 40px; /* Squircleish */
+    background: #f2f4f6;
+    margin-bottom: 16px;
     overflow: hidden;
-    border: 3px solid white;
-    box-shadow: 0 0 0 1px #e2e8f0;
+    position: relative;
+    border: none;
 }
 .avatar-lg img { width: 100%; height: 100%; object-fit: cover; }
-.avatar-lg i { font-size: 48px; color: #cbd5e1; }
+.avatar-lg i { font-size: 40px; color: #b1b8c0; line-height: 100px; }
 
-.basic-info { flex: 1; }
 .emp-name {
-    font-size: 28px;
-    font-weight: 800;
-    color: #0f172a;
-    margin-bottom: 12px;
+    font-size: 24px;
+    font-weight: 700;
+    color: #191f28;
+    margin-bottom: 8px;
 }
 
 .badges {
     display: flex;
-    gap: 8px;
+    gap: 6px;
+    justify-content: center;
     margin-bottom: 12px;
-    flex-wrap: wrap;
-    justify-content: flex-start;
 }
 .badge {
-    padding: 5px 10px;
+    padding: 4px 8px;
     border-radius: 6px;
-    font-size: 12px;
-    font-weight: 600;
+    font-size: 13px;
+    font-weight: 500;
+    background: #f2f4f6;
+    color: #4e5968;
 }
-.badge.position { background: #eff6ff; color: #3b82f6; }
-.badge.dept { background: #f5f3ff; color: #8b5cf6; }
-.badge.role { background: #fefce8; color: #ca8a04; border: 1px solid #fef9c3; }
-.badge.status.active { background: #f0fdf4; color: #16a34a; }
-.badge.status.inactive { background: #fef2f2; color: #dc2626; }
+.badge.position { background: #e8f3ff; color: #3182f6; }
+.badge.status.active { color: #3182f6; background: transparent; padding: 0; }
+.badge.status.active:before { content: '● '; }
 
 .emp-meta {
-    display: flex;
-    gap: 12px;
-    color: #64748b;
     font-size: 14px;
-    align-items: center;
-}
-.separator { color: #cbd5e1; }
-
-.divider {
-    height: 1px;
-    background: #f1f5f9;
-    margin: 32px 0;
+    color: #8b95a1;
 }
 
 /* Detail Grid */
-.detail-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 40px;
-}
+.detail-grid { display: flex; flex-direction: column; gap: 32px; }
 .grid-section h3 {
-    font-size: 16px;
-    font-weight: 700;
-    margin-bottom: 20px;
-    color: #334155;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-.grid-section h3 i { color: #94a3b8; font-size: 18px; }
-
-.field-item { margin-bottom: 18px; }
-.field-item .label {
-    font-size: 12px;
-    font-weight: 600;
-    color: #94a3b8;
-    margin-bottom: 6px;
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-}
-.field-item .value {
-    font-size: 15px;
-    color: #1e293b;
-    font-weight: 500;
-    min-height: 24px;
-}
-.font-mono { font-family: monospace; }
-
-/* Input Styling */
-.input {
-    width: 100%;
-    padding: 10px 14px;
-    border: 1px solid #cbd5e1;
-    border-radius: 8px;
-    font-size: 14px;
-    transition: all 0.2s;
-}
-.input:focus {
-    outline: none;
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
-/* Password Card */
-.password-card h3 {
     font-size: 18px;
     font-weight: 700;
-    margin-bottom: 8px;
-    color: #334155;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+    color: #191f28;
+    margin-bottom: 16px;
+    display: flex; align-items: center; gap: 8px;
 }
-.info-text {
-    font-size: 13px;
-    color: #64748b;
-    margin-bottom: 24px;
-}
+.grid-section h3 i { color: #b1b8c0; font-size: 20px; }
 
-.form-row {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 20px;
-    align-items: flex-end;
+.field-item { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    padding: 12px 0;
+    border-bottom: 1px solid #f2f4f6;
 }
-@media (max-width: 768px) {
-    .form-row { grid-template-columns: 1fr; }
-}
+.field-item:last-child { border-bottom: none; }
+.field-item.full-width { flex-direction: column; align-items: flex-start; gap: 8px; }
 
-.field-group label {
-    display: block;
-    font-size: 13px;
+.field-item .label {
+    font-size: 15px;
+    color: #6b7684;
+    font-weight: 500;
+}
+.field-item .value {
+    font-size: 16px;
+    color: #191f28;
     font-weight: 600;
-    color: #475569;
-    margin-bottom: 6px;
+    text-align: right;
 }
-.form-actions {
-    margin-top: 24px;
-    display: flex;
-    justify-content: flex-end;
+.field-item.full-width .value {
+    background: #f9fafb;
+    width: 100%;
+    padding: 12px;
+    border-radius: 12px;
+    text-align: left;
+    font-weight: 400;
+    line-height: 1.5;
+    color: #4e5968;
 }
 
-/* Loading/Error States */
+/* Inputs */
+.input {
+    width: 50%; /* Reduced width as requested */
+    text-align: right;
+    border: none;
+    background: #f9fafb; /* Light grey background for visibility */
+    font-size: 15px;
+    color: #191f28; /* Standard text color */
+    font-weight: 500;
+    padding: 6px 10px; /* Reduced padding */
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+.input.auto-expand {
+    resize: none;
+    overflow: hidden;
+    min-height: 40px; /* Match single line input height approximately */
+    display: block;
+}
+.input::placeholder { color: #b1b8c0; font-weight: 400; }
+.input:focus { 
+    outline: none; 
+    background: #e8f3ff; /* Highlight on focus */
+    color: #1b64da;
+}
+.field-item.full-width .input {
+    text-align: left;
+    height: auto;
+    width: 100%;
+}
+
+/* Password Section */
+.password-form .field-group { margin-bottom: 16px; }
+.password-form label { display: block; font-size: 14px; color: #6b7684; margin-bottom: 6px; }
+.password-form .input {
+    text-align: left;
+    background: #f2f4f6;
+    padding: 14px;
+    border-radius: 14px;
+    color: #191f28;
+    font-weight: 400;
+}
+.form-actions { margin-top: 24px; }
+.btn-warning { width: 100%; }
+
+/* States */
 .loading-state, .error-state {
-    text-align: center;
-    padding: 60px;
-    background: white;
-    border-radius: 16px;
-    border: 1px dashed #cbd5e1;
-    color: #64748b;
+    text-align: center; padding: 80px 20px;
+    background: white; border-radius: 24px;
+    color: #8b95a1;
 }
-.spinner {
-    width: 32px; height: 32px;
-    border: 3px solid #e2e8f0;
-    border-top-color: #3b82f6;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin: 0 auto 16px;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-.error-state i { font-size: 32px; color: #ef4444; margin-bottom: 12px; }
 </style>

@@ -1,15 +1,18 @@
 <template>
-  <section>
-    <div class="section-title">
-      <div>
-        <h1>직위 관리</h1>
-        <div class="sub">회사의 직위 체계와 서열(Rank)을 설정합니다.</div>
+  <section class="page-container">
+    <div class="page-header">
+      <div class="header-content">
+        <h1 class="title">직위 관리</h1>
+        <p class="subtitle">회사의 직위 체계와 서열(Rank)을 효율적으로 관리하세요.</p>
       </div>
     </div>
 
-    <div v-if="loading" class="loading-state">데이터를 불러오는 중...</div>
+    <div v-if="loading" class="loading-container">
+       <div class="loader"></div>
+       <p>데이터를 불러오는 중입니다...</p>
+    </div>
     
-    <div v-else class="page-content">
+    <div v-else class="content-wrapper">
       <PositionTable 
         :positions="positions" 
         :is-admin="true"
@@ -119,17 +122,35 @@ const handleDelete = async (id) => {
 </script>
 
 <style scoped>
-.page-content {
-  margin-top: 16px;
+.page-container {
+  padding: 0 20px 40px;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
-.loading-state {
-  text-align: center;
-  padding: 80px;
-  color: var(--text-muted);
-  background: var(--card);
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border);
-  margin-top: 16px;
+.page-header {
+  margin: 24px 0 32px;
+}
+
+.title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #111827;
+  letter-spacing: -0.02em;
+  margin-bottom: 8px;
+}
+
+.subtitle {
+  color: #6b7280;
+  font-size: 15px;
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 100px 0;
+  color: #6b7280;
 }
 </style>
