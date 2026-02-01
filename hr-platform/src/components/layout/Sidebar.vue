@@ -10,9 +10,26 @@
           <span class="arrow">›</span>
         </div>
         <div class="flyout">
-          <RouterLink to="/employee" class="flyout-item">사원 관리</RouterLink>
-          <RouterLink to="/organization" class="flyout-item">부서 조회</RouterLink>
+          <RouterLink to="/employee" class="flyout-item">사원 관리 (목록)</RouterLink>
+          <RouterLink to="/organization" class="flyout-item">부서 관리 (목록)</RouterLink>
+          <RouterLink to="/department/org-chart" class="flyout-item">조직도</RouterLink>
           <RouterLink to="/department/manage" class="flyout-item">부서 정책 관리</RouterLink>
+          <RouterLink to="/personnel/positions" class="flyout-item">직위 관리</RouterLink>
+          <RouterLink to="/personnel/history" class="flyout-item">인사 발령 이력</RouterLink>
+        </div>
+      </div>
+
+      <!-- 회사 관리 -->
+      <div class="section-title">회사 관리</div>
+      <div class="nav-group has-flyout">
+        <div class="nav-item">
+          <span>회사 정보 관리</span>
+          <span class="arrow">›</span>
+        </div>
+        <div class="flyout">
+          <RouterLink to="/company/my" class="flyout-item">내 회사 정보</RouterLink>
+          <RouterLink to="/company/my-manage" class="flyout-item">내 회사 관리</RouterLink>
+          <RouterLink v-if="auth.isAdmin" to="/company/manage" class="flyout-item">회사 정보 관리 (전체)</RouterLink>
         </div>
       </div>
 
@@ -175,14 +192,19 @@
       >
         알림 관리
       </RouterLink>
-      <RouterLink
-        v-if="auth.isAdmin"
-        to="/admin/company-applications"
-        class="nav-item link"
-        active-class="active"
-      >
-        ❖ Admin Dashboard
-      </RouterLink>
+
+      <!-- 마이페이지 -->
+      <div class="section-title">마이페이지</div>
+      <div class="nav-group has-flyout">
+        <div class="nav-item">
+          <span>내 정보 관리</span>
+          <span class="arrow">›</span>
+        </div>
+        <div class="flyout">
+          <RouterLink to="/my-profile" class="flyout-item">내 정보 조회/수정</RouterLink>
+          <RouterLink to="/my-department" class="flyout-item">내 부서 조회</RouterLink>
+        </div>
+      </div>
 
     </nav>
   </aside>
@@ -221,6 +243,8 @@ const can = (perm) => {
     -apple-system,
     BlinkMacSystemFont,
     sans-serif;
+  position: relative; /* Create stacking context */
+  z-index: 1000; /* Ensure flyout is above content */
 }
 
 /* ===== Layout ===== */

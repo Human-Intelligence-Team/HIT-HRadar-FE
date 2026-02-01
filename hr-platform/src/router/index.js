@@ -86,6 +86,7 @@ import AttendanceEmployeeDetailView from '@/views/attendance/AttendanceEmployeeD
 const routes = [
 
 
+
   {
     path: '/register-company',
     component: CompanyRegisterView,
@@ -94,7 +95,9 @@ const routes = [
   {
     path: '/home',
     component: AuthLayout,
-    children: [{ path: '', component: HomeView }],
+    children: [
+      { path: '', component: HomeView }
+    ],
   },
 
   {
@@ -124,9 +127,22 @@ const routes = [
         ]
       },
 
-      // 조직/부서 관리
+      // 조직/부서/사원 관리
       { path: 'organization', component: DepartmentListView },
+      { path: 'department/org-chart', component: () => import('@/views/department/OrganizationChartView.vue') }, // Organization Chart
       { path: 'department/manage', component: DepartmentManageView },
+      { path: 'employee', component: () => import('@/views/personnel/EmployeeListView.vue') },
+      { path: 'personnel/positions', component: () => import('@/views/personnel/PositionManageView.vue') },
+
+
+      // 인사 발령 및 이력
+      { path: 'personnel/appointment', component: () => import('@/views/personnel/PersonnelAppointmentView.vue') },
+      { path: 'personnel/history', component: () => import('@/views/personnel/PersonnelAppointmentHistoryView.vue') },
+
+      // 회사 관리
+      { path: 'company/my', component: () => import('@/views/company/MyCompanyView.vue') },
+      { path: 'company/my-manage', component: () => import('@/views/company/MyCompanyManageView.vue') },
+      { path: 'company/manage', component: () => import('@/views/company/CompanyManageView.vue') },
 
 
       //성과평가-목표관리
@@ -245,6 +261,10 @@ const routes = [
           { path: 'employee-detail/:employeeId/:workDate', name: 'AttendanceEmployeeDetail', component: AttendanceEmployeeDetailView, props: true }, // 사원 근태 상세 조회
         ],
       },
+
+      // 마이페이지 (사용자 본인 정보)
+      { path: 'my-profile', name: 'MyProfile', component: () => import('@/views/user/MyProfileView.vue') },
+      { path: 'my-department', name: 'MyDepartment', component: () => import('@/views/department/MyDepartmentView.vue') },
     ],
   },
 ]
@@ -260,26 +280,34 @@ router.beforeEach((to) => {
   const publicPaths = ['/home', '/register-company']
   const isPublic = publicPaths.includes(to.path)
 
-  // 로그인 안 했는데 보호 페이지 접근
-  if (!auth.isLoggedIn && !isPublic) {
-    return { path: '/home', query: { redirect: to.fullPath } }
+  // 1. Not logged in -> Redirect to home (unless public)
+  if (!auth.isLoggedIn) {
+    if (!isPublic) {
+      return { path: '/home', query: { redirect: to.fullPath } }
+    }
+    return // Allow public
   }
 
-  // 로그인 했는데, 관리자 페이지에 권한 없이 접근
-  if (to.meta.requiresAdmin && !auth.isAdmin) {
-    alert('접근 권한이 없습니다.');
-    return '/notice'; // 혹은 권한 없음 페이지로
+  // 2. Logged in as ADMIN -> Only Admin pages or landing
+  if (auth.isAdmin) {
+    const isAdminPath = to.path.startsWith('/admin')
+    if (!isAdminPath && !isPublic) {
+      return auth.firstAccessiblePath() || '/admin/company-applications'
+    }
   }
 
-  // 로그인 했는데 로그인 페이지 접근
-  if (auth.isLoggedIn && to.path === '/login') {
-    return auth.firstAccessiblePath() || '/'
-  }
-  // 로그인 했는데 /home 접근하면 첫 접근 가능 페이지로 보냄
-  if (auth.isLoggedIn && isPublic) {
-    const next = auth.firstAccessiblePath?.()
-    // next가 '/', '/home', '' 같은 값이면 루프 나기 쉬우니 안전값 강제
-    return next && next !== '/' && next !== '/home' ? next : '/policy'
+  // 3. Logged in as USER -> No Admin pages
+  if (!auth.isAdmin) {
+    const isAdminPath = to.path.startsWith('/admin')
+    if (isAdminPath) {
+      alert('접근 권한이 없습니다.')
+      return '/policy'
+    }
+
+    // Redirect away from landing to main app
+    if (isPublic) {
+      return '/policy'
+    }
   }
 })
 
