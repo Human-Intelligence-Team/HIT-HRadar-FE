@@ -2,14 +2,16 @@
   box-sizing: border-box;
 }
 
-html, body, #app {
+html,
+body,
+#app {
   height: 100%;
 }
 
 body {
   margin: 0;
   font-family: ui-sans-serif, system-ui, -apple-system,
-  "Segoe UI", "Noto Sans KR", "Pretendard", sans-serif;
+    "Segoe UI", "Noto Sans KR", "Pretendard", sans-serif;
 
   background:
     var(--bg-gradient),
@@ -27,6 +29,8 @@ a {
   text-decoration: none;
 }
 
-button, input, textarea {
+button,
+input,
+textarea {
   font: inherit;
 }

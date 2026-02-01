@@ -29,6 +29,10 @@
             <span>사용자 계정 관리</span>
             <span class="arrow">›</span>
           </RouterLink>
+          <RouterLink to="/admin/permissions" class="nav-item" active-class="active">
+            <span>권한 레지스트리</span>
+            <span class="arrow">›</span>
+          </RouterLink>
           <!-- Future Admin Menus -->
         </nav>
       </aside>

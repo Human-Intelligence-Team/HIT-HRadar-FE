@@ -13,6 +13,9 @@
 
     <!-- Right -->
     <div class="header-right">
+      <RouterLink v-if="auth.isAdmin" to="/admin/company-applications" class="admin-link">
+         관리자 페이지 
+      </RouterLink>
       <NotificationBell />
       <ThemeToggle />
       <button class="logout-btn" @click="logout">로그아웃</button>
@@ -105,5 +108,20 @@ const logout = async () => {
 
 .logout-btn:hover {
   background: #f4f6f8;
+}
+
+.admin-link {
+  font-size: 13px;
+  font-weight: 600;
+  color: #2563eb;
+  text-decoration: none;
+  border: 1px solid #bfdbfe;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: #eff6ff;
+  transition: all 0.2s;
+}
+.admin-link:hover {
+  background: #dbeafe;
 }
 </style>

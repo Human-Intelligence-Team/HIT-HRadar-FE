@@ -19,3 +19,15 @@ export function fetchUserAccountDetail(accId) {
 export function fetchAdminLoginId(accId) {
   return api.get(`/api/v1/adminAccounts/${accId}/login-id`)
 }
+
+// 비밀번호 변경
+export function changeMyPassword(data) {
+    return api.patch('/api/v1/users/me/password', data)
+}
+
+// 사용자 정보 수정
+export function updateUserAccount(accId, data) {
+    return api.patch(`/api/v1/users/${accId}`, data)
+}
+
+

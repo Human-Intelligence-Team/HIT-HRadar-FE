@@ -86,6 +86,9 @@ import AttendanceEmployeeDetailView from '@/views/attendance/AttendanceEmployeeD
 const routes = [
 
 
+
+
+
   {
     path: '/register-company',
     component: CompanyRegisterView,
@@ -94,7 +97,9 @@ const routes = [
   {
     path: '/home',
     component: AuthLayout,
-    children: [{ path: '', component: HomeView }],
+    children: [
+      { path: '', component: HomeView }
+    ],
   },
 
   {
@@ -105,6 +110,7 @@ const routes = [
       { path: 'company-applications', component: AdminComAppList },
       { path: 'user-accounts', component: AdminUserAccountList },
       { path: 'approval-document-types', component: ApprovalDocumentTypeManagementView, meta: { requiresAdmin: true } },
+      { path: 'permissions', component: () => import('@/views/admin/PermissionRegistryView.vue') },
     ]
   },
 
@@ -117,16 +123,32 @@ const routes = [
         path: 'notice',
         component: NoticeView,
         children: [
-          { path: '', name: 'notice-list', component: NoticeListView },
-          { path: 'create', name: 'notice-create', component: NoticeCreateView },
-          { path: ':id', name: 'notice-detail', component: NoticeDetailView, props: true },
-          { path: ':id/edit', name: 'notice-edit', component: NoticeEditView, props: true },
+          { path: '', name: 'notice-list', component: NoticeListView, meta: { permission: 'NOTICE_READ' } },
+          { path: 'create', name: 'notice-create', component: NoticeCreateView, meta: { permission: 'NOTICE_MANAGE' } },
+          { path: ':id', name: 'notice-detail', component: NoticeDetailView, props: true, meta: { permission: 'NOTICE_READ' } },
+          { path: ':id/edit', name: 'notice-edit', component: NoticeEditView, props: true, meta: { permission: 'NOTICE_MANAGE' } },
         ]
       },
 
-      // 조직/부서 관리
-      { path: 'organization', component: DepartmentListView },
-      { path: 'department/manage', component: DepartmentManageView },
+      // 조직/부서/사원 관리
+      { path: 'organization', component: DepartmentListView, meta: { permission: 'DEPT_READ' } },
+      { path: 'department/org-chart', component: () => import('@/views/department/OrganizationChartView.vue') }, // Organization Chart
+      { path: 'department/manage', component: DepartmentManageView, meta: { permission: 'DEPT_MANAGE' } },
+      { path: 'employee', component: () => import('@/views/personnel/EmployeeListView.vue') },
+      { path: 'personnel/employees/list', component: () => import('@/views/personnel/EmployeeReadOnlyView.vue') }, // Read-Only Employee List
+      { path: 'personnel/positions', component: () => import('@/views/personnel/PositionManageView.vue') },
+      { path: 'personnel/positions/list', component: () => import('@/views/personnel/PositionReadOnlyView.vue') }, // Read-Only Position List
+
+
+      // 인사 발령 및 이력
+      { path: 'personnel/appointment', component: () => import('@/views/personnel/PersonnelAppointmentView.vue') },
+      { path: 'personnel/history', component: () => import('@/views/personnel/PersonnelAppointmentHistoryView.vue') },
+
+      // 회사 관리
+      { path: 'company/my', component: () => import('@/views/company/MyCompanyView.vue') },
+      { path: 'company/my-manage', component: () => import('@/views/company/MyCompanyManageView.vue'), meta: { permission: 'COMPANY_MANAGE' } },
+      { path: 'company/roles', component: () => import('@/views/company/RoleManageView.vue'), meta: { permission: 'ROLE_MANAGE' } },
+      { path: 'company/manage', component: () => import('@/views/company/CompanyManageView.vue'), meta: { permission: 'COMPANY_MANAGE' } },
 
 
       //성과평가-목표관리
@@ -257,6 +279,10 @@ const routes = [
           { path: 'admin/department-history', component: () => import('@/views/leave/DepartmentLeaveHistoryView.vue'), meta: { requiresAdmin: true } },
         ],
       },
+
+      // 마이페이지 (사용자 본인 정보)
+      { path: 'my-profile', name: 'MyProfile', component: () => import('@/views/user/MyProfileView.vue') },
+      { path: 'my-department', name: 'MyDepartment', component: () => import('@/views/department/MyDepartmentView.vue') },
     ],
   },
 ]
@@ -266,32 +292,48 @@ const router = createRouter({
   routes,
 })
 
-router.beforeEach((to) => {
+router.beforeEach((to, from) => {
   const auth = useAuthStore()
 
   const publicPaths = ['/home', '/register-company']
   const isPublic = publicPaths.includes(to.path)
 
-  // 로그인 안 했는데 보호 페이지 접근
-  if (!auth.isLoggedIn && !isPublic) {
-    return { path: '/home', query: { redirect: to.fullPath } }
+  // 1. Not logged in -> Redirect to home (unless public)
+  if (!auth.isLoggedIn) {
+    if (!isPublic) {
+      return { path: '/home', query: { redirect: to.fullPath } }
+    }
+    return // Allow public
   }
 
-  // 로그인 했는데, 관리자 페이지에 권한 없이 접근
-  if (to.meta.requiresAdmin && !auth.isAdmin) {
-    alert('접근 권한이 없습니다.');
-    return '/notice'; // 혹은 권한 없음 페이지로
+  // 2. Logged in as ADMIN -> Only Admin pages or landing
+  if (auth.isAdmin) {
+    const isAdminPath = to.path.startsWith('/admin')
+    if (!isAdminPath && !isPublic) {
+      return auth.firstAccessiblePath() || '/admin/company-applications'
+    }
   }
 
-  // 로그인 했는데 로그인 페이지 접근
-  if (auth.isLoggedIn && to.path === '/login') {
-    return auth.firstAccessiblePath() || '/'
-  }
-  // 로그인 했는데 /home 접근하면 첫 접근 가능 페이지로 보냄
-  if (auth.isLoggedIn && isPublic) {
-    const next = auth.firstAccessiblePath?.()
-    // next가 '/', '/home', '' 같은 값이면 루프 나기 쉬우니 안전값 강제
-    return next && next !== '/' && next !== '/home' ? next : '/policy'
+  // 3. Logged in as USER -> No Admin pages & Check Permissions
+  if (!auth.isAdmin) {
+    const isAdminPath = to.path.startsWith('/admin')
+    if (isAdminPath) {
+      alert('접근 권한이 없습니다.')
+      // If direct load (!from.matched.length), redirect. Otherwise stay (cancel).
+      return from.matched.length > 0 ? false : '/policy'
+    }
+
+    // 세부 권한 체크 (route.meta.permission)
+    if (to.meta.permission && !auth.hasPermission(to.meta.permission)) {
+      alert('해당 메뉴에 대한 접근 권한이 없습니다.')
+      // If direct load (!from.matched.length), redirect. Otherwise stay (cancel).
+      return from.matched.length > 0 ? false : (auth.firstAccessiblePath() || '/policy')
+    }
+
+    // Redirect away from landing to main app
+    if (isPublic) {
+      return '/policy'
+    }
   }
 })
 

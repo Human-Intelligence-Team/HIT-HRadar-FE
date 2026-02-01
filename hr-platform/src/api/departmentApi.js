@@ -34,25 +34,25 @@ export function deleteDepartment(deptId) {
 
 /**
  * 부서 단건 조회
- * GET /departments/{deptId}
+ * GET /departments/query/{deptId}
  * @param {Number} deptId
  */
 export function getDepartmentById(deptId) {
-    return api.get(`/api/v1/departments/${deptId}`);
+    return api.get(`/api/v1/departments/query/${deptId}`);
 }
 
 /**
  * 회사별 부서 전체 조회
- * GET /departments
+ * GET /departments/query
  */
 export function getAllDepartmentsByCompany() {
-    return api.get('/api/v1/departments');
+    return api.get('/api/v1/departments/query');
 }
 
 /**
  * 조직도 조회
- * GET /departments/organization-chart
+ * GET /departments/query/organization-chart
  */
 export function getOrganizationChart() {
-    return api.get('/api/v1/departments/organization-chart');
+    return api.get('/api/v1/departments/query/organization-chart');
 }
