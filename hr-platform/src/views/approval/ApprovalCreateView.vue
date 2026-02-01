@@ -2,7 +2,6 @@
   <div class="page">
     <div class="section-title">
       <h1>결재 문서 등록</h1>
-      <div class="sub">새로운 결재 문서를 작성하거나 임시 저장된 문서를 수정합니다.</div>
     </div>
 
     <section class="card form-card">

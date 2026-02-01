@@ -2,7 +2,6 @@
   <div class="page">
     <div class="section-title">
       <h1>결재 문서함</h1>
-      <div class="sub">나에게 결재 요청된 문서 목록입니다.</div>
     </div>
 
     <section class="card document-list">

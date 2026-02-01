@@ -31,6 +31,14 @@ api.interceptors.request.use(
       if (!config.headers.Authorization) {
         config.headers.Authorization = `Bearer ${token}`;
       }
+
+      // 백엔드 AuthUserArgumentResolver가 요구하는 X- 헤더들 주입
+      if (authStore.user) {
+        if (authStore.user.userId) config.headers['X-User-Id'] = authStore.user.userId;
+        if (authStore.user.role) config.headers['X-User-Role'] = authStore.user.role;
+        if (authStore.user.companyId) config.headers['X-Company-Id'] = authStore.user.companyId;
+        if (authStore.user.employeeId) config.headers['X-Employee-Id'] = authStore.user.employeeId;
+      }
     }
 
     return config;

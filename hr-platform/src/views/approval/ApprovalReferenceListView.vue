@@ -2,7 +2,6 @@
   <div class="page">
     <div class="section-title">
       <h1>참조 문서함</h1>
-      <div class="sub">내가 참조자로 지정된 결재 문서 목록입니다.</div>
     </div>
 
     <section class="card document-list">

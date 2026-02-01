@@ -6,11 +6,8 @@ import {
   loginApi,
   logoutApi,
   refreshApi,
-  // getProfileApi,
-  // registerApi,
-  // checkLoginIdApi,
-  // checkNicknameApi,
 } from '@/api/authApi';
+import { getMyPermissionsApi } from '@/api/roleApi';
 
 import router from '@/router';
 
@@ -28,11 +25,7 @@ export const useAuthStore = defineStore('auth', () => {
   })
 
   const user = ref(emptyUser())
-  // const profile = ref({
-  //   name: '',
-  //   companyName: '',
-  // })
-
+  const permissions = ref([])
   const loading = ref(false);
 
   /* ----------------------------
@@ -40,6 +33,10 @@ export const useAuthStore = defineStore('auth', () => {
    * ---------------------------- */
   const isLoggedIn = computed(() => !!accessToken.value && !!user.value?.userId);
   const isAdmin = computed(() => (user.value?.role || '').toUpperCase() === 'ADMIN');
+  const hasPermission = (permKey) => {
+    if (isAdmin.value) return true; // ADMIN은 모든 권한 허용
+    return permissions.value.includes(permKey);
+  };
 
   /* ----------------------------
    * utils
@@ -78,6 +75,9 @@ export const useAuthStore = defineStore('auth', () => {
 
     if (token) accessToken.value = token;
     if (userStr) user.value = JSON.parse(userStr);
+
+    const permsStr = localStorage.getItem('permissions');
+    if (permsStr) permissions.value = JSON.parse(permsStr);
   };
 
   const clearAuthState = () => {
@@ -101,6 +101,8 @@ export const useAuthStore = defineStore('auth', () => {
 
       setAccessToken(data.accessToken);
       setUserFromToken(data.accessToken);
+
+      await fetchPermissions(); // 로그인 후 권한 목록 가져오기
 
       return { success: true };
     } catch (e) {
@@ -159,10 +161,27 @@ export const useAuthStore = defineStore('auth', () => {
     clearAuthState();
   };
 
+  const fetchPermissions = async () => {
+    try {
+      if (!isLoggedIn.value) return;
+      const res = await getMyPermissionsApi();
+      if (res.data.success) {
+        permissions.value = res.data.data;
+        localStorage.setItem('permissions', JSON.stringify(permissions.value));
+      }
+    } catch (e) {
+      console.error('Failed to fetch permissions', e);
+    }
+  };
+
   const firstAccessiblePath = () => {
     if (!user.value) return '/login'
     if (user.value.role === 'ADMIN') return '/admin/company-applications'
-    return '/notice'
+
+    // Check permission for the default landing page
+    if (hasPermission('NOTICE_READ')) return '/notice'
+
+    return '/my-profile'
   }
 
   // const loadProfile = async () => {
@@ -185,10 +204,12 @@ export const useAuthStore = defineStore('auth', () => {
   return {
     accessToken,
     user,
+    permissions,
     loading,
 
     isLoggedIn,
     isAdmin,
+    hasPermission,
 
     setAccessToken,
     resetUser,
@@ -197,6 +218,7 @@ export const useAuthStore = defineStore('auth', () => {
     clearAuthState,
 
     login,
+    fetchPermissions,
     refreshTokens,
     // register,
     logout,
