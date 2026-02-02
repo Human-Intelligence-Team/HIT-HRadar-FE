@@ -1,11 +1,19 @@
 <template>
   <div class="page-container">
-    <h1 class="title">새 공지 작성</h1>
-    <NoticeForm
-      submit-label="작성 완료"
-      @submit="handleSubmit"
-      @cancel="router.back()"
-    />
+    <div class="section-title">
+      <div>
+        <h1>공지 작성</h1>
+        <div class="sub">새로운 공지사항을 작성하여 등록합니다.</div>
+      </div>
+    </div>
+
+    <div class="card form-card">
+      <NoticeForm
+        submit-label="작성 완료"
+        @submit="handleSubmit"
+        @cancel="router.back()"
+      />
+    </div>
   </div>
 </template>
 
@@ -31,11 +39,11 @@ async function handleSubmit(payload) {
 
 <style scoped>
 .page-container {
-  padding: 20px;
+  max-width: 900px;
+  margin: 0 auto;
 }
-.title {
-  font-size: 24px;
-  font-weight: 600;
-  margin-bottom: 20px;
+.form-card {
+  padding: 30px;
+  margin-top: 10px;
 }
 </style>

@@ -33,6 +33,12 @@ export const useDocumentStore = defineStore('document', {
       this.selected = document
     },
 
+    async fetchDocumentById(id) {
+      const detail = await fetchDocumentDetail(id);
+      this.selected = detail; // Optional: keep the 'selected' state in sync
+      return detail;
+    },
+
     /* =========================
        CRUD operations
     ========================= */

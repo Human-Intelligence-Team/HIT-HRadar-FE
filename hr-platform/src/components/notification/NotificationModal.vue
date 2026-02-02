@@ -91,12 +91,13 @@ function formatTime(iso) {
 
   position: absolute;
   right: 0;
-  top: 36px;
+  top: 42px;
   width: 360px;
   background: #ffffff;
   border-radius: 14px;
   box-shadow: 0 20px 40px rgba(0,0,0,.18);
   overflow: hidden;
+  z-index: 10001;
   color: #0f172a;                    /* 기본 텍스트 색 */
 }
 

@@ -12,17 +12,11 @@
         </div>
       </div>
 
-      <QuickQuestions @pick="onPick" @selectCategory="onSelectCategory" :selectedCategory="chat.selectedCategory" />
-
       <div class="modal-body" ref="bodyEl">
         <ChatMessage v-for="(m,i) in chat.messages" :key="i" :msg="m" />
       </div>
 
       <div class="modal-foot">
-        <div v-if="chat.selectedCategory" class="selected-category-display">
-          선택된 카테고리: <strong>{{ chat.selectedCategory }}</strong>
-          <button class="btn ghost btn-clear-category" @click="clearSelectedCategory">✕</button>
-        </div>
         <input class="chat-input" v-model="input" :placeholder="inputPlaceholder"
                @keydown.enter="onEnter" />
         <button class="btn primary" @click="send">전송</button>
@@ -35,14 +29,13 @@
 import { nextTick, ref, watch, computed } from 'vue'
 import { useChatbotStore } from '@/stores/chatbotStore'
 import ChatMessage from './ChatMessage.vue'
-import QuickQuestions from './QuickQuestions.vue'
 
 const chat = useChatbotStore()
 const input = ref('')
 const bodyEl = ref(null)
 
 const inputPlaceholder = computed(() => {
-  return chat.selectedCategory ? `${chat.selectedCategory}에 대해 질문하세요.` : '예: 연차 이월 기준 알려줘';
+  return '인사 제도/규정에 대해 질문하세요.';
 });
 
 function scrollBottom() {
@@ -53,25 +46,12 @@ function scrollBottom() {
 function send() {
   const t = input.value.trim()
   if (!t) return
-  chat.sendUser(t, chat.selectedCategory) // Pass selected category
+  chat.sendUser(t)
   input.value = ''
-}
-
-function onPick(text) {
-  chat.sendUser(text, chat.selectedCategory) // Pass selected category
-}
-
-function onSelectCategory(category) {
-  chat.setSelectedCategory(category)
-}
-
-function clearSelectedCategory() {
-  chat.setSelectedCategory(null);
 }
 
 function clearChat() {
   chat.clear();
-  // chat.setSelectedCategory(null); // Redundant, as chat.clear() in store already handles it
 }
 
 watch(

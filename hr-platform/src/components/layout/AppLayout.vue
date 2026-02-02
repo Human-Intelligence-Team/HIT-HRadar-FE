@@ -11,12 +11,18 @@
         </router-view>
       </main>
     </div>
+    
+    <!-- Chatbot Components -->
+    <ChatbotButton />
+    <ChatbotModal />
   </div>
 </template>
 
 <script setup>
 import Header from './Header.vue'
 import Sidebar from './Sidebar.vue'
+import ChatbotButton from '@/components/chatbot/ChatbotButton.vue'
+import ChatbotModal from '@/components/chatbot/ChatbotModal.vue'
 </script>
 
 <style scoped>
