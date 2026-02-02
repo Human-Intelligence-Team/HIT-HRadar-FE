@@ -117,6 +117,21 @@ const form = ref({
 const editorRef = ref(null)
 const fileInputRef = ref(null)
 
+function processContent(content) {
+  if (!content) return ''
+  const apiBase = import.meta.env.VITE_API_BASE_URL
+  if (!apiBase) return content
+
+  return content.replace(/<img[^>]+src="([^">]+)"/g, (match, src) => {
+    // If it starts with /api and not http, prepend base
+    if (src.startsWith('/api/v1/files')) {
+       const baseUrl = apiBase.endsWith('/') ? apiBase.slice(0, -1) : apiBase
+       return match.replace(src, `${baseUrl}${src}`)
+    }
+    return match
+  })
+}
+
 // Populate form when notice prop is provided (for editing)
 watch(
   () => props.notice,
@@ -127,7 +142,8 @@ watch(
       form.value.categoryId = newNotice.categoryId || ''
       form.value.existingAttachments = newNotice.attachments || []
       form.value.deletedAttachmentIds = []
-      if(editorRef.value) editorRef.value.innerHTML = newNotice.content || ''
+      // When loading into editor, process the content to show images with full URL
+      if(editorRef.value) editorRef.value.innerHTML = processContent(newNotice.content || '')
     }
   },
   { immediate: true }
@@ -139,7 +155,7 @@ onMounted(() => {
   }
   // Set initial content for contenteditable div
   if(editorRef.value) {
-    editorRef.value.innerHTML = form.value.content
+    editorRef.value.innerHTML = processContent(form.value.content)
   }
 })
 
@@ -165,8 +181,20 @@ async function uploadAndInsert(file) {
   if (!file?.type.startsWith('image/')) return
   try {
     const relativeUrl = await store.uploadImage(file)
-    // Use fileBaseUrl for direct access locally
-    const absoluteUrl = relativeUrl.startsWith('http') ? relativeUrl : fileBaseUrl + relativeUrl
+    // Use fileBaseUrl for direct access locally. Even if it starts with /, we want to prefix it 
+    // if it's an API path (implied by this context) so it renders correctly in the editor.
+    // However, we should be careful. If fileBaseUrl is just '/' then it's same.
+    // The user explicitly asked to "attach VITE_API_BASE_URL endpoint".
+    // So we assume we want absolute URL or at least prefixed with API base.
+    
+    let absoluteUrl = relativeUrl
+    if (!relativeUrl.startsWith('http')) {
+        // Remove leading slash from relativeUrl to avoid double slash if fileBaseUrl has trailing slash
+        // OR handle it smartly.
+        const baseUrl = fileBaseUrl.endsWith('/') ? fileBaseUrl.slice(0, -1) : fileBaseUrl
+        const cleanRelative = relativeUrl.startsWith('/') ? relativeUrl : '/' + relativeUrl
+        absoluteUrl = `${baseUrl}${cleanRelative}`
+    }
     insertImageAtCursor(absoluteUrl)
     // Update content model after insertion
     if (editorRef.value) form.value.content = editorRef.value.innerHTML
@@ -216,9 +244,20 @@ function toggleDeleteExisting(id) {
 }
 
 function handleSubmit() {
+  // Clean content before saving: remove API base URL to keep paths relative
+  let contentToSave = form.value.content
+  const apiBase = import.meta.env.VITE_API_BASE_URL
+  if (apiBase) {
+      // Create a regex to match the base URL
+      // Escape special characters in apiBase for regex
+      const escapedBase = apiBase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+      const regex = new RegExp(escapedBase, 'g')
+      contentToSave = contentToSave.replace(regex, '')
+  }
+
   const payload = {
     title: form.value.title,
-    content: form.value.content,
+    content: contentToSave,
     categoryId: form.value.categoryId,
     attachments: form.value.attachments,
     deletedAttachmentIds: form.value.deletedAttachmentIds
