@@ -17,15 +17,10 @@
         <textarea id="content" v-model="form.content" class="input-field" rows="5" placeholder="내용을 입력하세요."></textarea>
       </div>
 
-      <DepartmentEmployeeSelector label="결재자" v-model="form.approverIds" hint="결재자를 검색하여 추가하세요." />
+      <DepartmentEmployeeSelector label="결재자" v-model="form.approverIds" hint="결재자를 검색하여 추가하세요." :maxItems="5" />
+      
+      <DepartmentEmployeeSelector label="참조자 (선택 사항)" v-model="form.referenceIds" hint="참조자를 검색하여 추가하세요. (선택 사항)" :allowDeptSelection="true" />
 
-      <DepartmentEmployeeSelector label="참조자 (선택 사항)" v-model="form.referenceIds" hint="참조자를 검색하여 추가하세요. (선택 사항)" />
-
-      <div class="form-group">
-        <label for="payload">추가 정보 (JSON 형식, 선택 사항)</label>
-        <textarea id="payload" v-model="payloadInput" class="input-field" rows="5" placeholder="{ &quot;key&quot;: &quot;value&quot; } (선택 사항)"></textarea>
-        <small class="hint">문서 유형에 따라 필요한 추가 정보를 JSON 형태로 입력하세요.</small>
-      </div>
 
       <div class="form-actions">
         <button class="btn btn-secondary" @click="saveDraft">임시저장</button>
@@ -36,13 +31,14 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import DocumentTypeSelector from '@/components/approval/DocumentTypeSelector.vue';
 import DepartmentEmployeeSelector from '@/components/approval/DepartmentEmployeeSelector.vue';
 import {
   createApprovalDraft,
   submitApproval,
+  submitNewApproval,
   fetchApprovalDetail,
 } from '@/api/approvalApi';
 
@@ -57,17 +53,6 @@ const form = ref({
   approverIds: [],
   referenceIds: [],
 });
-const payloadInput = ref('');
-
-const payload = computed(() => {
-  try {
-    return payloadInput.value ? JSON.parse(payloadInput.value) : null;
-  } catch (e) {
-    console.error('Invalid JSON payload:', e);
-    alert('추가 정보가 올바른 JSON 형식이 아닙니다.');
-    return null;
-  }
-});
 
 onMounted(async () => {
   if (route.params.id) {
@@ -81,7 +66,6 @@ onMounted(async () => {
         form.value.content = detail.content;
         form.value.approverIds = detail.approverIds || [];
         form.value.referenceIds = detail.referenceIds || [];
-        // payloadInput.value = JSON.stringify(detail.payload, null, 2); // If payload is returned
       }
     } catch (error) {
       alert('결재 문서를 불러오는 데 실패했습니다.');
@@ -108,30 +92,30 @@ const validateForm = () => {
     alert('결재자를 1명 이상 지정해주세요.');
     return false;
   }
-  if (payloadInput.value && !payload.value) {
-    // payload computed property already handles invalid JSON and alerts
-    return false;
-  }
   return true;
 };
 
 const saveDraft = async () => {
   if (!validateForm()) return;
 
+  const request = {
+    docType: form.value.docType,
+    title: form.value.title,
+    content: form.value.content,
+    approverIds: form.value.approverIds,
+    referenceIds: form.value.referenceIds,
+    payload: {}, // Try standard
+    Payload: {}  // Try exact field name
+  };
+
+  console.log('Sending Draft Request:', request);
+
   try {
-    const request = {
-      docType: form.value.docType,
-      title: form.value.title,
-      content: form.value.content,
-      approverIds: form.value.approverIds,
-      referenceIds: form.value.referenceIds,
-      payload: payload.value,
-    };
     const response = await createApprovalDraft(request);
     alert('문서가 임시저장되었습니다. 문서 ID: ' + response.data.data);
-    router.push(`/approval/my-documents`); // Navigate to my documents list
+    router.push(`/approval/my-documents`);
   } catch (error) {
-    alert('임시저장에 실패했습니다.');
+    alert('임시저장에 실패했습니다. 관리자에게 문의하거나 브라우저 새로고침(F5)을 해주세요.');
     console.error('Failed to save draft:', error);
   }
 };
@@ -140,25 +124,39 @@ const handleSubmitApproval = async () => {
   if (!validateForm()) return;
 
   try {
-    let currentDocId = docId.value;
-    if (!currentDocId) {
-      // If it's a new document, save as draft first then submit
-      const draftRequest = {
+    if (!docId.value) {
+      // 신규 작성 시 바로 상신 API 호출
+      const submitRequest = {
         docType: form.value.docType,
         title: form.value.title,
         content: form.value.content,
-              approverIds: form.value.approverIds,
-              referenceIds: form.value.referenceIds,        payload: payload.value,
+        approverIds: form.value.approverIds,
+        referenceIds: form.value.referenceIds,
+        payload: {},
+        Payload: {}
       };
-      const draftResponse = await createApprovalDraft(draftRequest); // This will save as DRAFT first
-      currentDocId = draftResponse.data.data;
+      
+      console.log('Sending Direct Submit Request:', submitRequest);
+      try {
+        await submitNewApproval(submitRequest);
+      } catch (submitError) {
+        console.error('Direct Submit Error Details:', submitError.response || submitError);
+        throw submitError;
+      }
+      
+    } else {
+      // 이미 임시저장된 문서가 있는 경우 기존 로직
+      await submitApproval(docId.value);
     }
 
-    await submitApproval(currentDocId); // Then submit the document
     alert('문서가 성공적으로 상신되었습니다.');
-    router.push(`/approval/my-documents`); // Navigate to my documents list
+    router.push(`/approval/my-documents`);
   } catch (error) {
-    alert('문서 상신에 실패했습니다.');
+    if (error.response?.data?.message) {
+      alert(`상신 실패: ${error.response.data.message}`);
+    } else {
+      alert('문서 상신에 실패했습니다. 입력 정보를 확인해주세요.');
+    }
     console.error('Failed to submit approval:', error);
   }
 };

@@ -30,9 +30,19 @@ export const useNotificationStore = defineStore('notification', {
     async load() {
       if (this.loaded) return
 
-      const res = await fetchNotifications()
-      this.notifications = res.data.map(normalizeNotification)
-      this.loaded = true
+      try {
+        const res = await fetchNotifications()
+        if (res && res.data) {
+          this.notifications = Array.isArray(res.data) ? res.data.map(normalizeNotification) : []
+        }
+        this.loaded = true
+      } catch (error) {
+        console.error('Failed to load notifications:', error)
+        this.notifications = []
+        // Don't set loaded to true so it can retry later if needed, 
+        // or set it to true to stop repeated failing attempts.
+        this.loaded = true
+      }
     },
 
     push(notification) {

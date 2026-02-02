@@ -2,7 +2,7 @@
   <Transition name="fade">
     <div v-if="isOpen" class="modal-overlay" @click.self="close">
       <Transition name="slide-up">
-        <div class="modal-card">
+        <div v-if="isOpen" class="modal-card">
           <div class="modal-header">
             <h3>근무 상세 정보</h3>
             <button class="btn-close" @click="close">✕</button>
