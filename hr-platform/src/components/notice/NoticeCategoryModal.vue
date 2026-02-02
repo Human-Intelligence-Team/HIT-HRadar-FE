@@ -64,7 +64,7 @@ const store = useNoticeStore()
 const newCategoryName = ref('')
 const editingCategory = ref(null) // { id: null, name: '' }
 
-const categories = computed(() => store.categories)
+const categories = computed(() => store.categories.filter(cat => cat.name !== '알림 관리'))
 
 async function addCategory() {
   if (newCategoryName.value.trim()) {

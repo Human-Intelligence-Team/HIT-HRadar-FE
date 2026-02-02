@@ -218,7 +218,7 @@ const replyTo = (comment) => {
   replyToCommentWriter.value = comment.writerId;
   newCommentContent.value = `@${comment.writerId} `;
   // Focus on the comment input field
-  const commentInput = document.getElementById('newCommentInput');
+  const commentInput = document.value.getElementById('newCommentInput');
   if (commentInput) {
     commentInput.focus();
   }

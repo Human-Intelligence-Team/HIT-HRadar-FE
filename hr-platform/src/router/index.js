@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
 import PolicyView from '@/views/policy/PolicyView.vue'
+import PolicyDetailView from '@/views/policy/PolicyDetailView.vue'
 import NoticeView from '@/views/notice/NoticeView.vue'
 import AppLayout from '@/components/layout/AppLayout.vue'
 import AuthLayout from '@/components/layout/AuthLayout.vue'
@@ -126,6 +127,23 @@ const routes = [
       { path: 'notice/:id', name: 'notice-detail', component: NoticeDetailView, props: true, meta: { permission: 'NOTICE_READ' } },
       { path: 'notice/:id/edit', name: 'notice-edit', component: NoticeEditView, props: true, meta: { permission: 'NOTICE_MANAGE' } },
       { path: 'alert', name: 'alert-list', component: () => import('@/views/notice/AlertListView.vue'), meta: { permission: 'ALERT_MANAGE' } },
+      {
+        path: 'policy',
+        children: [
+          { path: '', name: 'policy', component: PolicyView },
+          { path: ':id', name: 'policy-detail', component: PolicyDetailView, props: true },
+        ]
+      },
+      {
+        path: 'notice',
+        component: NoticeView,
+        children: [
+          { path: '', name: 'notice-list', component: NoticeListView, meta: { permission: 'NOTICE_READ' } },
+          { path: 'create', name: 'notice-create', component: NoticeCreateView, meta: { permission: 'NOTICE_MANAGE' } },
+          { path: ':id', name: 'notice-detail', component: NoticeDetailView, props: true, meta: { permission: 'NOTICE_READ' } },
+          { path: ':id/edit', name: 'notice-edit', component: NoticeEditView, props: true, meta: { permission: 'NOTICE_MANAGE' } },
+        ]
+      },
 
       // 조직/부서/사원 관리
       { path: 'organization', component: DepartmentListView, meta: { permission: 'DEPT_READ' } },
@@ -273,7 +291,7 @@ const routes = [
         children: [
           { path: 'my-history', component: () => import('@/views/leave/MyLeaveHistoryView.vue') },
           { path: 'policy', component: () => import('@/views/leave/LeavePolicyAdminView.vue') },
-          { path: 'admin/department-history', component: () => import('@/views/leave/DepartmentLeaveHistoryView.vue') },
+          { path: 'admin/department-history', component: () => import('@/views/leave/DepartmentLeaveHistoryView.vue'), meta: { requiresAdmin: true } },
         ],
       },
 

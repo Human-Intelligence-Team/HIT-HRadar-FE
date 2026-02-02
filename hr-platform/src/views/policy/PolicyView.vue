@@ -1,154 +1,180 @@
 <template>
-  <section>
-    <!-- 상단 -->
+  <div class="page-container">
+    <!-- Header Section -->
     <div class="section-title">
       <div>
         <h1>제도·규정 관리</h1>
-        <div class="sub">CSV 업로드 기반 관리</div>
+        <div class="sub">챗봇 응답으로 사용될 사내 규정 및 제도를 관리합니다.</div>
       </div>
       <div class="right-actions">
+        <!-- Upload Button -->
         <BaseButton variant="primary" @click="openCreateModal">
-          + 문서 업로드
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+          문서 업로드
         </BaseButton>
       </div>
     </div>
 
-    <!-- 목록 / 상세 -->
-    <div class="grid cols-2">
-      <!-- 목록 -->
-      <BaseCard>
+    <div class="grid-layout">
+      <!-- Main Content Card (List) -->
+      <div class="card">
         <div class="card-hd list-header">
-          <h2>목록</h2>
+          <h2>규정 목록 <span class="count" v-if="filtered">({{ filtered.length }})</span></h2>
           <div class="filter-controls">
-            <select v-model="selectedCategory" class="input category-select">
-              <option v-for="cat in uniqueCategories" :key="cat" :value="cat === '전체' ? '' : cat">{{ cat }}</option>
-            </select>
-            <input class="input" v-model="q" placeholder="제목 검색" />
+            <!-- Category Select -->
+            <div class="select-wrapper">
+              <select v-model="selectedCategory" class="select">
+                <option v-for="cat in uniqueCategories" :key="cat" :value="cat === '전체' ? '' : cat">
+                  {{ cat === '전체' ? '전체 카테고리' : cat }}
+                </option>
+              </select>
+              <div class="select-arrow">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+              </div>
+            </div>
+
+            <!-- Search Input -->
+            <div class="search-wrapper">
+              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="search-icon"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+              <input
+                type="text"
+                class="input search-input"
+                v-model="q"
+                placeholder="문서 제목 검색"
+              />
+            </div>
           </div>
         </div>
 
-        <!-- 목록만 스크롤 -->
+        <!-- List Content -->
         <div class="card-bd list-scroll">
-          <div class="table-responsive" v-if="filtered.length">
+          <div v-if="filtered.length" class="table-wrapper">
             <table class="table">
-            <tr v-for="d in filtered" :key="d.id">
-              <td class="doc-title">{{ d.title }}</td>
-              <td class="doc-category">{{ d.category }}</td>
-              <td class="actions">
-                <button class="btn small" @click="store.select(d)">보기</button>
-                <button class="btn small btn-info" @click="openEditModal(d)">수정</button>
-                <button class="btn small danger" @click="deleteDoc(d.id)">삭제</button>
-              </td>
-            </tr>
-          </table>
-          </div> 
-
-          <div v-else class="empty-list">
-            등록된 문서가 없습니다.
-          </div>
-        </div>
-      </BaseCard>
-
-      <!-- 상세 -->
-      <BaseCard>
-        <div class="card-hd">
-          <h2>상세</h2>
-        </div>
-
-        <div class="card-bd detail-content-scroll" v-if="store.selected">
-          <h3>{{ store.selected.title }}</h3>
-          <p class="category">카테고리: {{ store.selected.category }}</p>
-
-          <div
-            v-for="c in store.selected.chunks"
-            :key="c.index"
-            class="detail-chunk"
-          >
-            <h4>{{ c.section }}</h4>
-            <p>{{ c.content }}</p>
-          </div>
-        </div>
-
-        <div class="card-bd empty" v-else>
-          선택된 문서가 없습니다.
-        </div>
-      </BaseCard>
-
-    </div>
-
-    <!-- =========================
-         Preview (스크롤 영역)
-    ========================= -->
-    <BaseCard v-if="store.preview" class="preview-card">
-      <div class="card-hd preview-header">
-                  <div style="display: flex; align-items: center; gap: 15px;">
-                    <div>
-                      <h2>업로드된 문서</h2>
-                      <div class="desc">최종 등록 전 편집</div>
-                    </div>
-                    <div class="category-selection">
-                      <label class="label">문서 카테고리</label>
-                      <input class="input" type="text" v-model="previewDocType" placeholder="카테고리를 입력하세요" required ref="previewCategoryInput" />
-                    </div>
-                  </div>
-      
-                  <div class="right-actions">
-                    <button class="btn ghost" @click="store.addChunk">
-                      + 리스트 추가
+              <thead>
+                <tr>
+                   <th>문서 제목</th>
+                   <th width="140" class="text-center">카테고리</th>
+                   <th width="160" class="text-right">관리</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="d in filtered" :key="d.id" class="clickable-row">
+                  <td @click="goToDetail(d.id)">
+                     <span class="row-title">{{ d.title }}</span>
+                  </td>
+                  <td class="text-center" @click="goToDetail(d.id)">
+                    <span class="badge">
+                       <span class="dot"></span>
+                       {{ d.category }}
+                    </span>
+                  </td>
+                  <td class="actions">
+                    <button class="btn ghost icon-btn small" @click.stop="goToDetail(d.id)" title="보기">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                     </button>
-                    <button class="btn primary" @click="commit">
-                      최종 등록
+                    <button class="btn ghost icon-btn small" @click.stop="openEditModal(d)" title="수정">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                     </button>
-                    <button class="btn" @click="store.clearPreview">
-                      취소
+                    <button class="btn ghost icon-btn small danger" @click.stop="deleteDoc(d.id)" title="삭제">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                     </button>
-                  </div>
-                </div>
-      <!-- Preview 본문만 스크롤 -->
-      <div class="card-bd preview-scroll">
-        <!-- 문서 제목 -->
-        <div class="doc-title-box">
-          <label class="label">문서 제목</label>
-          <input
-            class="input title-input"
-            v-model="store.preview.docTitle"
-            required
-            ref="previewTitleInput"
-          />
-        </div>
-
-        <!-- 청크 목록 -->
-        <div
-          v-for="(c, i) in store.preview.chunks"
-          :key="i"
-          class="chunk-card"
-        >
-          <div class="chunk-header">
-            <span class="chunk-index">리스트 {{ i + 1 }}</span>
-            <button
-              class="btn small danger"
-              @click="store.removeChunk(i)"
-            >
-              삭제
-            </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
 
-          <input
-            class="input chunk-section"
-            placeholder="섹션 제목"
-            v-model="c.section"
-          />
-
-          <textarea
-            class="textarea chunk-content"
-            placeholder="내용"
-            v-model="c.content"
-          />
+          <div v-else class="empty-state">
+             <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="empty-icon"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+             <p>검색 결과가 없거나 등록된 문서가 없습니다.</p>
+          </div>
         </div>
       </div>
-    </BaseCard>
 
-    <!-- 문서 생성/수정 모달 -->
+      <!-- Preview Section -->
+      <transition name="fade">
+        <div v-if="store.preview" class="card preview-card">
+          <div class="card-hd preview-header">
+             <div class="header-left">
+                <span class="status-badge">Preview</span>
+                <h2>업로드 미리보기</h2>
+                <span class="desc">최종 등록 전 내용을 확인하세요</span>
+             </div>
+             
+             <div class="header-actions">
+               <div class="category-input-group">
+                 <span class="label">카테고리</span>
+                 <input 
+                    class="input small-input" 
+                    type="text" 
+                    v-model="previewDocType" 
+                    placeholder="예: 인사규정" 
+                    required 
+                    ref="previewCategoryInput" 
+                 />
+               </div>
+               <div class="btn-group">
+                  <button class="btn secondary small" @click="store.addChunk">
+                    + 섹션 추가
+                  </button>
+                  <button class="btn primary small" @click="commit">
+                    최종 등록
+                  </button>
+                  <button class="btn ghost small" @click="store.clearPreview">
+                    취소
+                  </button>
+               </div>
+             </div>
+          </div>
+          
+          <div class="card-bd preview-scroll">
+            <div class="form-group doc-title-box">
+              <label class="label">문서 제목</label>
+              <input
+                class="input title-input"
+                v-model="store.preview.docTitle"
+                required
+                placeholder="문서 제목을 입력하세요"
+                ref="previewTitleInput"
+              />
+            </div>
+
+            <div v-if="store.preview.chunks && store.preview.chunks.length > 0" class="chunks-container">
+               <div
+                  v-for="(c, i) in store.preview.chunks"
+                  :key="i"
+                  class="chunk-item"
+                >
+                  <div class="chunk-header">
+                    <span class="chunk-badge">SEC. {{ i + 1 }}</span>
+                    <button class="btn ghost icon-btn xs danger" @click="store.removeChunk(i)">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
+                  </div>
+                  
+                  <div class="chunk-body">
+                    <input
+                      class="input chunk-title"
+                      placeholder="섹션 제목 (예: 제 1조 목적)"
+                      v-model="c.section"
+                    />
+                    <textarea
+                      class="input chunk-content"
+                      placeholder="내용을 입력하세요..."
+                      v-model="c.content"
+                    />
+                  </div>
+                </div>
+            </div>
+            <div v-else class="empty-chunks">
+               섹션이 없습니다. '섹션 추가' 버튼을 눌러 내용을 작성하세요.
+            </div>
+          </div>
+        </div>
+      </transition>
+    </div>
+
+    <!-- Document Modal -->
     <DocumentUploadModal
       v-if="showModal"
       :mode="modalMode"
@@ -156,15 +182,17 @@
       @close="closeModal"
       @document-saved="handleDocumentSaved"
     />
-  </section>
+  </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { useDocumentStore } from '@/stores/documentStore'
 import BaseButton from '@/components/common/BaseButton.vue'
-import BaseCard from '@/components/common/BaseCard.vue'
 import DocumentUploadModal from '@/components/policy/DocumentUploadModal.vue'
+
+const router = useRouter()
 
 const store = useDocumentStore()
 const q = ref('')
@@ -192,6 +220,10 @@ const filtered = computed(() =>
     return matchesTitle && matchesCategory;
   })
 )
+
+function goToDetail(id) {
+  router.push({ name: 'policy-detail', params: { id } })
+}
 
 function openCreateModal() {
   modalMode.value = 'create'
@@ -254,278 +286,331 @@ function commit() {
 </script>
 
 <style scoped>
-.grid.cols-2 {
-  display: grid;
-  grid-template-columns: 1fr 1fr; /* Make columns equal width */
-  gap: 20px; /* Add some spacing between columns */
+.page-container {
+  max-width: 1200px;
+  margin: 0 auto;
 }
-
-.input {
-  height: 40px; /* Fixed height for consistency */
-  padding: 8px 12px; /* Standard padding */
-  border: 1px solid #cfd3d8; /* Matching existing border */
-  border-radius: 8px; /* Matching existing border-radius */
-}
-
-.empty-list {
-  padding: 40px;
-  text-align: center;
-  color: #777;
-}
-
-.doc-title {
-  font-weight: 600;
-}
-
-.doc-category {
-  font-size: 13px;
-  color: #777;
-  text-align: center; /* Center category text */
-}
-
-.actions {
-  white-space: nowrap; /* Prevent buttons from wrapping */
-  text-align: right; /* Align action buttons to the right */
-}
-
-.actions .btn {
-  margin-left: 5px; /* Spacing between action buttons */
-}
-
-.btn-info {
-  background-color: #1a73e8; /* Example blue color */
-  color: white;
-}
-
-.btn-info:hover {
-  background-color: #155cb0; /* Darker blue on hover */
-}
-
-.btn.danger {
-  background-color: #dc3545; /* Red color */
-  color: white;
-}
-
-.btn.danger:hover {
-  background-color: #bd2130; /* Darker red on hover */
-}
-
-.card-hd {
+.grid-layout {
   display: flex;
-  align-items: center; /* Vertically center items */
-  justify-content: space-between; /* Separate items horizontally */
-  flex-wrap: wrap; /* Allow items to wrap on smaller screens */
+  flex-direction: column;
+  gap: 24px;
 }
 
-.card-hd.list-header { /* Targeting the specific card-hd for list */
+/* Icons & Actions */
+.icon { margin-right: 6px; }
+.right-actions { display: flex; gap: 10px; }
+
+/* Card Header */
+.list-header {
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.list-header h2 {
+  font-size: 16px;
+  font-weight: 700;
   display: flex;
   align-items: center;
-  justify-content: space-between; /* Space out h2 and filter controls */
-  flex-wrap: wrap;
+  gap: 6px;
+}
+.count {
+  font-size: 13px;
+  color: var(--text-sub);
+  font-weight: 500;
 }
 
+/* Filters */
 .filter-controls {
   display: flex;
-  gap: 10px; /* Space between select and input */
+  gap: 10px;
+  margin-left: auto;
+}
+.select-wrapper {
+  position: relative;
+  width: 150px;
+}
+.select {
+  width: 100%;
+  appearance: none;
+  cursor: pointer;
+  padding-right: 32px;
+  font-size: 13px;
+  transition: all 0.2s;
+}
+.select:hover, .select:focus {
+  border-color: var(--primary);
+  background: rgba(255,255,255,0.05);
+}
+.select-arrow {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-sub);
+  pointer-events: none;
+}
+.search-wrapper {
+  position: relative;
+  width: 240px;
+}
+.search-input {
+  width: 100%;
+  padding-left: 36px;
+  font-size: 13px;
+}
+.search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-sub);
+}
+
+/* Table */
+.table-wrapper {
+  overflow-x: auto;
+  border-radius: 8px;
+}
+.table {
+  border-radius: 0;
+  border: none;
+  border-bottom: 1px solid var(--border);
+}
+.table th {
+  background: rgba(255,255,255,0.02);
+  font-weight: 600;
+  color: var(--text-sub);
+  padding: 12px 16px;
+  font-size: 13px;
+}
+.table td {
+  padding: 14px 16px;
+  vertical-align: middle;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+}
+.clickable-row {
+  cursor: pointer;
+  background: transparent;
+  transition: background-color 0.15s ease;
+}
+.clickable-row:hover {
+  background-color: var(--bg);
+}
+.row-title {
+  font-weight: 500;
+  color: var(--text-main);
+  transition: color 0.15s;
+}
+.clickable-row:hover .row-title {
+  color: var(--primary);
+}
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+
+/* Badge */
+.badge {
+  background: rgba(45, 212, 191, 0.1);
+  color: var(--good);
+  border: 1px solid rgba(45, 212, 191, 0.2);
+  padding: 4px 10px;
+  font-weight: 500;
+  border-radius: 20px;
+}
+.badge .dot {
+  width: 6px;
+  height: 6px;
+  background-color: var(--good);
+  margin-right: 4px;
+}
+
+/* Actions in Table */
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 4px;
+}
+.icon-btn.small {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-sub);
+  transition: all 0.2s;
+}
+.icon-btn.small svg {
+  width: 18px;
+  height: 18px;
+}
+.icon-btn.small:hover {
+  background: var(--bg);
+  color: var(--text-main);
+}
+.icon-btn.danger:hover {
+  background: rgba(251, 113, 133, 0.1);
+  color: var(--bad);
+}
+
+/* Empty State */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  items-align: center;
+  justify-content: center;
+  padding: 60px 0;
+  text-align: center;
+  color: var(--text-sub);
+}
+.empty-icon {
+  margin: 0 auto 16px;
+  opacity: 0.5;
+}
+
+/* Preview Section Styling */
+.preview-card {
+  border: 1px solid var(--primary-soft);
+  box-shadow: 0 0 0 1px var(--primary-soft);
+}
+.preview-header {
   align-items: center;
 }
-
-.category-select {
-  padding: 8px 12px;
-  border: 1px solid #cfd3d8;
-  border-radius: 8px;
-  background-color: #fff;
-  cursor: pointer;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e"); /* Custom arrow */
-  background-size: 10px 10px; /* Adjust size */
-  background-repeat: no-repeat;
-  background-position: right 10px center;
-  padding-right: 30px;
-}
-.card-hd h2 {
-  writing-mode: horizontal-tb;
-  text-orientation: mixed;
-  margin-right: 10px;
-}
-
-/* =========================
-   목록 스크롤
-========================= */
-.list-scroll {
-  max-height: 420px;
-  overflow-y: auto;
-}
-
-/* =========================
-   상세 내용 스크롤 (새로운 스타일)
-========================= */
-.detail-content-scroll {
-  max-height: 420px; /* Adjust as needed */
-  overflow-y: auto;
-  padding-right: 6px; /* To prevent scrollbar from overlapping content */
-}
-
-
-/* =========================
-   Preview 스크롤
-========================= */
-.preview-card {
-  margin-top: 16px;
-}
-
-.preview-header .right-actions {
+.header-left {
   display: flex;
-  gap: 10px; /* Space out buttons in preview header */
+  align-items: center;
+  gap: 12px;
+}
+.status-badge {
+  background: var(--primary);
+  color: white;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+.preview-header h2 { margin: 0; }
+.desc { margin: 0; font-size: 13px; color: var(--text-sub); border-left: 1px solid var(--border); padding-left: 12px; }
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-left: auto;
+}
+.category-input-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.category-input-group .label { margin: 0; font-weight: 600; font-size: 13px; }
+.small-input {
+  width: 140px;
+  padding: 6px 12px;
+  font-size: 13px;
+  height: 32px;
+}
+.btn-group {
+  display: flex;
+  gap: 8px;
+}
+.btn.small {
+  padding: 6px 12px;
+  font-size: 13px;
+  height: 32px;
 }
 
-.preview-scroll {
-  max-height: 420px;
-  overflow-y: auto;
-  padding-right: 6px;
+/* Chunk Styling */
+.doc-title-box { margin-bottom: 24px; }
+.doc-title-box .label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--text-sub);
 }
-
-/* =========================
-   문서 제목
-========================= */
-.doc-title-box {
-  margin-bottom: 24px;
-}
-
 .title-input {
   font-size: 18px;
-  font-weight: 600;
+  font-weight: 700;
+  padding: 12px;
 }
 
-/* =========================
-   청크 카드
-========================= */
-.chunk-card {
-  margin-bottom: 20px;
-  padding: 16px;
-  border: 1px solid #e6e8eb;
+.chunks-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.chunk-item {
+  border: 1px solid var(--border);
   border-radius: 12px;
-  background: #fafafa;
+  background: rgba(255,255,255,0.02);
+  overflow: hidden;
 }
-
 .chunk-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
+  padding: 8px 12px;
+  background: rgba(255,255,255,0.03);
+  border-bottom: 1px solid var(--border);
 }
-
-.chunk-index {
-  font-size: 12px;
+.chunk-badge {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--text-sub);
+  letter-spacing: 0.5px;
+}
+.chunk-body {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.chunk-title {
   font-weight: 600;
-  color: #888;
+  border-color: transparent;
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+  border-bottom: 1px solid var(--border);
 }
-
-.chunk-section {
-  font-weight: 600;
-  margin-bottom: 8px;
+.chunk-title:focus {
+  border-color: var(--primary);
+  background: transparent;
 }
-
 .chunk-content {
-  min-height: 90px;
-  line-height: 1.5;
+  min-height: 100px;
+  resize: vertical;
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+.chunk-content:focus { box-shadow: none; }
+.empty-chunks {
+  text-align: center;
+  padding: 40px;
+  color: var(--text-sub);
+  font-style: italic;
+  border: 1px dashed var(--border);
+  border-radius: 12px;
 }
 
-/* =========================
-   상세 뷰 청크 디자인
-========================= */
-.detail-chunk {
-  background-color: #f9f9f9; /* Light background */
-  border: 1px solid #e0e0e0; /* Subtle border */
-  border-radius: 8px; /* Rounded corners */
-  padding: 15px; /* Internal spacing */
-  margin-bottom: 15px; /* Space between chunks */
+/* Animations */
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+.fade-enter-from, .fade-leave-to {
+  opacity: 0;
+  transform: translateY(10px);
 }
 
-.detail-chunk:last-child {
-  margin-bottom: 0; /* No margin for the last chunk */
-}
-
-.detail-chunk h4 {
-  font-size: 1.1em;
-  color: #333;
-  margin-top: 0;
-  margin-bottom: 10px;
-  border-bottom: 1px dashed #e0e0e0; /* A dashed line to separate section title */
-  padding-bottom: 5px;
-}
-
-.detail-chunk p {
-  font-size: 0.95em;
-  color: #555;
-  line-height: 1.6;
-  margin-bottom: 0;
-}
-
-.table-responsive {
-  overflow-x: auto; /* Enable horizontal scrolling */
-}
-
-.table {
-  width: 100%;
-  /* table-layout: fixed; */ /* Removed fixed table layout */
-  /* min-width: 700px; */    /* Removed explicit min-width */
-}
-
-.table tr td {
-  vertical-align: middle;
-  padding: 12px 8px;
-  white-space: normal; /* Allow text to wrap */
-  word-break: break-word; /* Break long words */
-}
-
-.table tr td.doc-title {
-  min-width: 150px; /* Ensure title has minimum space */
-}
-
-.table tr td.doc-category {
-  min-width: 120px; /* Minimum width for category */
-  text-align: center; /* Center category text */
-}
-
-.table tr td.actions {
-  min-width: 180px; /* Minimum width for actions (enough for 3 buttons) */
-  white-space: nowrap; /* Prevent buttons from wrapping */
-  text-align: right; /* Align action buttons to the right */
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-}
-
-.category-selection {
-  display: flex;
-  align-items: center;
-}
-
-.category-selection .label {
-  font-weight: 600;
-  font-size: 0.85em;
-  writing-mode: horizontal-tb;
-  min-width: 85px; /* Increased min-width for the label */
-  flex-shrink: 0;
-  margin : 0;
-}
-
-.radio-group {
-  display: flex;
-  gap: 10px;
-}
-
-.radio-group label {
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-  font-size: 0.9em;
-}
-
-.radio-group input[type="radio"] {
-  margin-right: 3px;
+@media (max-width: 900px) {
+  .list-header { flex-direction: column; align-items: flex-start; }
+  .filter-controls { width: 100%; margin-left: 0; flex-wrap: wrap; }
+  .select-wrapper, .search-wrapper { flex: 1; min-width: 150px; }
+  .preview-header { flex-direction: column; align-items: flex-start; gap: 16px; }
+  .header-actions { width: 100%; flex-direction: column; align-items: flex-start; gap: 12px; margin: 0; }
+  .btn-group { width: 100%; }
 }
 </style>

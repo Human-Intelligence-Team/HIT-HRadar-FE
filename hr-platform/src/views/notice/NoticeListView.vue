@@ -1,91 +1,133 @@
 <template>
   <div class="page-container">
-    <div class="header">
-      <h1 class="title">공지사항</h1>
-      <div class="header-actions">
-        <button class="btn secondary" @click="showCategoryModal = true">카테고리 관리</button>
-        <button class="btn primary" @click="goToCreate">새 공지 작성</button>
+    <!-- Header Section -->
+    <div class="section-title">
+      <div>
+        <h1>공지사항</h1>
+        <div class="sub">전사 공지 및 알림 사항을 확인하세요</div>
+      </div>
+      <div class="right-actions">
+        <!-- Category Management Button -->
+        <button class="btn ghost" @click="showCategoryModal = true">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+          카테고리 관리
+        </button>
+        <!-- Create Button -->
+        <button class="btn primary" @click="goToCreate">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          공지 작성
+        </button>
       </div>
     </div>
 
-    <!-- Search and Filter Controls -->
-    <div class="controls-container card">
-      <div class="search-group">
-        <label for="category-select">카테고리</label>
-        <select id="category-select" v-model="categoryId" @change="handleFilterChange" class="form-select">
-          <option value="">전체</option>
-          <option v-for="cat in categories" :key="cat.id" :value="cat.id">
-            {{ cat.name }}
-          </option>
-        </select>
+    <!-- Content Card -->
+    <div class="card">
+      <!-- Search & Filter Controls -->
+      <div class="card-hd list-header">
+        <h2>전체 목록 <span class="count" v-if="notices">({{ notices.length }})</span></h2>
+        <div class="filter-controls">
+          <div class="select-wrapper">
+            <select v-model="categoryId" @change="handleFilterChange" class="select">
+              <option value="">전체 카테고리</option>
+              <option v-for="cat in categories" :key="cat.id" :value="cat.id">
+                {{ cat.name }}
+              </option>
+            </select>
+            <div class="select-arrow">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </div>
+          </div>
+
+          <div class="select-wrapper">
+             <select v-model="sortDir" @change="handleFilterChange" class="select">
+              <option value="DESC">최신순</option>
+              <option value="ASC">과거순</option>
+            </select>
+            <div class="select-arrow">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </div>
+          </div>
+
+          <div class="search-wrapper">
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="search-icon"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <input
+              type="text"
+              v-model="keyword"
+              placeholder="제목, 내용 검색"
+              @keyup.enter="handleSearch"
+              class="input search-input"
+            />
+          </div>
+        </div>
       </div>
-      <div class="search-group">
-        <label for="sort-select">정렬</label>
-        <select id="sort-select" v-model="sortDir" @change="handleFilterChange" class="form-select">
-          <option value="DESC">내림차순</option>
-          <option value="ASC">오름차순</option>
-        </select>
+
+      <!-- Table Section -->
+      <div class="card-bd">
+        <div v-if="loading" class="loading-state">
+          <div class="spinner"></div>
+          <p>공지사항을 불러오는 중입니다...</p>
+        </div>
+
+        <div v-else-if="!notices || notices.length === 0" class="empty-state">
+           <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="empty-icon"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+          <p>등록된 공지사항이 없습니다.</p>
+        </div>
+
+        <div v-else>
+          <div class="table-wrapper">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th width="60" class="text-center">No</th>
+                  <th width="120">카테고리</th>
+                  <th>제목</th>
+                  <th width="120">작성자</th>
+                  <th width="110" class="text-right">작성일</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="notice in notices" :key="notice.id" @click="goToDetail(notice.id)" class="clickable-row">
+                  <td class="text-center text-sub">{{ notice.id }}</td>
+                  <td>
+                    <span class="badge">
+                       <span class="dot"></span>
+                       {{ notice.categoryName }}
+                    </span>
+                  </td>
+                  <td>
+                    <span class="row-title">{{ notice.title }}</span>
+                  </td>
+                  <td class="text-sub">{{ notice.createdByName }}</td>
+                  <td class="text-right text-sub">{{ formatDate(notice.createdAt) }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Pagination -->
+          <div v-if="totalPages > 0" class="pagination">
+             <button @click="changePage(1)" :disabled="currentPage <= 1" class="btn ghost icon-btn" title="First Page">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="11 17 6 12 11 7"></polyline><polyline points="18 17 13 12 18 7"></polyline></svg>
+            </button>
+            <button @click="changePage(currentPage - 1)" :disabled="currentPage <= 1" class="btn ghost icon-btn" title="Previous Page">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            </button>
+            
+            <span class="page-count">
+              <span class="current">{{ currentPage }}</span>
+              <span class="divider">/</span>
+              <span class="total">{{ totalPages }}</span>
+            </span>
+
+            <button @click="changePage(currentPage + 1)" :disabled="currentPage >= totalPages" class="btn ghost icon-btn" title="Next Page">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </button>
+            <button @click="changePage(totalPages)" :disabled="currentPage >= totalPages" class="btn ghost icon-btn" title="Last Page">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="13 17 18 12 13 7"></polyline><polyline points="6 17 11 12 6 7"></polyline></svg>
+            </button>
+          </div>
+        </div>
       </div>
-      <div class="search-group keyword-group">
-        <input
-          type="text"
-          v-model="keyword"
-          placeholder="제목, 내용으로 검색"
-          @keyup.enter="handleSearch"
-          class="form-input"
-        />
-        <button @click="handleSearch" class="btn">검색</button>
-      </div>
-    </div>
-
-    <div v-if="loading" class="loading-indicator">
-      <p>Loading...</p>
-    </div>
-
-    <div v-else-if="!notices || notices.length === 0" class="no-data">
-      <p>표시할 공지사항이 없습니다.</p>
-    </div>
-
-    <div v-else class="card-bd">
-      <table class="table">
-        <thead class="tbl-hd">
-          <tr>
-            <th style="width: 10%;">번호</th>
-            <th style="width: 20%;">카테고리</th>
-            <th style="width: 40%;">제목</th>
-            <th style="width: 15%;">작성자</th>
-            <th style="width: 15%;">작성일</th>
-          </tr>
-        </thead>
-        <tbody class="tbl-bd">
-          <tr v-for="notice in notices" :key="notice.id" @click="goToDetail(notice.id)">
-            <td>{{ notice.id }}</td>
-            <td>
-              <span class="category-badge">{{ notice.categoryName }}</span>
-            </td>
-            <td class="title-cell">{{ notice.title }}</td>
-            <td>{{ notice.createdByName }}</td>
-            <td>{{ formatDate(notice.createdAt) }}</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Pagination -->
-    <div v-if="totalPages > 0" class="pagination-container">
-      <button @click="changePage(1)" :disabled="currentPage <= 1" class="btn page-btn">
-        처음으로 이동
-      </button>
-      <button @click="changePage(currentPage - 1)" :disabled="currentPage <= 1" class="btn page-btn">
-        이전
-      </button>
-      <span class="page-info"> {{ currentPage }} / {{ totalPages }} </span>
-      <button @click="changePage(currentPage + 1)" :disabled="currentPage >= totalPages" class="btn page-btn">
-        다음
-      </button>
-      <button @click="changePage(totalPages)" :disabled="currentPage >= totalPages" class="btn page-btn">
-        마지막으로 이동
-      </button>
     </div>
 
     <!-- Category Management Modal -->
@@ -108,7 +150,7 @@ const totalPages = computed(() => store.data?.totalPages)
 const currentPage = computed(() => store.searchCond.page)
 const loading = computed(() => store.loading)
 const searchCond = computed(() => store.searchCond)
-const categories = computed(() => store.categories)
+const categories = computed(() => store.categories.filter(cat => cat.name !== '알림 관리'))
 
 // Local state for UI controls, synced with store's searchCond
 const keyword = ref(searchCond.value.keyword)
@@ -174,170 +216,227 @@ function formatDate(dateString) {
 </script>
 
 <style scoped>
-/* Styles remain the same */
 .page-container {
-  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
-.header {
-  display: flex;
-  justify-content: space-between;
+/* Icons */
+.icon { margin-right: 6px; }
+
+/* Header Actions */
+.right-actions { display: flex; gap: 10px; }
+
+/* Card Header & Filters */
+.list-header {
   align-items: center;
-  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.list-header h2 {
+  font-size: 16px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.count {
+  font-size: 13px;
+  color: var(--text-sub);
+  font-weight: 500;
 }
 
-.header-actions {
+.filter-controls {
   display: flex;
   gap: 10px;
+  margin-left: auto; /* Push to right */
 }
 
-.title {
-  font-size: 24px;
-  font-weight: 600;
+/* Custom Select & Search Styles */
+.select-wrapper {
+  position: relative;
+  width: 130px;
 }
-
-.controls-container {
-  display: flex;
-  gap: 20px;
-  align-items: center;
-  padding: 15px;
-  background-color: var(--background-color);
-  border-radius: 8px;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
-}
-
-.search-group {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.search-group label {
-  font-weight: 500;
-  color: var(--text-sub);
-}
-
-.keyword-group {
-  margin-left: auto;
-}
-
-.form-select, .form-input {
-  padding: 8px 12px;
-  border-radius: 6px;
-  border: 1px solid var(--border);
-  background-color: var(--panel);
-  color: var(--text-main);
-}
-
-.form-input {
-  min-width: 250px;
-}
-
-.table {
+.select {
   width: 100%;
-  border-collapse: collapse;
+  appearance: none;
+  cursor: pointer;
+  padding-right: 32px;
+  font-size: 13px;
+  transition: all 0.2s;
+}
+.select:hover, .select:focus {
+  border-color: var(--primary);
+  background: rgba(255,255,255,0.05);
+}
+.select-arrow {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: var(--text-sub);
 }
 
-.tbl-hd {
-  background-color: var(--panel);
+.search-wrapper {
+  position: relative;
+  width: 240px;
+}
+.search-input {
+  width: 100%;
+  padding-left: 36px;
+  font-size: 13px;
+  transition: all 0.2s;
+}
+.search-input:hover, .search-input:focus {
+  border-color: var(--primary);
+  background: rgba(255,255,255,0.05);
+}
+.search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-sub);
+}
+
+/* Table Styles */
+.table-wrapper {
+  overflow-x: auto;
+  border-radius: 8px;
+}
+.table {
+  border-radius: 0;
+  border: none;
   border-bottom: 1px solid var(--border);
 }
-
-.tbl-hd th {
-  padding: 12px 15px;
-  text-align: left;
+.table th {
+  background: rgba(255,255,255,0.02);
   font-weight: 600;
   color: var(--text-sub);
+  padding: 12px 16px;
+  font-size: 13px;
 }
-
-.tbl-bd tr {
+.table td {
+  padding: 14px 16px;
+  vertical-align: middle;
   border-bottom: 1px solid var(--border);
+  font-size: 14px;
+}
+.clickable-row {
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  background: transparent;
+  transition: background-color 0.15s ease;
 }
-
-.tbl-bd tr:hover {
-  background-color: var(--primary-soft);
+.clickable-row:hover {
+  background-color: var(--bg);
 }
-
-.tbl-bd td {
-  padding: 12px 15px;
-}
-
-.title-cell {
+.row-title {
   font-weight: 500;
+  color: var(--text-main);
+  transition: color 0.15s;
 }
-
-.category-badge {
-  background-color: var(--primary-soft);
+.clickable-row:hover .row-title {
   color: var(--primary);
-  padding: 4px 8px;
-  border-radius: 12px;
-  font-size: 12px;
+}
+
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+.text-sub { color: var(--text-sub); font-size: 13px; }
+
+/* Badge */
+.badge {
+  background: rgba(79, 124, 255, 0.1);
+  color: var(--primary);
+  border: 1px solid rgba(79, 124, 255, 0.2);
+  padding: 4px 10px;
   font-weight: 500;
+  border-radius: 20px;
+}
+.badge .dot {
+  width: 6px;
+  height: 6px;
+  background-color: var(--primary);
+  margin-right: 4px;
 }
 
-
-.loading-indicator,
-.no-data {
-  text-align: center;
-  padding: 40px;
-  color: var(--text-sub);
-}
-
-.pagination-container {
+/* Pagination */
+.pagination {
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-top: 20px;
+  gap: 8px;
+  margin-top: 24px;
 }
-
-.page-btn {
-  margin: 0 5px;
-}
-
-.page-info {
-  font-weight: 500;
-  margin: 0 10px;
-}
-
-.btn {
-  padding: 8px 16px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
+.page-count {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 12px;
+  font-variant-numeric: tabular-nums;
   font-size: 14px;
-  font-weight: 500;
-  background-color: var(--primary-soft);
-  color: var(--text-main);
-  transition: background-color 0.2s ease;
 }
-
-.btn:hover {
-    background-color: var(--primary);
+.current { font-weight: 700; color: var(--text-main); }
+.divider { color: var(--text-muted); }
+.total { color: var(--text-sub); }
+.icon-btn {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-sub);
 }
-
-.btn:disabled {
-  opacity: 0.5;
+.icon-btn:disabled {
+  opacity: 0.3;
   cursor: not-allowed;
 }
-
-.btn.primary {
-  background-color: var(--primary);
-  color: var(--text-on-primary);
-}
-.btn.primary:hover {
-    background-color: var(--primary-dark);
-}
-
-.btn.secondary {
-  background-color: var(--panel);
+.icon-btn:hover:not(:disabled) {
   color: var(--text-main);
-  border: 1px solid var(--border);
-}
-.btn.secondary:hover {
-    background-color: var(--primary-soft);
+  background: var(--bg);
 }
 
+/* States */
+.loading-state, .empty-state {
+  display: flex;
+  flex-direction: column;
+  items-align: center;
+  justify-content: center;
+  padding: 80px 0;
+  text-align: center;
+  color: var(--text-sub);
+}
+.spinner {
+  width: 30px;
+  height: 30px;
+  border: 3px solid rgba(255,255,255,0.1);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 16px;
+}
+.empty-icon {
+  margin-bottom: 16px;
+  opacity: 0.5;
+  color: var(--text-sub);
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .list-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .filter-controls {
+    width: 100%;
+    margin-left: 0;
+    flex-wrap: wrap;
+  }
+  .select-wrapper, .search-wrapper {
+    flex: 1;
+    min-width: 150px;
+  }
+}
 </style>
