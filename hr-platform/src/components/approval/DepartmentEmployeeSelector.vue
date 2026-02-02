@@ -164,9 +164,11 @@ const handleEmployeeSelect = () => {
 const selectEntireDepartment = () => {
   const currentDept = departments.value.find(d => d.deptId === selectedDeptId.value);
   
-  // 이미 선택된 인원 제외하고 추가 가능한 인원 계산
+  const currentUserId = Number(authStore.user?.employeeId);
+  // 이미 선택된 인원 제외하고 추가 가능한 인원 계산 (본인 제외)
   const toAdd = allEmployeesInDept.value.filter(
-    emp => !selectedEmployees.value.some(s => s.accId === emp.accId)
+    emp => !selectedEmployees.value.some(s => s.accId === emp.accId) &&
+           Number(emp.accId) !== currentUserId
   );
 
   if (selectedEmployees.value.length + toAdd.length > props.maxItems) {

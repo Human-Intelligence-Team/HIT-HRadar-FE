@@ -10,156 +10,6 @@
             v-if="item.children"
             class="nav-group has-flyout"
             @mouseenter="showFlyout($event, item)"
-            @mouseleave="hideFlyout"
-      <!-- 인사 관리 -->
-      <div class="section-title">인사 관리</div>
-
-      <div class="nav-group has-flyout">
-        <div class="nav-item">
-          <span>사원 · 부서 관리</span>
-          <span class="arrow">›</span>
-        </div>
-        <div class="flyout">
-          <RouterLink to="/employee" class="flyout-item">사원 관리 (목록)</RouterLink>
-          <RouterLink to="/personnel/employees/list" class="flyout-item">사원 목록 조회</RouterLink>
-          <RouterLink to="/organization" class="flyout-item">부서 관리 (목록)</RouterLink>
-          <RouterLink to="/department/org-chart" class="flyout-item">조직도</RouterLink>
-          <RouterLink to="/department/manage" class="flyout-item">부서 정책 관리</RouterLink>
-          <RouterLink to="/personnel/positions" class="flyout-item">직위 관리</RouterLink>
-          <RouterLink to="/personnel/positions/list" class="flyout-item">직위 목록 조회</RouterLink>
-          <RouterLink to="/personnel/history" class="flyout-item">인사 발령 이력</RouterLink>
-        </div>
-      </div>
-
-      <!-- 회사 관리 -->
-      <div class="section-title">회사 관리</div>
-      <div class="nav-group has-flyout">
-        <div class="nav-item">
-          <span>회사 정보 관리</span>
-          <span class="arrow">›</span>
-        </div>
-        <div class="flyout">
-          <RouterLink to="/company/my" class="flyout-item">내 회사 정보</RouterLink>
-          <RouterLink to="/company/my-manage" class="flyout-item">내 회사 관리</RouterLink>
-          <RouterLink to="/company/roles" class="flyout-item">역할/권한 관리</RouterLink>
-          <RouterLink to="/company/manage" class="flyout-item">회사 정보 관리 (전체)</RouterLink>
-        </div>
-      </div>
-
-      <!-- 성과 평가 -->
-      <div class="section-title">성과 평가</div>
-
-      <div class="nav-group has-flyout">
-        <div class="nav-item">
-          <span>목표 관리</span>
-          <span class="arrow">›</span>
-        </div>
-        <div class="flyout">
-          <RouterLink to="/goal" class="flyout-item">KPI/OKR</RouterLink>
-          <RouterLink to="/hr/goals" class="flyout-item">목표 전체 조회</RouterLink>
-          <RouterLink to="/to/goals" class="flyout-item">팀장 목표 전체 조회</RouterLink>
-
-        </div>
-      </div>
-
-      <div class="nav-group has-flyout">
-        <div class="nav-item">
-          <span>다면 평가</span>
-          <span class="arrow">›</span>
-        </div>
-        <div class="flyout">
-          <RouterLink to="/cycles" class="flyout-item">회차 등록/조회</RouterLink>
-          <RouterLink to="/hr/cycles" class="flyout-item">회차 등록/조회</RouterLink>
-          <RouterLink to="/hr/evaluation/type/setting" class="flyout-item">평가유형 생성/회차 포함</RouterLink>
-          <RouterLink to="/hr/evaluation/question/form/setting" class="flyout-item">문항지 생성</RouterLink>
-          <RouterLink to="/hr/evaluation/assignment" class="flyout-item">평가 배정</RouterLink>
-          <RouterLink to="/evaluation/assignment/response" class="flyout-item">다면 평가</RouterLink>
-          <RouterLink to="/hr/evaluation/response/result" class="flyout-item">평가 응답 조회</RouterLink>
-          <RouterLink to="/evaluation/response/my/result" class="flyout-item">평가 결과 조회</RouterLink>
-        </div>
-      </div>
-
-      <div class="nav-group has-flyout">
-        <div class="nav-item">
-          <span>등급관리</span>
-          <span class="arrow">›</span>
-        </div>
-        <div class="flyout">
-          <RouterLink to="/grade/setting" class="flyout-item">등급 설정</RouterLink>
-          <RouterLink to="/grading/list" class="flyout-item"> 부서 등급 부여 현황</RouterLink>
-          <RouterLink to="/hr/grading/list" class="flyout-item">부서 등급 부여 현황(승인)</RouterLink>
-          <RouterLink to="/to/grading/list" class="flyout-item">부서원 등급 부여</RouterLink>
-          <RouterLink to="/hr/grading/list/approve" class="flyout-item">부서원 등급 부여 및 승인</RouterLink>
-          <RouterLink to="/my/grading" class="flyout-item">부여된 등급 조회</RouterLink>
-          <RouterLink to="/to/grading/objection" class="flyout-item">이의 제기 관리</RouterLink>
-          <!--          <RouterLink to="/dashboard" class="flyout-item">대시보드</RouterLink>
-          <RouterLink to="/report" class="flyout-item">리포트</RouterLink>-->
-        </div>
-      </div>
-
-      <div class="nav-group has-flyout">
-        <div class="nav-item">
-          <span>대시보드/리포트</span>
-          <span class="arrow">›</span>
-        </div>
-        <div class="flyout">
-          <RouterLink to="/my/dashboard" class="flyout-item">대시보드</RouterLink>
-          <RouterLink to="/hr/dashboard" class="flyout-item">사원 대시보드</RouterLink>
-          <RouterLink to="/all/competency/report" class="flyout-item">리포트(인사팀)</RouterLink>
-          <RouterLink to="/dept/competency/report" class="flyout-item">리포트(팀장)</RouterLink>
-          <RouterLink to="/me/competency/report" class="flyout-item">리포트(개인)</RouterLink>
-          <RouterLink to="/all/contents" class="flyout-item">학습컨텐츠 관리</RouterLink>
-        </div>
-      </div>
-
-      <!-- 근태 관리 -->
-      <div class="section-title">근태 관리</div>
-
-      <div class="nav-group has-flyout">
-        <div class="nav-item">
-          <span>근태 관리</span>
-          <span class="arrow">›</span>
-        </div>
-        <div class="flyout">
-          <RouterLink to="/attendance/commute" class="flyout-item">나의 출퇴근 관리</RouterLink>
-          <RouterLink to="/attendance/my-calendar" class="flyout-item">나의 근태 캘린더</RouterLink>
-          <RouterLink to="/attendance/ip-policy" class="flyout-item">IP 정책 관리</RouterLink>
-          <RouterLink to="/attendance/department" class="flyout-item">부서 출퇴근 관리</RouterLink>
-          <RouterLink to="/attendance/department-calendar" class="flyout-item">부서별 근태 캘린더</RouterLink>
-        </div>
-      </div>
-
-      <!-- 휴가 관리 -->
-      <div class="section-title">휴가 관리</div>
-
-      <div class="nav-group has-flyout">
-        <div class="nav-item">
-          <span>휴가 관리</span>
-          <span class="arrow">›</span>
-        </div>
-        <div class="flyout">
-          <RouterLink to="/leave/my-history" class="flyout-item">내 휴가 이력</RouterLink>
-          <RouterLink to="/leave/policy" class="flyout-item">휴가 정책 관리</RouterLink>
-          <RouterLink to="/leave/admin/department-history" class="flyout-item">부서 휴가 이력</RouterLink>
-        </div>
-      </div>
-
-
-      <!-- 결재 관리 -->
-      <!-- 결재 관리 -->
-      <div class="section-title">결재 관리</div>
-
-      <div class="nav-group has-flyout">
-        <div class="nav-item">
-          <span>결재 관리</span>
-          <span class="arrow">›</span>
-        </div>
-        <div class="flyout">
-          <RouterLink to="/approval/create" class="flyout-item">결재 문서 등록</RouterLink>
-          <RouterLink to="/approval/my-documents" class="flyout-item">결재 문서함</RouterLink>
-          <RouterLink
-            to="/approval/all-documents"
-            class="flyout-item"
           >
             <div class="nav-item">
               <span>{{ item.text }}</span>
@@ -203,21 +53,6 @@
       </div>
     </div>
   </Teleport>
-
-      <!-- 시스템 관리 -->
-      <div class="section-title">시스템 관리</div>
-      <div class="nav-group has-flyout">
-        <div class="nav-item">
-          <span>권한/설정</span>
-          <span class="arrow">›</span>
-        </div>
-        <div class="flyout">
-          <RouterLink to="/admin/permissions" class="flyout-item">권한 레지스트리</RouterLink>
-        </div>
-      </div>
-
-    </nav>
-  </aside>
 </template>
 
 <script setup>
@@ -317,11 +152,9 @@ const menuConfig = computed(() => [
         children: [
           { text: '나의 출퇴근 관리', to: '/attendance/commute' },
           { text: '나의 근태 캘린더', to: '/attendance/my-calendar' },
-          ...(auth.isAdmin ? [
-            { text: 'IP 정책 관리', to: '/attendance/ip-policy' },
-            { text: '부서 출퇴근 관리', to: '/attendance/department' },
-            { text: '부서별 근태 캘린더', to: '/attendance/department-calendar' }
-          ] : [])
+          { text: 'IP 정책 관리', to: '/attendance/ip-policy' },
+          { text: '부서 출퇴근 관리', to: '/attendance/department' },
+          { text: '부서별 근태 캘린더', to: '/attendance/department-calendar' }
         ]
       }
     ]
@@ -334,7 +167,7 @@ const menuConfig = computed(() => [
         children: [
           { text: '내 휴가 이력', to: '/leave/my-history' },
           { text: '휴가 정책 관리', to: '/leave/policy' },
-          ...(auth.isAdmin ? [{ text: '부서 휴가 이력', to: '/leave/admin/department-history' }] : [])
+          { text: '부서 휴가 이력', to: '/leave/admin/department-history' }
         ]
       }
     ]
@@ -347,11 +180,7 @@ const menuConfig = computed(() => [
         children: [
           { text: '결재 문서 등록', to: '/approval/create' },
           { text: '내 문서함', to: '/approval/my-documents' },
-          { text: '결재 문서함', to: '/approval/approval-tasks' },
-          { text: '반려 문서함', to: '/approval/rejected-documents' },
-          { text: '참조 문서함', to: '/approval/references' },
-          { text: '전체 문서함', to: '/approval/all-documents' },
-          { text: '결재 관리(인사팀)', to: '/approval/admin' },
+          { text: '결재 관리', to: '/approval/admin' },
         ]
       }
     ]
