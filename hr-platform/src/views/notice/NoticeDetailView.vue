@@ -27,19 +27,25 @@
 
       <div class="card detail-card">
         <div class="card-hd detail-header">
+           <!-- Top Row: Category only -->
            <div class="meta-row top">
              <span class="badge">{{ notice.categoryName }}</span>
-             <span class="date">{{ formatDateTime(notice.createdAt) }}</span>
            </div>
+           
            <h1 class="notice-title">{{ notice.title }}</h1>
+           
+           <!-- Bottom Row: Author | Date | Modifier -->
            <div class="meta-row bottom">
              <div class="author-info">
-               <div class="avatar-placeholder">{{ notice.createdByName ? notice.createdByName[0] : 'U' }}</div>
-               <span class="author-name">{{ notice.createdByName }}</span>
+               <span class="author-name">작성자 : {{ notice.createdByName }}</span>
+             </div>
+             <div class="meta-divider"></div>
+             <div class="date-info">
+               <span>등록일 : {{ formatDateTime(notice.createdAt) }}</span>
              </div>
              <div class="meta-divider" v-if="notice.updatedAt"></div>
              <div class="update-info" v-if="notice.updatedAt">
-               <span>최종 수정: {{ formatDateTime(notice.updatedAt) }}</span>
+               <span>최종 수정 : {{ formatDateTime(notice.updatedAt) }} <span v-if="notice.updatedByName">({{ notice.updatedByName }})</span></span>
              </div>
            </div>
         </div>
@@ -64,7 +70,7 @@
               class="attachment-item"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="file-icon"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>
-              <span class="filename">{{ file.name }}</span>
+              <span class="filename">{{ file.originalName }}</span>
               <span class="download-icon">
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
               </span>

@@ -78,17 +78,17 @@
             <table class="table">
               <thead>
                 <tr>
-                  <th width="60" class="text-center">No</th>
-                  <th width="120">카테고리</th>
-                  <th>제목</th>
-                  <th width="120">작성자</th>
-                  <th width="110" class="text-right">작성일</th>
+                  <th width="80" class="text-center">No</th>
+                  <th width="120" class="text-center">카테고리</th>
+                  <th class="text-left">제목</th>
+                  <th width="120" class="text-center">작성자</th>
+                  <th width="110" class="text-center">작성일</th>
                 </tr>
               </thead>
               <tbody>
                 <tr v-for="notice in notices" :key="notice.id" @click="goToDetail(notice.id)" class="clickable-row">
                   <td class="text-center text-sub">{{ notice.id }}</td>
-                  <td>
+                  <td class="text-center">
                     <span class="badge">
                        <span class="dot"></span>
                        {{ notice.categoryName }}
@@ -97,8 +97,8 @@
                   <td>
                     <span class="row-title">{{ notice.title }}</span>
                   </td>
-                  <td class="text-sub">{{ notice.createdByName }}</td>
-                  <td class="text-right text-sub">{{ formatDate(notice.createdAt) }}</td>
+                  <td class="text-center text-sub">{{ notice.createdByName }}</td>
+                  <td class="text-center text-sub nowrap-date">{{ formatDate(notice.createdAt) }}</td>
                 </tr>
               </tbody>
             </table>
@@ -207,11 +207,11 @@ function goToCreate() {
 
 function formatDate(dateString) {
   const date = new Date(dateString)
-  return date.toLocaleDateString('ko-KR', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit'
-  })
+  // Format to YYYY.MM.DD
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}.${month}.${day}`
 }
 </script>
 
@@ -342,7 +342,9 @@ function formatDate(dateString) {
 
 .text-center { text-align: center; }
 .text-right { text-align: right; }
+.text-left { text-align: left; }
 .text-sub { color: var(--text-sub); font-size: 13px; }
+.nowrap-date { white-space: nowrap; }
 
 /* Badge */
 .badge {
@@ -401,9 +403,10 @@ function formatDate(dateString) {
 .loading-state, .empty-state {
   display: flex;
   flex-direction: column;
-  items-align: center;
+  align-items: center;
   justify-content: center;
   padding: 80px 0;
+  min-height: 400px; /* Ensure content is vertically centered in a decent area */
   text-align: center;
   color: var(--text-sub);
 }

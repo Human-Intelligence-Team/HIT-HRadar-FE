@@ -199,12 +199,11 @@ const menuConfig = computed(() => [
     ]
   },
   { title: '챗봇 관리', items: [{ text: '제도 · 규정', to: '/policy', perm: 'POLICY_READ' }] },
-  {
-    title: '기타',
+  { 
+    title: '공지 관리', 
     items: [
-      { text: '공지 관리', to: '/notice', perm: 'NOTICE_READ' },
-      { text: '알림 관리', to: '/alert', perm: 'ALERT_MANAGE' }
-    ]
+      { text: '공지 관리', to: '/notice', perm: 'NOTICE_READ' }
+    ] 
   },
   {
     title: '마이페이지',
