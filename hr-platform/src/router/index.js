@@ -126,7 +126,6 @@ const routes = [
       { path: 'notice/create', name: 'notice-create', component: NoticeCreateView, meta: { permission: 'NOTICE_MANAGE' } },
       { path: 'notice/:id', name: 'notice-detail', component: NoticeDetailView, props: true, meta: { permission: 'NOTICE_READ' } },
       { path: 'notice/:id/edit', name: 'notice-edit', component: NoticeEditView, props: true, meta: { permission: 'NOTICE_MANAGE' } },
-      { path: 'alert', name: 'alert-list', component: () => import('@/views/notice/AlertListView.vue'), meta: { permission: 'ALERT_MANAGE' } },
       {
         path: 'policy',
         children: [
