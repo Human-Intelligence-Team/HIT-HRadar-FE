@@ -42,12 +42,18 @@
         <RouterView />
       </main>
     </div>
+
+    <!-- Chatbot Components -->
+    <ChatbotButton />
+    <ChatbotModal />
   </div>
 </template>
 
 <script setup>
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
+import ChatbotButton from '@/components/chatbot/ChatbotButton.vue'
+import ChatbotModal from '@/components/chatbot/ChatbotModal.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()

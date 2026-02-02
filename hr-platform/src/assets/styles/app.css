@@ -11,6 +11,8 @@
   box-shadow: var(--shadow-md);
   backdrop-filter: blur(10px);
   color: var(--header-icon);
+  position: relative;
+  z-index: 100;
 }
 .header-left,.header-right{display:flex;align-items:center;gap:10px;}
 .brand{display:flex;align-items:center;gap:10px;}
@@ -209,7 +211,7 @@
   background: var(--overlay);
   display:flex; align-items:center; justify-content:center;
   padding: 20px;
-  z-index: 1000;
+  z-index: 9999;
 }
 .modal{
   width: min(720px, 96vw);

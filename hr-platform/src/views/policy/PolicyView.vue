@@ -4,7 +4,7 @@
     <div class="section-title">
       <div>
         <h1>제도·규정 관리</h1>
-        <div class="sub">사내 규정 및 제도를 관리하고 배포합니다.</div>
+        <div class="sub">챗봇 응답으로 사용될 사내 규정 및 제도를 관리합니다.</div>
       </div>
       <div class="right-actions">
         <!-- Upload Button -->
