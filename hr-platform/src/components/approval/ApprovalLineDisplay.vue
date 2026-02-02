@@ -4,7 +4,7 @@
     <ul class="line-steps">
       <li v-for="step in steps" :key="step.stepOrder" :class="['step-item', step.status.toLowerCase()]">
         <span class="step-order">{{ step.stepOrder }}</span>
-        <span class="approver-info">{{ step.approverId }}</span>
+        <span class="approver-info">{{ step.approverName }} ({{ step.approverId }})</span>
         <span class="step-status">{{ getStatusText(step.status) }}</span>
         <span v-if="step.actedAt" class="acted-at">{{ formatDate(step.actedAt) }}</span>
       </li>

@@ -4,7 +4,7 @@
       <h1>휴가 정책 관리</h1>
     </div>
 
-    <div :class="['content', { 'single-column': !authStore.isAdmin }]">
+    <div class="content">
       <!-- 정책 목록 -->
       <div class="policy-list-card">
         <h2>등록된 휴가 정책</h2>
@@ -21,8 +21,8 @@
         </div>
       </div>
 
-      <!-- 새 정책 생성 (관리자 전용) -->
-      <div v-if="authStore.isAdmin" class="create-policy-card">
+      <!-- 새 정책 생성 -->
+      <div class="create-policy-card">
         <h2>새 휴가 정책 생성</h2>
         <form @submit.prevent="handleCreatePolicy" class="policy-form">
           <div class="form-grid">

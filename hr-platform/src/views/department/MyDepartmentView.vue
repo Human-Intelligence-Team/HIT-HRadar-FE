@@ -154,8 +154,8 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import { getDepartmentById } from '@/api/departmentApi'
-import { fetchEmployeeDetail, fetchEmployees } from '@/api/employeeApi'
+import { getDepartmentById, getDepartmentMembers } from '@/api/departmentApi'
+import { fetchEmployeeDetail } from '@/api/employeeApi'
 import { useAuthStore } from '@/stores/authStore'
 
 const authStore = useAuthStore()
@@ -181,7 +181,7 @@ const loadData = async () => {
             const deptRes = await getDepartmentById(employeeInfo.deptId)
             department.value = deptRes.data?.data
             
-            const membersRes = await fetchEmployees({ deptId: employeeInfo.deptId })
+            const membersRes = await getDepartmentMembers(employeeInfo.deptId)
             members.value = membersRes.data?.data?.employees || membersRes.data?.data || []
         }
     } catch(e) {

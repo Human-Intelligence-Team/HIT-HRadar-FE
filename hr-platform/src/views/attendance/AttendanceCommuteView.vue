@@ -195,18 +195,23 @@ const fetchInitialData = async () => {
       toDate: getTodayString()
     });
 
-    departmentMembers.value = (res.data || []).map(d => {
-      const r = d.attendanceRecords?.[0];
-      return {
-        employeeId: d.employeeId,
-        name: d.employeeName,
-        department: d.departmentName,
-        jobTitle: d.jobTitle,
-        status: r?.status || '기록 없음',
-        workingHours: r?.workingHours || '-',
-        workplace: r?.workPlace || '-'
-      };
-    });
+      departmentMembers.value = (res.data || []).map(d => {
+        // 분 단위를 시간 포맷으로 변환 (예: 125분 -> 2시간 5분)
+        const totalMin = d.totalWorkMinutes || 0;
+        const hours = Math.floor(totalMin / 60);
+        const mins = totalMin % 60;
+        const workingTimeStr = totalMin > 0 ? `${hours}시간 ${mins}분` : '-';
+
+        return {
+          employeeId: d.empId,
+          name: d.empName,
+          department: d.departmentName || '-',
+          jobTitle: d.jobTitle || '-',
+          status: d.status || '미출근', // 상태가 null이면 미출근 처리
+          workingHours: workingTimeStr,
+          workplace: d.location || '-'
+        };
+      });
   } catch (e) {
     departmentMembers.value = [];
   } finally {

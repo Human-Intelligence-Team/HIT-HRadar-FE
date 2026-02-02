@@ -3,14 +3,13 @@
     <nav class="nav">
       <template v-for="(section, sIdx) in menuConfig" :key="sIdx">
         <div class="section-title" v-if="!section.hidden">{{ section.title }}</div>
-        
+
         <template v-for="(item, iIdx) in section.items" :key="iIdx">
           <!-- Item with Flyout -->
-          <div 
+          <div
             v-if="item.children"
             class="nav-group has-flyout"
             @mouseenter="showFlyout($event, item)"
-            @mouseleave="hideFlyout"
           >
             <div class="nav-item">
               <span>{{ item.text }}</span>
@@ -34,18 +33,18 @@
 
   <!-- Teleported Flyout Menu -->
   <Teleport to="body">
-    <div 
-      v-if="activeFlyout" 
+    <div
+      v-if="activeFlyout"
       class="flyout-container"
       :style="flyoutStyle"
       @mouseenter="cancelHide"
       @mouseleave="hideFlyout"
     >
       <div class="flyout-content">
-        <RouterLink 
-          v-for="child in activeFlyout.children" 
-          :key="child.to" 
-          :to="child.to" 
+        <RouterLink
+          v-for="child in activeFlyout.children"
+          :key="child.to"
+          :to="child.to"
           class="flyout-item"
           @click="closeAll"
         >
@@ -153,11 +152,9 @@ const menuConfig = computed(() => [
         children: [
           { text: '나의 출퇴근 관리', to: '/attendance/commute' },
           { text: '나의 근태 캘린더', to: '/attendance/my-calendar' },
-          ...(auth.isAdmin ? [
-            { text: 'IP 정책 관리', to: '/attendance/ip-policy' },
-            { text: '부서 출퇴근 관리', to: '/attendance/department' },
-            { text: '부서별 근태 캘린더', to: '/attendance/department-calendar' }
-          ] : [])
+          { text: 'IP 정책 관리', to: '/attendance/ip-policy' },
+          { text: '부서 출퇴근 관리', to: '/attendance/department' },
+          { text: '부서별 근태 캘린더', to: '/attendance/department-calendar' }
         ]
       }
     ]
@@ -170,7 +167,7 @@ const menuConfig = computed(() => [
         children: [
           { text: '내 휴가 이력', to: '/leave/my-history' },
           { text: '휴가 정책 관리', to: '/leave/policy' },
-          ...(auth.isAdmin ? [{ text: '부서 휴가 이력', to: '/leave/admin/department-history' }] : [])
+          { text: '부서 휴가 이력', to: '/leave/admin/department-history' }
         ]
       }
     ]
@@ -183,11 +180,7 @@ const menuConfig = computed(() => [
         children: [
           { text: '결재 문서 등록', to: '/approval/create' },
           { text: '내 문서함', to: '/approval/my-documents' },
-          { text: '결재 문서함', to: '/approval/approval-tasks' },
-          { text: '반려 문서함', to: '/approval/rejected-documents' },
-          { text: '참조 문서함', to: '/approval/references' },
-          { text: '전체 문서함', to: '/approval/all-documents' },
-          { text: '결재 관리(인사팀)', to: '/approval/admin' },
+          { text: '결재 관리', to: '/approval/admin' },
         ]
       }
     ]
@@ -311,7 +304,6 @@ const can = (perm) => {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  padding-bottom: 40px;
 }
 
 /* ===== Section ===== */

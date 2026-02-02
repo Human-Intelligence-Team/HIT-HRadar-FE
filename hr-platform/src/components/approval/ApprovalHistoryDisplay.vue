@@ -2,9 +2,9 @@
   <div class="approval-history-display">
     <h3>결재 이력</h3>
     <ul class="history-list">
-      <li v-for="history in histories" :key="history.historyId" :class="['history-item', history.actionType.toLowerCase()]">
+      <li v-for="history in histories" :key="history.historyId" :class="['history-item', history.actionType ? history.actionType.toLowerCase() : '']">
         <span class="history-date">{{ formatDate(history.actedAt) }}</span>
-        <span class="actor-info">{{ history.actorId }}</span>
+        <span class="actor-info">{{ history.actorName }} ({{ history.actorId }})</span>
         <span class="action-type">{{ getActionTypeText(history.actionType) }}</span>
         <span v-if="history.reason" class="reason"> (사유: {{ history.reason }})</span>
       </li>

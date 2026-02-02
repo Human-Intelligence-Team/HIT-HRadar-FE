@@ -1,13 +1,13 @@
 import api from '@/api/axios'
 
 export const getLeavePolicies = (companyId) => {
-  return api.get('/api/v1/leave-policies', {
-    params: { companyId },
-  })
+  const params = {};
+  if (companyId) params.companyId = companyId;
+  return api.get('/api/v1/leave-policies', { params });
 }
 
 export const createLeavePolicy = (policyData) => {
-  return api.post('/api/v1/admin/leave-policies', policyData)
+  return api.post('/api/v1/leave-policies', policyData)
 }
 
 
@@ -54,4 +54,12 @@ export const getLeaveDetail = (leaveId) => {
  */
 export const getLeaveGrant = (grantId) => {
   return api.get(`/api/v1/leave/grant/${grantId}`);
+};
+
+/**
+ * 현재 로그인한 사용자의 모든 연차 지급 정보를 조회합니다.
+ * @returns {Promise<axios.ApiResponse<any[]>>}
+ */
+export const getMyLeaveGrants = () => {
+  return api.get('/api/v1/leave/grants');
 };

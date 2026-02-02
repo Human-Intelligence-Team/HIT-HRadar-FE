@@ -13,9 +13,9 @@
             <div class="form-grid">
               <div class="form-field">
                 <label for="docType">결재 문서 종류</label>
-                <select id="docType" v-model="approvalInfo.documentTypeId" required>
+                <select id="docType" v-model="approvalInfo.docType" required>
                   <option disabled value="">문서 종류 선택</option>
-                  <option v-for="type in documentTypes" :key="type.typeId" :value="type.typeId">
+                  <option v-for="type in documentTypes" :key="type.typeId" :value="type.docType">
                     {{ type.name }}
                   </option>
                 </select>
@@ -31,7 +31,7 @@
             </div>
             <div class="form-field">
               <label>참조선 (참조자)</label>
-              <DepartmentEmployeeSelector v-model="approvalInfo.referenceIds" hint="참조할 사원을 선택하세요." />
+              <DepartmentEmployeeSelector v-model="approvalInfo.referenceIds" hint="참조할 사원을 선택하세요." :allowDeptSelection="true" />
             </div>
           </div>
 
@@ -55,6 +55,8 @@
                   <option v-for="policy in leavePolicies" :key="policy.policyId" :value="policy.typeName">
                     {{ policy.typeName }}
                   </option>
+                  <option v-if="leavePolicies.length === 0" value="연차">연차 (기본)</option>
+                  <option v-if="leavePolicies.length === 0" value="경조사">경조사 (기본)</option>
                 </select>
               </div>
               <div class="form-field">
@@ -100,7 +102,7 @@
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/authStore';
-import { createLeaveDraft, applyLeave, getLeavePolicies } from '@/api/leaveApi';
+import { createLeaveDraft, applyLeave, getLeavePolicies, getMyLeaveGrants } from '@/api/leaveApi';
 import { fetchApprovalDocumentTypes  } from '@/api/approvalApi';
 import DepartmentEmployeeSelector from '@/components/approval/DepartmentEmployeeSelector.vue';
 
@@ -119,7 +121,7 @@ const leavePolicies = ref([]);
 const authStore = useAuthStore();
 
 const approvalInfo = ref({
-  documentTypeId: '',
+  docType: '',
   title: `[휴가신청] ${new Date().getFullYear()}년`,
   approverIds: [],
   referenceIds: [],
@@ -145,8 +147,19 @@ const fetchInitialData = async () => {
       getLeavePolicies(authStore.user?.companyId)
     ]);
 
-    documentTypes.value = docTypesRes.data.data.filter(t => t.active);
-    leavePolicies.value = policiesRes.data.data || [];
+    const allDocTypes = docTypesRes?.data?.data || [];
+    documentTypes.value = allDocTypes.filter(t => (t.active || t.isActive) && t.isDeleted !== 'Y');
+    leavePolicies.value = policiesRes?.data?.data || [];
+
+    if (documentTypes.value.length > 0) {
+      // 자동 선택: 휴가 관련 문서 유형 찾기
+      const leaveType = documentTypes.value.find(t => t.docType.includes('LEAVE') || t.name.includes('휴가'));
+      if (leaveType) {
+        approvalInfo.value.docType = leaveType.docType;
+      } else {
+        approvalInfo.value.docType = documentTypes.value[0].docType;
+      }
+    }
 
     if (props.availableGrants.length > 0) {
       leaveInfo.value.grantId = props.availableGrants[0].grantId;
@@ -159,19 +172,44 @@ const fetchInitialData = async () => {
 
 const submitLeaveApplication = async () => {
   if (isSubmitting.value) return;
+
+  // 유효성 검사
+  if (!approvalInfo.value.docType) {
+    alert('결재 문서 종류를 선택해주세요.');
+    return;
+  }
+  if (!approvalInfo.value.title.trim()) {
+    alert('결재 문서 제목을 입력해주세요.');
+    return;
+  }
+  if (approvalInfo.value.approverIds.length === 0) {
+    alert('결재자를 최소 1명 이상 선택해주세요.');
+    return;
+  }
+  if (!leaveInfo.value.grantId) {
+    alert('사용할 연차를 선택해주세요.');
+    return;
+  }
+
   isSubmitting.value = true;
 
   try {
     const draftRequest = {
-      documentTypeId: approvalInfo.value.documentTypeId,
+      docType: approvalInfo.value.docType,
       title: approvalInfo.value.title,
-      content: leaveInfo.value.reason,
-      approvers: approvalInfo.value.approverIds,
-      referrers: approvalInfo.value.referenceIds
+      content: leaveInfo.value.reason || '휴가 신청',
+      approverIds: approvalInfo.value.approverIds,
+      referenceIds: approvalInfo.value.referenceIds,
+      payload: {},
+      Payload: {}
     };
+
+    console.log('🔍 휴가 신청 Draft 요청:', draftRequest);
 
     const draftResponse = await createLeaveDraft(draftRequest);
     const docId = draftResponse.data.data;
+
+    console.log('✅ Draft 생성 성공, docId:', docId);
 
     if (!docId) {
       throw new Error('결재 문서 생성에 실패했습니다.');
@@ -181,11 +219,13 @@ const submitLeaveApplication = async () => {
       grantId: leaveInfo.value.grantId,
       leaveType: leaveInfo.value.leaveType,
       leaveUnitType: leaveInfo.value.leaveUnitType,
-      reason: leaveInfo.value.reason,
+      reason: leaveInfo.value.reason || '휴가 신청',
       startDate: leaveInfo.value.startDate,
       endDate: leaveInfo.value.endDate,
       leaveDays: leaveInfo.value.leaveDays,
     };
+
+    console.log('🔍 휴가 정보 저장 요청:', leaveRequest);
 
     await applyLeave(docId, leaveRequest);
     alert('휴가 신청이 성공적으로 제출되었습니다.');
@@ -194,7 +234,8 @@ const submitLeaveApplication = async () => {
     router.push(`/approval/${docId}`);
 
   } catch (error) {
-    console.error('휴가 신청 처리 중 오류 발생:', error);
+    console.error('❌ 휴가 신청 처리 중 오류 발생:', error);
+    console.error('에러 상세:', error.response?.data);
     const errorMessage = error.response?.data?.message || '휴가 신청 중 오류가 발생했습니다.';
     alert(errorMessage);
   } finally {

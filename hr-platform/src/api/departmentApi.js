@@ -56,3 +56,12 @@ export function getAllDepartmentsByCompany() {
 export function getOrganizationChart() {
     return api.get('/api/v1/departments/query/organization-chart');
 }
+
+/**
+ * 부서원 조회
+ * GET /departments/{deptId}/members
+ * @param {Number} deptId
+ */
+export function getDepartmentMembers(deptId) {
+    return api.get(`/api/v1/departments/query/${deptId}/members`);
+}
