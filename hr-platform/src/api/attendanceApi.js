@@ -87,7 +87,7 @@ export const fetchAttendanceCalendar = async ({
   fromDate,
   toDate
 }) => {
-  return await axios.get('/api/v1/attendance', {
+  return await axios.get('/api/v1/attendance/calendar', {
     params: {
       targetEmpId,
       targetDeptId,

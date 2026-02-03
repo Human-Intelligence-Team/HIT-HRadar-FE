@@ -102,7 +102,7 @@
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/authStore';
-import { createLeaveDraft, applyLeave, getLeavePolicies, getMyLeaveGrants } from '@/api/leaveApi';
+import { createLeaveDraft, applyLeave, getLeavePolicies } from '@/api/leaveApi';
 import { fetchApprovalDocumentTypes  } from '@/api/approvalApi';
 import DepartmentEmployeeSelector from '@/components/approval/DepartmentEmployeeSelector.vue';
 
@@ -139,6 +139,78 @@ const leaveInfo = ref({
 
 
 // updateApprovalLine is removed as we use v-model
+
+// Watchers for date calculation
+import { watch } from 'vue';
+
+watch([() => leaveInfo.value.startDate, () => leaveInfo.value.endDate], ([start, end]) => {
+  if (start && end) {
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+    
+    if (errorMessage.value) errorMessage.value = '';
+
+    if (startDate > endDate) {
+      // alert('종료일은 시작일보다 빠를 수 없습니다.');
+      leaveInfo.value.endDate = leaveInfo.value.startDate;
+      return;
+    }
+
+    // Calculate business days (M-F) 
+    // Simplified logic: just total days - weekends
+    let count = 0;
+    let current = new Date(startDate);
+    while (current <= endDate) {
+      const dayOfWeek = current.getDay();
+      if (dayOfWeek !== 0 && dayOfWeek !== 6) { // 0=Sun, 6=Sat
+        count++;
+      }
+      current.setDate(current.getDate() + 1);
+    }
+    
+    // Adjust for half-day
+    if (leaveInfo.value.leaveUnitType.startsWith('HALF')) {
+        leaveInfo.value.leaveDays = 0.5;
+        // Half day implies single day usually
+        if (start !== end) {
+             // If user selected range for half day, it might mean "half day foreach day" or error.
+             // Usually half day is single date. enforce it?
+             // For now, let's just count 0.5 * days
+             leaveInfo.value.leaveDays = count * 0.5;
+        }
+    } else {
+        leaveInfo.value.leaveDays = count;
+    }
+  }
+});
+
+watch(() => leaveInfo.value.leaveUnitType, (newVal) => {
+    if (newVal.startsWith('HALF')) {
+        leaveInfo.value.leaveDays = 0.5;
+        // Optionally force start=end
+        if (leaveInfo.value.startDate && leaveInfo.value.startDate !== leaveInfo.value.endDate) {
+            leaveInfo.value.endDate = leaveInfo.value.startDate;
+        }
+    } else {
+        // Re-trigger date calc
+        const start = leaveInfo.value.startDate;
+        const end = leaveInfo.value.endDate;
+        if (start && end) {
+             // Logic repeated, ideal to extract function
+             const startDate = new Date(start);
+             const endDate = new Date(end);
+             let count = 0;
+             let current = new Date(startDate);
+             while (current <= endDate) {
+               if (current.getDay() !== 0 && current.getDay() !== 6) count++;
+               current.setDate(current.getDate() + 1);
+             }
+             leaveInfo.value.leaveDays = count;
+        }
+    }
+});
+
+const errorMessage = ref(''); 
 
 const fetchInitialData = async () => {
   try {
@@ -189,6 +261,15 @@ const submitLeaveApplication = async () => {
   if (!leaveInfo.value.grantId) {
     alert('사용할 연차를 선택해주세요.');
     return;
+  }
+
+  // Check Remaining Days
+  const selectedGrant = props.availableGrants.find(g => g.grantId === leaveInfo.value.grantId);
+  if (selectedGrant) {
+    if (leaveInfo.value.leaveDays > selectedGrant.remainingDays) {
+        alert(`잔여 연차가 부족합니다. (신청: ${leaveInfo.value.leaveDays}일, 잔여: ${selectedGrant.remainingDays}일)`);
+        return;
+    }
   }
 
   isSubmitting.value = true;

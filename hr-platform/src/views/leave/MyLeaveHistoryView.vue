@@ -90,9 +90,6 @@ const availableGrants = ref([]);
 const isLoading = ref(true);
 const isApplyModalOpen = ref(false);
 
-const currentYear = new Date().getFullYear();
-
-// TODO: This should come from authStore or a dedicated user info API call
 const userInfo = ref({
   name: authStore.user?.name || '홍길동',
   department: authStore.user?.departmentName || '개발팀',
@@ -124,14 +121,7 @@ const reloadData = async () => {
 
     // 2. Fetch Leave History
     const leavesResponse = await getMyLeaves();
-    // TODO: The backend `LeaveListDto` needs `docId`, `approvalStatus`, `requestedAt`, `reason`. Simulating.
-    leaves.value = (leavesResponse.data.data || []).map(leave => ({
-        ...leave,
-        docId: leave.docId || Math.floor(100 + Math.random() * 900),
-        approvalStatus: ['DRAFT', 'PROCEEDING', 'APPROVED', 'REJECTED'][Math.floor(Math.random() * 4)],
-        requestedAt: new Date().toISOString(),
-        reason: '개인 사유'
-    }));
+    leaves.value = leavesResponse.data.data || [];
 
   } catch (error) {
     console.error('데이터 로딩 중 오류 발생:', error);
@@ -158,9 +148,13 @@ const formatDateTime = (isoString) => {
 const getStatusBadgeClass = (status) => {
     const classes = {
         'DRAFT': 'badge-gray',
-        'PROCEEDING': 'badge-blue',
+        'TEMP': 'badge-gray',
+        'IN_PROGRESS': 'badge-blue', // Main backend status
+        'PROCEEDING': 'badge-blue',  // Legacy/Frontend alias
+        'PENDING': 'badge-blue',
         'APPROVED': 'badge-green',
         'REJECTED': 'badge-red',
+        'WITHDRAWN': 'badge-yellow'
     };
     return classes[status] || 'badge-gray';
 }
