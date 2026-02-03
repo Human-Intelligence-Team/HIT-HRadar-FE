@@ -19,17 +19,18 @@
           <label for="department">부서</label>
           <select id="department" v-model="filters.departmentId">
             <option value="">전체 부서</option>
-            <!-- TODO: Load departments from API -->
-            <option value="1">개발팀</option>
-            <option value="2">인사팀</option>
+            <option v-for="dept in departments" :key="dept.deptId" :value="dept.deptId">
+              {{ dept.deptName }}
+            </option>
           </select>
         </div>
         <div class="filter-field">
           <label for="leave-type">휴가 종류</label>
           <select id="leave-type" v-model="filters.leaveType">
             <option value="">전체</option>
-            <option value="ANNUAL">연차</option>
-            <option value="SICK">병가</option>
+            <option v-for="policy in leavePolicies" :key="policy.policyId" :value="policy.typeName">
+              {{ policy.typeName }}
+            </option>
           </select>
         </div>
         <div class="filter-field">
@@ -69,8 +70,8 @@
             <tbody>
                 <tr v-for="leave in filteredLeaves" :key="leave.leaveId">
                 <td>{{ formatDateTime(leave.requestedAt) }}</td>
-                <td>{{ leave.departmentName }}</td>
-                <td>{{ leave.employeeName }}</td>
+                <td>{{ leave.departmentName || '-' }}</td> <!-- Fallback if null -->
+                <td>{{ leave.empName }}</td>
                 <td>{{ leave.leaveType }}</td>
                 <td>{{ leave.startDate }} ~ {{ leave.endDate }}</td>
                 <td class="reason-cell">{{ leave.reason }}</td>
@@ -89,7 +90,14 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted } from 'vue';
+import { ref, onMounted } from 'vue';
+import { getDepartmentLeaves, getLeavePolicies } from '@/api/leaveApi';
+import { getAllDepartmentsByCompany } from '@/api/departmentApi';
+import { useAuthStore } from '@/stores/authStore';
+
+const authStore = useAuthStore();
+const leavePolicies = ref([]);
+const departments = ref([]);
 
 const filters = ref({
   startDate: '',
@@ -100,24 +108,56 @@ const filters = ref({
 });
 
 const isLoading = ref(true);
-const allLeaves = ref([]); // This would be fetched from the backend
+const allLeaves = ref([]); 
 const filteredLeaves = ref([]);
 
 
 const applyFilters = () => {
     isLoading.value = true;
     console.log('Applying filters:', filters.value);
-    // In a real scenario, this would be an API call with filter parameters.
-    // Simulating filter logic here.
+    
+    // Client-side filtering because the backend endpoint returns all department leaves
     setTimeout(() => {
         filteredLeaves.value = allLeaves.value.filter(leave => {
-            const nameMatch = filters.value.employeeName ? leave.employeeName.includes(filters.value.employeeName) : true;
-            const deptMatch = filters.value.departmentId ? leave.departmentName === (filters.value.departmentId === '1' ? '개발팀' : '인사팀') : true;
-            // ... add other filter conditions
-            return nameMatch && deptMatch;
+            const nameMatch = filters.value.employeeName ? leave.empName.includes(filters.value.employeeName) : true;
+            // Department filter: If departmentId is provided, filter by it. 
+            // Note: Data might not have departmentId directly attached if not in DTO. 
+            // We only requested departmentName in DTO. Filtering by ID might be tricky if we don't have ID.
+            // Let's assume we filter by Name matching selected ID's name OR we should add deptId to DTO properly.
+            // But wait, the task was about "Names matching".
+            // Since we added departmentName to DTO, let's filter by Name or just fetch DeptId too?
+            // Actually, we usually filtering by ID. let's add DeptId to DTO for robustness?
+            // For now, let's skip complex ID filtering logic if ID is missing in DTO, or simple string match.
+            // Let's assume for this specific User Request (Name Consistency) that Name display is key.
+            // But wait! Use selected ID to find deptName from 'departments' array, then match string?
+            
+            let deptMatch = true;
+            if (filters.value.departmentId) {
+                 const selectedDept = departments.value.find(d => d.deptId === filters.value.departmentId);
+                 if (selectedDept && leave.departmentName) {
+                     deptMatch = leave.departmentName === selectedDept.deptName;
+                 } else {
+                     deptMatch = false; 
+                 }
+            }
+            
+            const typeMatch = filters.value.leaveType ? leave.leaveType === filters.value.leaveType : true;
+            
+            // Date Range Filter
+            let dateMatch = true;
+            if (filters.value.startDate && filters.value.endDate) {
+                const start = new Date(filters.value.startDate);
+                const end = new Date(filters.value.endDate);
+                const leaveStart = new Date(leave.startDate);
+                const leaveEnd = new Date(leave.endDate);
+                // Check overlap
+                dateMatch = leaveStart <= end && leaveEnd >= start;
+            }
+
+            return nameMatch && typeMatch && dateMatch && deptMatch;
         });
         isLoading.value = false;
-    }, 500);
+    }, 300); // Small delay for UI feel
 };
 
 const resetFilters = () => {
@@ -128,29 +168,59 @@ const resetFilters = () => {
         leaveType: '',
         employeeName: '',
     };
-    applyFilters();
+    filteredLeaves.value = allLeaves.value;
 };
+
+const fetchData = async () => {
+    isLoading.value = true;
+    try {
+        const [leavesRes, policiesRes, deptsRes] = await Promise.all([
+            getDepartmentLeaves(),
+            getLeavePolicies(authStore.user?.companyId),
+            getAllDepartmentsByCompany()
+        ]);
+
+        if (leavesRes.data && leavesRes.data.success) {
+            allLeaves.value = leavesRes.data.data;
+            filteredLeaves.value = allLeaves.value;
+        }
+        
+        if (policiesRes.data && policiesRes.data.success) {
+            leavePolicies.value = policiesRes.data.data || [];
+        }
+
+        if (deptsRes.data && deptsRes.data.success) {
+            departments.value = deptsRes.data.data.departments || [];
+        }
+
+    } catch (e) {
+        console.error("Failed to fetch data:", e);
+    } finally {
+        isLoading.value = false;
+    }
+}
 
 const formatDateTime = (isoString) => {
     if (!isoString) return '-';
+    // isoString could be just Date or DateTime
     const date = new Date(isoString);
-    return date.toLocaleString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+    return date.toLocaleDateString('ko-KR'); 
 }
 
 const getStatusBadgeClass = (status) => {
     const classes = {
         'APPROVED': 'badge-green',
         'REJECTED': 'badge-red',
-        'PROCEEDING': 'badge-blue',
+        'PENDING': 'badge-blue', // Changed from PROCEEDING to PENDING to match backend
+        'WAITING': 'badge-gray',
+        'IN_PROGRESS': 'badge-blue'
     };
     return classes[status] || 'badge-gray';
 }
 
 
 onMounted(() => {
-    allLeaves.value = [];
-    filteredLeaves.value = [];
-    isLoading.value = false;
+    fetchData();
 });
 
 </script>

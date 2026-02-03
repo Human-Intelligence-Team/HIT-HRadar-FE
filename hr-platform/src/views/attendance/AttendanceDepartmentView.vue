@@ -67,61 +67,56 @@
 <script setup>
 import { ref, onMounted, computed, watch } from 'vue';
 import { useAuthStore } from '@/stores/authStore';
-import { fetchAttendanceCalendar  } from '@/api/attendanceApi';
+import { getAllDepartmentsByCompany } from '@/api/departmentApi';
 
 const auth = useAuthStore();
 const companyId = computed(() => auth.user?.companyId);
 
 const loading = ref(false);
-const selectedDate = ref('');
-const selectedDepartmentId = ref(''); // 변경: 'ALL' 대신 빈 문자열로 초기화
-const departmentOptions = ref([
-  { id: 1, name: '개발팀' },
-  { id: 2, name: '인사팀' },
-  { id: 3, name: '영업팀' },
-]); // TODO: 실제 API (예: DeptGradeApi의 부서 목록 조회) 로 대체 필요
+const selectedDate = ref(new Date().toISOString().split('T')[0]); // 오늘 날짜로 초기화
+const selectedDepartmentId = ref(auth.user?.deptId || ''); 
+const departmentOptions = ref([]);
 const attendanceRecords = ref([]);
 
-const getTodayString = () => {
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = String(today.getMonth() + 1).padStart(2, '0');
-  const day = String(today.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
+// 부서 목록 가져오기 함수
+const fetchDepartments = async () => {
+    try {
+        const response = await getAllDepartmentsByCompany();
+        if (response.data?.success) {
+             departmentOptions.value = response.data.data.departments.map(d => ({
+                id: d.deptId,
+                name: d.deptName
+             }));
+
+             // 사용자의 부서 ID가 목록에 없으면 첫 번째 부서 선택 (혹은 전체 선택)
+             if (!selectedDepartmentId.value && departmentOptions.value.length > 0) {
+                 selectedDepartmentId.value = departmentOptions.value[0].id;
+             }
+        }
+    } catch (error) {
+        console.error("부서 목록 조회 실패:", error);
+    }
 };
 
-// 오늘 날짜로 기본 설정 및 초기 데이터 로드
 onMounted(() => {
-  selectedDate.value = getTodayString();
-  fetchRecords();
+    fetchDepartments();
+    // 초기 로딩 시 데이터 조회 (부서 목록 로딩 후 fetchRecords가 watch에 의해 호출될 수도 있지만 명시적으로 호출)
+    if (selectedDepartmentId.value) {
+        fetchRecords();
+    }
 });
 
 const fetchRecords = async () => {
   if (!companyId.value) {
-    alert('회사 정보를 불러올 수 없습니다.');
+    // alert('회사 정보를 불러올 수 없습니다.'); // 불필요한 알림 제거
     return;
   }
   loading.value = true;
+  attendanceRecords.value = []; // 초기화
+
   try {
     let response;
-    if (selectedDepartmentId.value) {
-      // 특정 부서 조회
-      response = await fetchAttendanceCalendar (
-        selectedDepartmentId.value,
-        true, // isDepartment
-        selectedDate.value,
-        selectedDate.value
-      );
-    } else {
-      // "전체 부서" 선택 시, 모든 부서를 조회 (API에서 지원하지 않는 경우 프론트엔드에서 처리 필요)
-      // 현재 백엔드 API (AttendanceQueryController)는 targetDeptId가 필수.
-      // 따라서 전체 부서 조회 기능은 백엔드에서 `targetDeptId`가 null일 때 전체를 반환하도록 지원해야 함.
-      // 또는 프론트엔드에서 모든 부서 ID를 순회하며 각각 호출 후 병합해야 함.
-      // 여기서는 일단 selectedDepartmentId가 없을 경우, 빈 배열을 반환하도록 처리. (TODO: 백엔드 지원에 따라 수정)
-      attendanceRecords.value = [];
-      loading.value = false;
-      return;
-    }
+    // ...
 
     // AttendanceListResponseDto[] 구조를 가정.
     // 각 DTO는 여러 직원의 기록을 포함할 수 있으므로, 단일 배열로 평탄화 필요.

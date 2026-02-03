@@ -7,8 +7,16 @@ export const getLeavePolicies = (companyId) => {
 }
 
 export const createLeavePolicy = (policyData) => {
-  return api.post('/api/v1/leave-policies', policyData)
+  return api.post('/api/v1/admin/leave-policies', policyData)
 }
+
+/**
+ * 부서권한이 있는 사용자가 부서 휴가 목록을 조회합니다.
+ * @returns {Promise<axios.ApiResponse<any[]>>}
+ */
+export const getDepartmentLeaves = () => {
+  return api.get('/api/v1/leave/department');
+};
 
 
 /**
