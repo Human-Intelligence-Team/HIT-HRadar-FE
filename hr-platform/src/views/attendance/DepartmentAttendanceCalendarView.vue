@@ -9,14 +9,14 @@
           <label for="departmentSelect">부서 선택:</label>
           <select id="departmentSelect" v-model="selectedDepartmentId" class="select">
             <option value="">전체 부서</option>
-            <option v-for="dept in departments" :key="dept.id" :value="dept.id">{{ dept.name }}</option>
+            <option v-for="dept in departmentOptions" :key="dept.id" :value="dept.id">{{ dept.name }}</option>
           </select>
         </div>
       </div>
     </div>
     <div class="calendar-container card">
       <div v-if="loading" class="calendar-loading">캘린더 데이터를 불러오는 중...</div>
-      <FullCalendar v-else :options="calendarOptions" />
+      <FullCalendar v-else ref="fullCalendar" :options="calendarOptions" />
     </div>
 
     <!-- 근무 상세 정보 모달 -->
@@ -29,31 +29,25 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue';
+import { ref, watch, onMounted } from 'vue'; // Removed unused computed
 import { useAuthStore } from '@/stores/authStore';
-import { useRouter } from 'vue-router';
+// Removed unused useRouter, computed
 import FullCalendar from '@fullcalendar/vue3';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import bootstrap5Plugin from '@fullcalendar/bootstrap5';
 import { fetchAttendanceCalendar } from '@/api/attendanceApi';
 import AttendanceDetailModal from '@/components/attendance/AttendanceDetailModal.vue';
+import { getAllDepartmentsByCompany } from '@/api/departmentApi';
 
 const auth = useAuthStore();
-const router = useRouter();
-const companyId = computed(() => auth.user?.companyId);
+// Removed unused router, companyId
 
-const departments = ref([
-  { id: 1, name: '개발팀' },
-  { id: 2, name: '인사팀' },
-  { id: 3, name: '영업팀' },
-]); // TODO: 실제 API 호출로 대체
-const selectedDepartmentId = ref(''); // 기본값: 전체 부서
-
+const departmentOptions = ref([]);
+const selectedDepartmentId = ref(''); // ✅ Restored: Essential for dropdown binding
+const fullCalendar = ref(null);
 const calendarEvents = ref([]);
 const loading = ref(false);
-
-// 모달 관련 상태
 const isModalOpen = ref(false);
 const selectedAttendance = ref(null);
 
@@ -66,15 +60,14 @@ const calendarOptions = ref({
     center: 'title',
     right: 'dayGridMonth'
   },
-  locale: 'ko', // 한국어 설정
-  dayMaxEvents: true, // +more 링크 표시
+  locale: 'ko',
+  dayMaxEvents: true,
   eventDidMount: function(info) {
     if (info.event.extendedProps.type) {
       info.el.classList.add('event-' + info.event.extendedProps.type);
     }
   },
   eventClick: (info) => {
-    // 모달 표시
     selectedAttendance.value = {
       ...info.event.extendedProps,
       workDate: info.event.startStr,
@@ -82,21 +75,28 @@ const calendarOptions = ref({
     isModalOpen.value = true;
   },
   datesSet: async (dateInfo) => {
-    if (companyId.value) {
-      await fetchCalendarEvents(dateInfo.startStr.substring(0, 10), dateInfo.endStr.substring(0, 10));
+    if (selectedDepartmentId.value) {
+       await fetchCalendarEvents(dateInfo.startStr.substring(0, 10), dateInfo.endStr.substring(0, 10));
     }
   }
 });
 
 const fetchDepartments = async () => {
-  // 실제 API 호출 로직
-  // try {
-  //   const response = await fetchDepartments(companyId.value);
-  //   departments.value = response.data;
-  // } catch (error) {
-  //   console.error('부서 목록을 불러오는 데 실패했습니다:', error);
-  // }
-};
+    try {
+        const response = await getAllDepartmentsByCompany();
+        if (response.data && response.data.success) {
+            departmentOptions.value = response.data.data.departments.map(d => ({
+                id: d.deptId,
+                name: d.deptName
+            }));
+             if (departmentOptions.value.length > 0) {
+                selectedDepartmentId.value = departmentOptions.value[0].id;
+            }
+        }
+    } catch(e) {
+        console.error("Failed to fetch departments:", e);
+    }
+}
 
 const fetchCalendarEvents = async (startDate, endDate) => {
   if (!selectedDepartmentId.value) {
@@ -104,50 +104,37 @@ const fetchCalendarEvents = async (startDate, endDate) => {
     return;
   }
 
-  await fetchAttendanceCalendar({
-    targetDeptId: selectedDepartmentId.value,
-    fromDate: startDate,
-    toDate: endDate
-  });
   loading.value = true;
   try {
-    let response;
-    if (selectedDepartmentId.value) {
-      // 특정 부서 조회
-      response = await fetchAttendanceCalendar (selectedDepartmentId.value, true, startDate, endDate);
-    } else {
-      // 전체 부서 조회 (백엔드에서 전체 부서 조회를 지원한다고 가정하거나, 모든 부서를 개별적으로 조회 후 병합)
-      // 현재 백엔드 API는 targetDeptId가 필수. 따라서 전체 부서 조회를 하려면
-      // 각 부서별로 호출하거나 백엔드 API에 전체 부서 조회 파라미터가 있어야 함.
-      // 일단은 selectedDepartmentId가 없으면 빈 배열 반환으로 처리 (임시)
-      calendarEvents.value = [];
-      loading.value = false;
-      return;
-    }
+    const response = await fetchAttendanceCalendar({
+        targetDeptId: selectedDepartmentId.value,
+        fromDate: startDate,
+        toDate: endDate
+      });
 
     let events = [];
     if (response.data) {
-      response.data.forEach(deptRecord => {
-        deptRecord.attendanceRecords.forEach(record => {
-          const date = record.workDate;
-          const status = record.status || (record.checkInTime ? '출근중' : '결근');
-          const title = `${deptRecord.employeeName}: ${status}`;
-          
-          events.push({
-            id: `dept-${deptRecord.employeeId}-${date}`,
-            title: title,
-            date: date,
-            allDay: true,
-            extendedProps: {
-              type: 'department-attendance',
-              employeeId: deptRecord.employeeId,
-              employeeName: deptRecord.employeeName,
-              deptName: deptRecord.deptName,
-              status: status,
-              workType: record.workType,
-              workPlace: record.workPlace
-            }
-          });
+      console.log("API Response Data Sample:", response.data[0]); // Debugging
+      response.data.forEach(record => {
+        // console.log("Processing record:", record); // Optional: detailed log
+        const date = record.workDate;
+        const status = record.status || (record.totalWorkMinutes > 0 ? '퇴근' : '미출근');
+        const title = `${record.empName}: ${status}`;
+
+        events.push({
+          id: `dept-${record.empId}-${date}`,
+          title: title,
+          date: date,
+          allDay: true,
+          extendedProps: {
+            type: 'department-attendance',
+            employeeId: record.empId,
+            employeeName: record.empName,
+            deptName: record.departmentName,
+            status: status,
+            workType: record.workType,
+            workPlace: record.location
+          }
         });
       });
     }
@@ -155,7 +142,6 @@ const fetchCalendarEvents = async (startDate, endDate) => {
 
   } catch (error) {
     console.error('부서 캘린더 이벤트를 불러오는 데 실패했습니다:', error);
-    alert('부서 캘린더 데이터를 불러오는 중 오류가 발생했습니다.');
   } finally {
     loading.value = false;
   }
@@ -166,10 +152,9 @@ onMounted(() => {
 });
 
 watch(selectedDepartmentId, () => {
-  // 부서 선택이 변경되면 캘린더 이벤트를 다시 로드
-  const calendarApi = calendarOptions.value.getApi(); // FullCalendar API 인스턴스 가져오기
-  if (calendarApi) {
-    calendarApi.refetchEvents(); // events source를 다시 로드하도록 요청
+  if (fullCalendar.value) {
+    const calendarApi = fullCalendar.value.getApi();
+    calendarApi.refetchEvents();
   }
 });
 </script>
@@ -270,4 +255,22 @@ watch(selectedDepartmentId, () => {
   --fc-button-active-bg-color: #1e40af;
   --fc-button-active-border-color: #1e40af;
 } */
+/* 더보기 링크 스타일링 */
+:deep(.fc-more-link) {
+  background-color: #f2f4f6;
+  color: #4e5968;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.75em;
+  font-weight: 600;
+  text-decoration: none;
+  display: inline-block;
+  margin-top: 2px;
+}
+
+:deep(.fc-more-link:hover) {
+  background-color: #e5e8eb;
+  color: #333d4b;
+}
+
 </style>

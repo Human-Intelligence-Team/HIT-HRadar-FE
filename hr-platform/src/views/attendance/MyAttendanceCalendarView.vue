@@ -83,8 +83,12 @@ const fetchCalendarEvents = async (startDate, endDate) => {
   console.log('Fetching calendar events for range:', startDate, 'to', endDate);
   loading.value = true;
   try {
-    // Fetch attendance for the entire department
-    const attendanceResponse = await fetchAttendanceCalendar(departmentId.value, true, startDate, endDate);
+    // Fetch attendance for the current user
+    const attendanceResponse = await fetchAttendanceCalendar({
+      targetDeptId: departmentId.value, // 내 부서 전체 조회로 변경
+      fromDate: startDate,
+      toDate: endDate
+    });
     // TODO: Need a backend API to fetch leaves for the entire department or all employees
     // For now, only fetching current user's leaves will not achieve the 'department members' leave status goal.
     // const leaveResponse = await fetchMyLeaves();
@@ -95,28 +99,27 @@ const fetchCalendarEvents = async (startDate, endDate) => {
 
     // 근태 데이터 처리
     if (attendanceResponse.data) {
-      attendanceResponse.data.forEach(deptRecord => {
-        deptRecord.attendanceRecords.forEach(record => {
-          const date = record.workDate;
-          // 상태 표시: 출근 여부에 따른 기본 상태 설정
-          const status = record.status || (record.checkInTime ? '출근중' : '결근');
-          const title = `${deptRecord.employeeName}: ${status}`;
-          
-          events.push({
-            id: `att-${deptRecord.employeeId}-${date}`,
-            title: title,
-            date: date,
-            allDay: true,
-            extendedProps: {
-              type: 'attendance',
-              employeeId: deptRecord.employeeId,
-              employeeName: deptRecord.employeeName,
-              deptName: deptRecord.deptName,
-              status: status,
-              workType: record.workType,
-              workPlace: record.workPlace
-            }
-          });
+      attendanceResponse.data.forEach(record => {
+        const date = record.workDate;
+         // 상태 표시: 출근 여부에 따른 기본 상태 설정
+        // DTO status has priority, otherwise calculate
+        const status = record.status || (record.totalWorkMinutes > 0 ? '퇴근' : '미출근');
+        const title = `${record.empName}: ${status}`;
+
+        events.push({
+          id: `att-${record.empId}-${date}`,
+          title: title,
+          date: date,
+          allDay: true,
+          extendedProps: {
+            type: 'attendance',
+            employeeId: record.empId,
+            employeeName: record.empName,
+            deptName: record.departmentName || '-',
+            status: status,
+            workType: record.workType,
+            workPlace: record.location
+          }
         });
       });
     }
@@ -150,6 +153,8 @@ const fetchCalendarEvents = async (startDate, endDate) => {
     //     }
     //   });
     // }
+    // dummy data for debugging removed
+    
     calendarEvents.value = events;
     console.log('Final events for calendar:', calendarEvents.value);
 
@@ -239,6 +244,24 @@ onMounted(() => {
   background-color: #bfdbfe; /* Light blue */
   border-color: #60a5fa; /* Blue */
   color: #1e40af; /* Dark blue text */
+}
+
+/* 더보기 링크 스타일링 */
+:deep(.fc-more-link) {
+  background-color: #f2f4f6;
+  color: #4e5968;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.75em;
+  font-weight: 600;
+  text-decoration: none;
+  display: inline-block;
+  margin-top: 2px;
+}
+
+:deep(.fc-more-link:hover) {
+  background-color: #e5e8eb;
+  color: #333d4b;
 }
 
 /* FullCalendar bootstrap5 theme variables - customize if needed */
