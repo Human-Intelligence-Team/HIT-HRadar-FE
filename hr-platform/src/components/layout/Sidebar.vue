@@ -19,7 +19,7 @@
 
           <!-- Direct Link -->
           <RouterLink
-            v-else-if="!item.perm || can(item.perm)"
+            v-else
             :to="item.to"
             class="nav-item link"
             active-class="active"
@@ -198,12 +198,13 @@ const menuConfig = computed(() => [
       }
     ]
   },
-  { title: '챗봇 관리', items: [{ text: '제도 · 규정', to: '/policy', perm: 'POLICY_READ' }] },
-  { 
-    title: '공지 관리', 
+  { title: '챗봇 관리', items: [{ text: '제도 · 규정', to: '/policy' }] },
+  {
+    title: '기타',
     items: [
-      { text: '공지 관리', to: '/notice', perm: 'NOTICE_READ' }
-    ] 
+      { text: '공지 관리', to: '/notice' },
+      { text: '알림 관리', to: '/alert' }
+    ]
   },
   {
     title: '마이페이지',
@@ -264,13 +265,6 @@ function closeAll() {
   activeFlyout.value = null
 }
 
-const can = (perm) => {
-  const permissions = {
-    USER: ['POLICY_READ', 'NOTICE_READ', 'ALERT_MANAGE'],
-    ADMIN: ['POLICY_READ', 'NOTICE_READ', 'ALERT_MANAGE'],
-  }
-  return permissions[auth.user.role]?.includes(perm) ?? false
-}
 </script>
 
 <style scoped>
