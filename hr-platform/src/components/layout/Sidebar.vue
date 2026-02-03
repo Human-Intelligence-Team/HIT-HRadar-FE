@@ -1,5 +1,5 @@
 <template>
-  <aside class="sidebar">
+  <aside class="sidebar" @mouseleave="hideFlyout" @mouseenter="cancelHide">
     <nav class="nav">
       <template v-for="(section, sIdx) in menuConfig" :key="sIdx">
         <div class="section-title" v-if="!section.hidden">{{ section.title }}</div>
