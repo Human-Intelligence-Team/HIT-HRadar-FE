@@ -59,7 +59,7 @@ export function getOrganizationChart() {
 
 /**
  * 부서원 조회
- * GET /departments/{deptId}/members
+ * GET /departments/query/{deptId}/members
  * @param {Number} deptId
  */
 export function getDepartmentMembers(deptId) {

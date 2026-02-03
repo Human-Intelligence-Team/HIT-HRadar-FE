@@ -44,7 +44,8 @@
           </div>
           
           <div class="basic-info">
-            <h2 class="emp-name">{{ employee.name }}</h2>
+            <h2 v-if="!isEditMode" class="emp-name">{{ employee.name }}</h2>
+            <input v-else v-model="form.name" class="input name-input" placeholder="이름 입력" />
             <div class="badges">
               <span class="badge position">{{ employee.positionName || '-' }}</span>
               <span class="badge dept">{{ employee.deptName || '-' }}</span>
@@ -162,6 +163,7 @@ const genderMap = {
 }
 
 const form = reactive({
+  name: '',
   email: '',
   extNo: '',
   phoneNo: '',
@@ -195,6 +197,7 @@ const loadData = async () => {
 
 const syncForm = () => {
     if(!employee.value) return
+    form.name = employee.value.name || ''
     form.email = employee.value.email || ''
     form.extNo = employee.value.extNo || ''
     form.phoneNo = employee.value.phoneNo || ''
@@ -469,6 +472,13 @@ onMounted(loadData)
     outline: none; 
     background: #e8f3ff; /* Highlight on focus */
     color: #1b64da;
+}
+.name-input {
+    font-size: 24px;
+    font-weight: 700;
+    text-align: center;
+    width: 200px;
+    margin-bottom: 8px;
 }
 .field-item.full-width .input {
     text-align: left;
