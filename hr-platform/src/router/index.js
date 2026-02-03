@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
+import { permissionConfig } from '@/router/permissionConfig'
 import PolicyView from '@/views/policy/PolicyView.vue'
 import PolicyDetailView from '@/views/policy/PolicyDetailView.vue'
 import NoticeView from '@/views/notice/NoticeView.vue'
@@ -31,8 +32,6 @@ import CompetencyReportAllCreateView
   from '@/views/report/CompetencyReportAllCreateView.vue'
 import CompetencyReportEmployeeAllListView
   from '@/views/report/CompetencyReportEmployeeAllListView.vue'
-import CompetencyReportDetailView
-  from '@/views/report/CompetencyReportDetailView.vue'
 import TagModalView from '@/views/contents/tag/TagModalView.vue'
 import GoalListView from '@/views/goal/GoalListView.vue'
 import HRGoalDashboard from '@/views/goal/HRGoalDashboard.vue'
@@ -67,6 +66,7 @@ import NoticeDetailView from '@/views/notice/NoticeDetailView.vue'
 import NoticeCreateView from '@/views/notice/NoticeCreateView.vue'
 import NoticeEditView from '@/views/notice/NoticeEditView.vue'
 import HomeView from '@/views/auth/HomeView.vue'
+import GatewayView from '@/views/auth/GatewayView.vue'
 import CompanyRegisterView from '@/views/auth/CompanyRegisterView.vue'
 
 import AdminLayout from '@/components/layout/AdminLayout.vue'
@@ -104,6 +104,13 @@ const routes = [
       { path: '', component: HomeView }
     ],
   },
+  {
+    path: '/gateway',
+    component: AuthLayout,
+    children: [
+      { path: '', component: GatewayView }
+    ],
+  },
 
   {
     path: '/admin',
@@ -137,17 +144,17 @@ const routes = [
         path: 'notice',
         component: NoticeView,
         children: [
-          { path: '', name: 'notice-list', component: NoticeListView, meta: { permission: 'NOTICE_READ' } },
-          { path: 'create', name: 'notice-create', component: NoticeCreateView, meta: { permission: 'NOTICE_MANAGE' } },
-          { path: ':id', name: 'notice-detail', component: NoticeDetailView, props: true, meta: { permission: 'NOTICE_READ' } },
-          { path: ':id/edit', name: 'notice-edit', component: NoticeEditView, props: true, meta: { permission: 'NOTICE_MANAGE' } },
+          { path: '', name: 'notice-list', component: NoticeListView },
+          { path: 'create', name: 'notice-create', component: NoticeCreateView },
+          { path: ':id', name: 'notice-detail', component: NoticeDetailView, props: true },
+          { path: ':id/edit', name: 'notice-edit', component: NoticeEditView, props: true },
         ]
       },
 
       // 조직/부서/사원 관리
-      { path: 'organization', component: DepartmentListView, meta: { permission: 'DEPT_READ' } },
+      { path: 'organization', component: DepartmentListView },
       { path: 'department/org-chart', component: () => import('@/views/department/OrganizationChartView.vue') }, // Organization Chart
-      { path: 'department/manage', component: DepartmentManageView, meta: { permission: 'DEPT_MANAGE' } },
+      { path: 'department/manage', component: DepartmentManageView },
       { path: 'employee', component: () => import('@/views/personnel/EmployeeListView.vue') },
       { path: 'personnel/employees/list', component: () => import('@/views/personnel/EmployeeReadOnlyView.vue') }, // Read-Only Employee List
       { path: 'personnel/positions', component: () => import('@/views/personnel/PositionManageView.vue') },
@@ -160,9 +167,9 @@ const routes = [
 
       // 회사 관리
       { path: 'company/my', component: () => import('@/views/company/MyCompanyView.vue') },
-      { path: 'company/my-manage', component: () => import('@/views/company/MyCompanyManageView.vue'), meta: { permission: 'COMPANY_MANAGE' } },
-      { path: 'company/roles', component: () => import('@/views/company/RoleManageView.vue'), meta: { permission: 'ROLE_MANAGE' } },
-      { path: 'company/manage', component: () => import('@/views/company/CompanyManageView.vue'), meta: { permission: 'COMPANY_MANAGE' } },
+      { path: 'company/my-manage', component: () => import('@/views/company/MyCompanyManageView.vue') },
+      { path: 'company/roles', component: () => import('@/views/company/RoleManageView.vue') },
+      { path: 'company/manage', component: () => import('@/views/company/CompanyManageView.vue') },
 
 
       //성과평가-목표관리
@@ -179,7 +186,6 @@ const routes = [
           { path: '/all/competency/report/employee/:year', component: CompetencyReportEmployeeAllListView },
           { path: '/dept/competency/report', component: CompetencyReportDeptListView },
           { path: '/me/competency/report', component: CompetencyReportMeListView },
-          { path: '/me/competency/report/detail/:competencyReportId', component: CompetencyReportDetailView },
         ]
       },
       { path: 'salary/dashboard', component: SalaryDashboardView },
@@ -309,13 +315,16 @@ const router = createRouter({
 router.beforeEach((to, from) => {
   const auth = useAuthStore()
 
-  const publicPaths = ['/home', '/register-company']
+  const publicPaths = ['/home', '/register-company', '/gateway']
   const isPublic = publicPaths.includes(to.path)
 
-  // 1. Not logged in -> Redirect to home (unless public)
+  // 1. Not logged in -> Redirect to gateway (unless public)
   if (!auth.isLoggedIn) {
+    if (to.path === '/') {
+      return '/home'
+    }
     if (!isPublic) {
-      return { path: '/home', query: { redirect: to.fullPath } }
+      return { path: '/gateway', query: { redirect: to.fullPath } }
     }
     return // Allow public
   }
@@ -337,8 +346,18 @@ router.beforeEach((to, from) => {
       return from.matched.length > 0 ? false : '/policy'
     }
 
-    // 세부 권한 체크 (route.meta.permission)
-    if (to.meta.permission && !auth.hasPermission(to.meta.permission)) {
+    // 세부 권한 체크 (permissionConfig)
+    let requiredPerm = null
+    // Check from specific to general (child to parent)
+    for (let i = to.matched.length - 1; i >= 0; i--) {
+      const path = to.matched[i].path
+      if (permissionConfig[path]) {
+        requiredPerm = permissionConfig[path]
+        break
+      }
+    }
+
+    if (requiredPerm && !auth.hasPermission(requiredPerm)) {
       alert('해당 메뉴에 대한 접근 권한이 없습니다.')
       // If direct load (!from.matched.length), redirect. Otherwise stay (cancel).
       return from.matched.length > 0 ? false : (auth.firstAccessiblePath() || '/policy')

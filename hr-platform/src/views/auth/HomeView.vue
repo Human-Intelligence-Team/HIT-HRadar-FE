@@ -17,11 +17,13 @@
           <a href="#features" @click.prevent="scrollTo('#features')">Features</a>
         </nav>
         <div class="nav-actions">
-          <button class="btn-primary" @click="goIntro">시작하기</button>
+          <button class="btn-text" @click="goToGateway">로그인</button>
+          <button class="btn-primary" @click="switchToApply">도입 신청</button>
         </div>
       </div>
     </header>
 
+    <!-- Hero Section -->
     <!-- Hero Section -->
     <section class="hero-section">
       <div class="container hero-content">
@@ -370,8 +372,8 @@
         <h2 class="cta-title">HR의 판단을 더 확신있게.</h2>
         <p class="cta-sub">HIT : SIGNAL과 함께 데이터 기반의 인재 관리를 시작하세요.</p>
         <div class="cta-buttons">
-          <button class="btn-lg-primary" @click="goIntro">로그인 하러 가기</button>
-          <button class="btn-lg-white" @click="goIntro">서비스 도입 신청</button>
+          <button class="btn-lg-primary" @click="goToGateway">로그인 하러 가기</button>
+          <button class="btn-lg-white" @click="switchToApply">서비스 도입 신청</button>
         </div>
       </div>
     </section>
@@ -384,60 +386,25 @@
         <p class="f-slogan">AI assists. HR decides.</p>
       </div>
     </footer>
-
     <!-- Auth Modal -->
-    <div v-if="authModalState !== 'hidden'" class="auth-modal-backdrop" @click.self="closeAuthModal">
-      <div class="auth-modal-content">
-        <Transition name="fade" mode="out-in">
-          <AuthCard3D
-            v-if="authModalState === 'card'"
-            @select-login="switchToLogin"
-            @select-apply="switchToApply"
-          />
-          <ThreeDCard v-else-if="authModalState === 'login'">
-            <LoginForm @login-success="onLoginSuccess" />
-          </ThreeDCard>
-        </Transition>
-      </div>
-    </div>
   </main>
 </template>
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { useAuthStore } from '@/stores/authStore'
-import AuthCard3D from '@/components/authCard3D/AuthCard3D.vue'
-import ThreeDCard from '@/components/common/ThreeDCard.vue'
-import LoginForm from '@/components/auth/LoginForm.vue'
 
 const router = useRouter()
 const isScrolled = ref(false)
-const authModalState = ref('hidden')
-
-const goIntro = () => {
-  authModalState.value = 'card'
-}
-
-const switchToLogin = () => {
-  authModalState.value = 'login'
-}
 
 const switchToApply = () => {
   router.push('/register-company')
 }
 
-const closeAuthModal = () => {
-  authModalState.value = 'hidden'
+const goToGateway = () => {
+  router.push('/gateway')
 }
 
-const authStore = useAuthStore()
-
-const onLoginSuccess = () => {
-  authModalState.value = 'hidden'
-  const next = authStore.firstAccessiblePath()
-  router.push(next || '/') 
-}
 
 
 
@@ -998,6 +965,8 @@ p { font-size: 1.125rem; line-height: 1.7; color: #475569; }
   background-clip: text;
   display: inline-block;
 }
+
+
 
 /* --- Auth Modal --- */
 .auth-modal-backdrop {
