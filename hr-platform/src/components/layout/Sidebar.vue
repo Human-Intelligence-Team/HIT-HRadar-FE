@@ -1,3 +1,4 @@
+<!-- eslint-disable vue/multi-word-component-names -->
 <template>
   <aside class="sidebar" @mouseleave="hideFlyout" @mouseenter="cancelHide">
     <nav class="nav">
@@ -151,7 +152,6 @@ const menuConfig = computed(() => [
         text: '근태 관리',
         children: [
           { text: '나의 출퇴근 관리', to: '/attendance/commute' },
-          { text: '나의 근태 캘린더', to: '/attendance/my-calendar' },
           { text: 'IP 정책 관리', to: '/attendance/ip-policy' },
           { text: '부서 출퇴근 관리', to: '/attendance/department' },
           { text: '부서별 근태 캘린더', to: '/attendance/department-calendar' }

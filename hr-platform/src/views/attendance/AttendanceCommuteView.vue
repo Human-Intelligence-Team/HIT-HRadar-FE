@@ -1,100 +1,141 @@
 <template>
-  <section class="attendance-commute-view">
-    <div class="view-header">
-      <div class="title-group">
-        <h1>나의 출퇴근 관리</h1>
-      </div>
-    </div>
-
-    <div class="content-grid">
-      <!-- 나의 출퇴근 관리 -->
-      <div class="my-commute-card card">
-        <h3>출퇴근 현황</h3>
-
-        <!-- 로딩 상태 -->
-        <div v-if="loading.myStatus" class="status-loading">
-          <p>정보를 불러오는 중...</p>
+  <section class="attendance-dashboard">
+    <!-- Left Column: Commute Management (1/3) -->
+    <div class="dashboard-left">
+      <div class="my-commute-card card premium-card">
+        <div class="card-header">
+          <h2>{{ userInfo?.name ? userInfo.name : '나의' }} 출퇴근</h2>
+          <p class="sub-text">{{ getTodayString() }}</p>
         </div>
 
-        <!-- 출근 완료 상태 -->
-        <div v-else-if="clockInInfo" class="clock-in-info">
-          <p class="current-time">{{ currentTime }}</p>
-          <p class="current-status">현재 상태: <span class="status-in">출근 상태</span></p>
-          <ul class="info-list">
-            <li><strong>날짜:</strong> <span>{{ clockInInfo.workDate }}</span></li>
-            <li><strong>출근 시간:</strong> <span>{{ clockInInfo.clockInTime }}</span></li>
-            <li><strong>이름:</strong> <span>{{ clockInInfo.name }}</span></li>
-            <li><strong>부서:</strong> <span>{{ clockInInfo.department }}</span></li>
-            <li><strong>근무 유형:</strong> <span>{{ clockInInfo.workingType }}</span></li>
-            <li><strong>근무 장소:</strong> <span>{{ clockInInfo.workplace }}</span></li>
-            <li><strong>IP 주소:</strong> <span>{{ clockInInfo.ipAddress }}</span></li>
-            <li><strong>초과근무 여부:</strong> <span>{{ clockInInfo.overtimeStatus }}</span></li>
-
-          </ul>
-          <button class="btn btn-clock-out" @click="clockInOut">퇴근하기</button>
-        </div>
-
-        <!-- 미출근 상태 -->
-        <div v-else>
-          <div class="commute-status">
-            <p class="current-time">{{ currentTime }}</p>
-            <p class="current-status">현재 상태: <span class="status-out">미출근</span></p>
+        <div class="card-body">
+          <!-- Loading State -->
+          <div v-if="loading.myStatus" class="status-loading">
+            <div class="spinner"></div>
+            <p>정보를 불러오는 중...</p>
           </div>
-          <ul class="info-list">
-            <li><strong>날짜:</strong> {{ getTodayString() }}</li>
-            <li><strong>이름:</strong> {{ userInfo.value?.name || '-' }}</li>
-            <li><strong>부서:</strong> {{ userInfo.value?.department || '-' }}</li>
-            <li><strong>근무 유형:</strong> {{ initialWorkInfo?.workType || '-' }}</li>
-            <li><strong>근무 장소:</strong> {{ initialWorkInfo?.workplace || '-' }}</li>
-          </ul>
-          <button class="btn btn-clock-in" @click="clockInOut">
-            출근하기
-          </button>
-        </div>
-      </div>
 
-      <!-- 부서원 출퇴근 현황 -->
-      <div class="department-commute-card card">
-        <h3>부서원 출퇴근 현황</h3>
-        <div class="table-container">
-          <table class="member-commute-table">
-            <thead>
-              <tr>
-                <th>이름</th>
-                <th>부서</th>
-                <th>상태</th>
-                <th>근무 시간</th>
-                <th>근무 장소</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-if="loading.department">
-                <td colspan="6" class="no-results">부서원 현황을 불러오는 중...</td>
-              </tr>
-              <tr v-else-if="departmentMembers.length === 0">
-                <td colspan="6" class="no-results">등록된 부서원이 없습니다.</td>
-              </tr>
-              <template v-else>
-                <tr v-for="member in departmentMembers" :key="member.employeeId">
-                  <td>{{ member.name }}</td>
-                  <td>{{ member.department }}</td>
-                  <td>{{ member.jobTitle }}</td>
-                  <td><span :class="['status-badge', getMemberStatusClass(member.status)]">{{ member.status }}</span></td>
-                  <td>{{ member.workingHours }}</td>
-                  <td>{{ member.workplace }}</td>
-                </tr>
-              </template>
-            </tbody>
-          </table>
+          <!-- Content State -->
+          <div v-else class="commute-content">
+            <!-- User Info (Always Visible) -->
+            <div class="user-info-grid">
+              <div class="info-item">
+                <span class="label">이름</span>
+                <span class="value">{{ userInfo?.name || '-' }}</span>
+              </div>
+              <div class="info-item">
+                <span class="label">부서</span>
+                <span class="value">{{ userInfo?.department || '-' }}</span>
+              </div>
+              <div class="info-item">
+                <span class="label">근무 유형</span>
+                <span class="value">{{ clockInInfo?.workingType || initialWorkInfo?.workType || '-' }}</span>
+              </div>
+              <div class="info-item">
+                <span class="label">근무 장소</span>
+                <span class="value">{{ clockInInfo?.workplace || initialWorkInfo?.workplace || '-' }}</span>
+              </div>
+            </div>
+
+            <!-- Action Area: Split Buttons -->
+            <div class="action-buttons-grid">
+              <!-- Left: Clock In -->
+              <button 
+                class="split-btn btn-in"
+                :class="{ 
+                  'active': clockInInfo, 
+                  'inactive': !clockInInfo
+                }" 
+                @click="handleClockIn"
+                :disabled="!!clockInInfo"
+              >
+                <span class="btn-content">
+                  <span class="btn-title">출근하기 <span v-if="clockInInfo">✓</span></span>
+                  <span class="btn-time">{{ clockInInfo ? clockInInfo.clockInTime : '00:00' }}</span>
+                </span>
+              </button>
+
+              <!-- Right: Clock Out -->
+              <button 
+                class="split-btn btn-out"
+                :class="{ 
+                  'active': !clockInInfo && lastClockOutTime, 
+                  'inactive': clockInInfo || (!clockInInfo && !lastClockOutTime)
+                }"
+                @click="handleClockOut"
+                :disabled="!clockInInfo"
+              >
+                <span class="btn-content">
+                  <span class="btn-title">퇴근하기</span>
+                  <span class="btn-time">{{ !clockInInfo && lastClockOutTime ? lastClockOutTime : '00:00' }}</span>
+                </span>
+              </button>
+            </div>
+            
+            <!-- My Weekly History (Mon-Sat) -->
+             <div class="weekly-history-list">
+                <div class="list-header">
+                  <h4>{{ getWeekRangeString() }}</h4>
+                  <span class="total-hours" v-if="weeklyTotalHours">{{ weeklyTotalHours }} / 40시간</span>
+                </div>
+                <ul>
+                  <li v-for="day in weeklyHistory" :key="day.dateStr" :class="{ 'today': day.isToday }">
+                    <div class="day-info">
+                      <span class="day-name">{{ day.dayName }}</span>
+                      <span class="day-date">{{ day.dayNum }}</span>
+                    </div>
+                    <div class="work-status">
+                      <span :class="['status-dot', day.statusClass]"></span>
+                      <div class="work-times">
+                        <span v-if="day.checkIn">{{ day.checkIn }} - {{ day.checkOut || '' }}</span>
+                        <span v-else>-</span>
+                      </div>
+                    </div>
+                    <div class="work-duration">
+                      {{ day.duration || '00:00' }}
+                    </div>
+                  </li>
+                </ul>
+             </div>
+
+          </div>
         </div>
       </div>
     </div>
+
+    <!-- Right Column: Department Calendar (2/3) -->
+    <div class="dashboard-right">
+      <div class="calendar-card card">
+        <div class="card-header-simple">
+          <h3>근태 캘린더</h3>
+        </div>
+        <div class="calendar-body">
+           <div v-if="loading.calendar" class="calendar-loading-overlay">
+              <div class="spinner"></div>
+              <span>캘린더 로딩 중...</span>
+           </div>
+           <FullCalendar ref="fullCalendar" :options="calendarOptions" />
+        </div>
+      </div>
+    </div>
+
+    <!-- 근무 상세 정보 모달 -->
+    <AttendanceDetailModal
+      :is-open="isModalOpen"
+      :attendance="selectedAttendance"
+      @close="isModalOpen = false"
+    />
   </section>
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
+import { ref, computed, watch, onMounted } from 'vue';
 import { useAuthStore } from '@/stores/authStore';
+import FullCalendar from '@fullcalendar/vue3';
+import dayGridPlugin from '@fullcalendar/daygrid';
+import interactionPlugin from '@fullcalendar/interaction';
+import bootstrap5Plugin from '@fullcalendar/bootstrap5';
+import AttendanceDetailModal from '@/components/attendance/AttendanceDetailModal.vue';
 import {
   processAttendance,
   fetchMyTodayAttendance,
@@ -102,436 +143,745 @@ import {
 } from '@/api/attendanceApi';
 
 /* =====================
-   기본 상태
+   기본 상태 & Auth
 ===================== */
 const auth = useAuthStore();
 const employeeId = computed(() => auth.user?.employeeId);
 const departmentId = computed(() => auth.user?.departmentId);
 const userInfo = computed(() => auth.user);
 
-const currentTime = ref('');
 const loading = ref({
   myStatus: false,
-  department: false
+  calendar: false,
+  weekly: false
 });
 
 const clockInInfo = ref(null);
+const lastClockOutTime = ref(null); // 퇴근 시간 저장
+const initialWorkInfo = ref({ workType: '-', workplace: '-' });
+const weeklyHistory = ref([]); 
+const weeklyTotalHours = ref('');
 
-const initialWorkInfo = ref({
-  workType: '-',
-  workplace: '-'
-});
+// Calendar State
+const fullCalendar = ref(null);
+const calendarEvents = ref([]);
+const isModalOpen = ref(false);
+const selectedAttendance = ref(null);
 
-const departmentMembers = ref([]);
-let intervalId = null;
 
 /* =====================
    유틸
 ===================== */
 const getTodayString = () => {
   const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  const weekDay = ['일', '월', '화', '수', '목', '금', '토'][d.getDay()];
+  return `${year}.${month}.${day} (${weekDay})`;
 };
 
-// ✅ 핵심: 시간 파싱 (형식 안 깨짐)
+const getApiDateString = () => {
+  const d = new Date();
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+const getWeekRangeString = () => {
+  // 이번 주 월요일 ~ 일요일 구하기 (토요일까지)
+  const d = new Date();
+  const day = d.getDay();
+  const diff = d.getDate() - day + (day === 0 ? -6 : 1); 
+  const monday = new Date(d);
+  monday.setDate(diff); // needs copy?
+  // Actually simpler:
+  // We need logic ONLY for display. "이번 주 근태 현황" is fine request mentioned "Mon-Sat" list display, header can stay simple?
+  // Let's keep "이번 주 근태 현황"
+  return "이번 주 근태 현황";
+};
+
 const extractTime = (v) => {
-  if (!v) return '-';
-  if (v.length === 8) return v;                    // HH:mm:ss
-  if (v.includes('T')) return v.split('T')[1].slice(0, 8);
-  return '-';
-};
-
-const updateCurrentTime = () => {
-  currentTime.value = new Date().toLocaleTimeString('ko-KR', {
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    hour12: true
-  });
+  if (!v) return null;
+  if (v.length === 8) return v.substring(0, 5); // HH:mm
+  if (v.includes('T')) return v.split('T')[1].slice(0, 5);
+  return null;
 };
 
 /* =====================
-   초기 데이터 로딩
+   FullCalendar 옵션
 ===================== */
+const calendarOptions = ref({
+  plugins: [dayGridPlugin, interactionPlugin, bootstrap5Plugin],
+  initialView: 'dayGridMonth',
+  events: calendarEvents,
+  headerToolbar: {
+    left: 'title prev,next today', // Title then controls
+    center: '',
+    right: ''
+  },
+  locale: 'ko',
+  dayMaxEvents: 5,
+  eventDidMount: function(info) {
+    if (info.event.extendedProps.type) {
+      info.el.classList.add('event-' + info.event.extendedProps.type);
+    }
+  },
+  eventClick: (info) => {
+    selectedAttendance.value = {
+      ...info.event.extendedProps,
+      workDate: info.event.startStr,
+    };
+    isModalOpen.value = true;
+  },
+  datesSet: async (dateInfo) => {
+    if (departmentId.value) {
+       await fetchCalendarData(dateInfo.startStr.substring(0, 10), dateInfo.endStr.substring(0, 10));
+    }
+  }
+});
+
+/* =====================
+   데이터 로딩
+===================== */
+// 1. 내 오늘 상태
 const fetchMyStatus = async (showLoading = true) => {
   if (!employeeId.value) return;
-
   if (showLoading) loading.value.myStatus = true;
+  
   try {
     const targetId = Number(employeeId.value);
-    console.log('Fetching my status for today:', targetId, getTodayString());
-    const { data } = await fetchMyTodayAttendance(targetId, getTodayString());
-    console.log('My status response:', data);
-
-    if (data && data.checkInTime && !data.checkOutTime) {
-      clockInInfo.value = {
-        clockInTime: extractTime(data.checkInTime),
-        name: userInfo.value?.name || '-',
-        department: userInfo.value?.department || '-',
-        workingType: data.workType || '-',
-        workplace: data.workPlace || 'OFFICE',
-        ipAddress: data.ipAddress || '-',
-        workDate: data.workDate || getTodayString(),
-        overtimeStatus: data.overtimeStatus || '없음'
-      };
+    // [FIX] Use standard YYYY-MM-DD format for API
+    const response = await fetchMyTodayAttendance(targetId, getApiDateString());
+    const responseData = response.data?.data || response.data;
+    
+    if (responseData && (responseData.checkInTime || responseData.workType)) {
+      if (!responseData.checkOutTime) {
+         // 출근 중
+         clockInInfo.value = {
+          clockInTime: extractTime(responseData.checkInTime),
+          name: userInfo.value?.name || '-',
+          department: userInfo.value?.department || '-',
+          workingType: responseData.workType || '-',
+          workplace: responseData.workPlace || 'OFFICE',
+          ipAddress: responseData.ipAddress || '-',
+          workDate: responseData.workDate || getTodayString(),
+          overtimeStatus: responseData.overtimeStatus || '없음'
+        };
+      } else {
+        // 퇴근 완료
+        clockInInfo.value = null;
+        lastClockOutTime.value = extractTime(responseData.checkOutTime);
+      }
     } else {
       clockInInfo.value = null;
-      initialWorkInfo.value.workType = data?.workType || '-';
-      initialWorkInfo.value.workplace = data?.workPlace || '-';
+      lastClockOutTime.value = null;
+      initialWorkInfo.value.workType = responseData?.workType || '-';
+      initialWorkInfo.value.workplace = responseData?.workPlace || '-';
     }
+    
+    await fetchWeeklyHistory(); // Status fetch 후 주간 기록 갱신
+
   } catch (e) {
+    console.error('Fetch status error:', e);
     clockInInfo.value = null;
   } finally {
     if (showLoading) loading.value.myStatus = false;
   }
 };
 
-const fetchDepartmentStatus = async (showLoading = true) => {
+// 2. 주간 기록 (Mon-Sat)
+const fetchWeeklyHistory = async () => {
+    if (!employeeId.value) return;
+    
+    // Calculate Mon-Sun of current week (Fetch full week)
+    const d = new Date();
+    const day = d.getDay();
+    const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Mon
+    
+    const monday = new Date(d);
+    monday.setDate(diff);
+    
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+    
+    const fromDate = monday.toISOString().substring(0, 10);
+    const toDate = sunday.toISOString().substring(0, 10);
+
+    try {
+        const response = await fetchAttendanceCalendar({
+            targetEmpId: employeeId.value,
+            fromDate: fromDate,
+            toDate: toDate
+        });
+        
+        const data = response.data?.data || response.data || [];
+        
+        // Map to Days (Mon-Sat only)
+        const days = ['월', '화', '수', '목', '금', '토']; // 일요일 제거
+        const history = [];
+        let totalMinutes = 0;
+
+        for (let i = 0; i < 6; i++) {
+            const currentDay = new Date(monday);
+            currentDay.setDate(monday.getDate() + i);
+            const dateStr = currentDay.toISOString().substring(0, 10);
+            const dayNum = String(currentDay.getDate()).padStart(2, '0');
+            
+            const record = data.find(r => r.workDate === dateStr);
+            const isToday = dateStr === getApiDateString();
+            
+            let statusClass = '';
+            let checkIn = null;
+            let checkOut = null;
+            let duration = null;
+
+            if (record) {
+                checkIn = extractTime(record.checkInTime);
+                checkOut = extractTime(record.checkOutTime);
+                
+                if (record.totalWorkMinutes > 0) {
+                     const h = Math.floor(record.totalWorkMinutes / 60);
+                     const m = record.totalWorkMinutes % 60;
+                     duration = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+                     totalMinutes += record.totalWorkMinutes;
+                }
+                
+                // Dot Color Logic
+                if (record.status === '출근' || (checkIn && !checkOut)) statusClass = 'blue'; // Working
+                else if (checkIn && checkOut) statusClass = 'blue'; // Completed
+                else if (['지각', '조퇴', '결근'].includes(record.status)) statusClass = 'orange'; // Warning
+                else statusClass = 'gray'; // Default/Day off
+            } else {
+                statusClass = 'gray';
+            }
+
+            history.push({
+                dayName: days[i],
+                dayNum: dayNum,
+                dateStr: dateStr,
+                isToday: isToday,
+                checkIn: checkIn,
+                checkOut: checkOut,
+                duration: duration,
+                statusClass: statusClass
+            });
+        }
+        
+        weeklyHistory.value = history;
+        if (totalMinutes > 0) {
+             const th = Math.floor(totalMinutes / 60);
+             const tm = totalMinutes % 60;
+             weeklyTotalHours.value = `${th}시간 ${tm}분`;
+        } else {
+             // 0시간이어도 표시? "0시간 0분"
+            weeklyTotalHours.value = '0시간 0분';
+        }
+
+    } catch (e) {
+        console.error("Weekly fetch error", e);
+    }
+}
+
+// 3. 캘린더 데이터 (부서원)
+const fetchCalendarData = async (startDate, endDate) => {
   if (!departmentId.value) return;
 
-  if (showLoading) loading.value.department = true;
+  loading.value.calendar = true;
   try {
-    const res = await fetchAttendanceCalendar({
+    const response = await fetchAttendanceCalendar({
       targetDeptId: departmentId.value,
-      fromDate: getTodayString(),
-      toDate: getTodayString()
+      fromDate: startDate,
+      toDate: endDate
     });
 
-    departmentMembers.value = (res.data || []).map(d => {
-      const totalMin = d.totalWorkMinutes || 0;
-      const hours = Math.floor(totalMin / 60);
-      const mins = totalMin % 60;
-      const workingTimeStr = totalMin > 0 ? `${hours}시간 ${mins}분` : '-';
+    let events = [];
+    const data = response.data?.data || response.data || [];
+    
+    if (data) {
+      data.forEach(record => {
+        const date = record.workDate;
+        const status = record.status || (record.totalWorkMinutes > 0 ? '퇴근' : '미출근');
+        
+        let title = record.empName;
+        if (title.length > 3) title = title.substring(0,3); 
+        if (record.workType && record.workType !== '내근') { 
+             title += ` (${record.workType})`;
+        } else if (record.location && record.workType === '내근') {
+             // Pass
+        }
+    
+        // Calculate duration if available
+        let durationStr = '';
+        if (record.totalWorkMinutes > 0) {
+           const h = Math.floor(record.totalWorkMinutes/60);
+           const m = record.totalWorkMinutes%60;
+           durationStr = `${h}h ${m}m`;
+        }
 
-      return {
-        employeeId: d.empId,
-        name: d.empName,
-        department: d.departmentName || '-',
-        jobTitle: d.jobTitle || '-',
-        status: d.status || '미출근',
-        workingHours: workingTimeStr,
-        workplace: d.location || '-'
-      };
-    });
+        events.push({
+          id: `dept-${record.empId}-${date}`,
+          title: title,
+          date: date,
+          allDay: true,
+          extendedProps: {
+            type: 'department-attendance',
+            employeeId: record.empId,
+            employeeName: record.empName,
+            deptName: record.departmentName || 'HIT', // Fallback
+            status: status,
+            workType: record.workType,
+            workPlace: record.location,
+            overtimeStatus: record.overtimeStatus || '없음',
+            totalWorkTime: durationStr
+          }
+        });
+      });
+    }
+    calendarEvents.value = events;
   } catch (e) {
-    departmentMembers.value = [];
+    console.error('Calendar fetch error:', e);
   } finally {
-    if (showLoading) loading.value.department = false;
+    loading.value.calendar = false;
   }
 };
 
-const fetchInitialData = async () => {
-  await Promise.all([
-    fetchMyStatus(true),
-    fetchDepartmentStatus(true)
-  ]);
+/* =====================
+   출퇴근 액션
+===================== */
+const handleClockIn = async () => {
+  if (clockInInfo.value) return; // 이미 출근 상태면 무시
+  await clockInOut();
 };
 
-/* =====================
-   출퇴근 처리
-===================== */
+const handleClockOut = async () => {
+    if (!clockInInfo.value) return; // 출근 상태 아니면 무시
+    await clockInOut();
+};
+
 const clockInOut = async () => {
   loading.value.myStatus = true;
   try {
-    const { data } = await processAttendance();
+    const response = await processAttendance();
+    const data = response.data?.data || response.data;
 
-    const actionText = data.attendanceStatusType === 'CHECK_IN' ? '출근' : '퇴근';
-    alert(`${actionText} 처리가 완료되었습니다.`);
-
-    // ✅ 즉시 UI 업데이트: 서버 데이터를 기다리지 않고 응답 결과를 바로 반영 (플리커링 방지)
+    // Refresh Status
     if (data.attendanceStatusType === 'CHECK_IN') {
-      clockInInfo.value = {
-        clockInTime: extractTime(data.checkInTime || data.clockInTime),
-        name: userInfo.value?.name || '-',
-        department: userInfo.value?.department || '-',
-        workingType: data.workType || '-',
-        workplace: data.workLocation || 'OFFICE',
-        ipAddress: data.ipAddress || '-',
-        workDate: data.workDate || getTodayString(),
-        overtimeStatus: data.overtimeStatus || '없음'
-      };
+       // Just checked in
+       // Fetch again to ensure sync or update locally
+       await fetchMyStatus(false);
     } else {
-      clockInInfo.value = null;
+       // Checked out
+       await fetchMyStatus(false);
     }
-
-    // ✅ 하단 정보만 로딩 표시 없이 조용히 갱신
-    fetchDepartmentStatus(false);
-
-
   } catch (e) {
-    alert(e.response?.data?.message || '출퇴근 처리 중 오류가 발생했습니다.');
+    alert(e.response?.data?.message || '처리 중 오류가 발생했습니다.');
   } finally {
     loading.value.myStatus = false;
   }
 };
 
-/* =====================
-   상태 뱃지
-===================== */
-const getMemberStatusClass = (status) => {
-  switch (status) {
-    case '출근': return 'status-in';
-    case '퇴근': return 'status-out';
-    case '외근': return 'status-away';
-    case '재택': return 'status-home';
-    case '휴가': return 'status-leave';
-    default: return '';
-  }
-};
 
 /* =====================
    라이프사이클
 ===================== */
 watch([employeeId, departmentId], ([newEmp, newDept]) => {
   if (newEmp && newDept) {
-    fetchInitialData();
+    fetchMyStatus(true);
   }
 }, { immediate: true });
 
 onMounted(() => {
-  updateCurrentTime();
-  intervalId = setInterval(updateCurrentTime, 1000);
-  // fetchInitialData() is now called by the watcher
-});
-
-onUnmounted(() => {
-  if (intervalId) clearInterval(intervalId);
+  /* No special timer needed unless we want real-time clock updating visible */
 });
 </script>
 
 
 <style scoped>
-.attendance-commute-view {
-  height: auto;
-  min-height: 100vh;
-}
-
-.view-header {
-  margin-bottom: 20px;
-}
-
-.title-group h1 {
-  font-size: 24px;
-  font-weight: 700;
-  margin: 0;
-}
-
-.title-group .sub {
-  font-size: 14px;
-  color: #6b7280;
-  margin-top: 4px;
-}
-
-.content-grid {
-  min-height: auto;
-}
-
-.card {
-  background-color: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 14px;
-  padding: 20px;
+.attendance-dashboard {
+  height: 100%;
   display: flex;
-  flex-direction: column;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  min-height: 0;
+  gap: 24px;
+  background-color: #f8fafc;
+  padding: 0;
+  min-height: 80vh;
 }
 
-.card h3 {
-  font-size: 18px;
-  font-weight: 600;
-  color: #111827;
-  margin-top: 0;
-  margin-bottom: 20px;
+/* ===============================
+   Left Column: My Commute (1/3)
+   =============================== */
+.dashboard-left {
+  flex: 1; /* 1/3 비율 */
+  min-width: 320px;
+  max-width: 400px;
 }
 
 .my-commute-card {
+  height: 100%;
+  border-radius: 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+}
+
+.premium-card {
+  background: #ffffff;
+  border: 1px solid rgba(0,0,0,0.02);
   overflow: visible;
-  justify-content: flex-start;
-  align-items: stretch;
 }
 
-.commute-status p {
-  font-size: 14px;
-  color: #374151;
-  margin-bottom: 8px;
+.card-header {
+  padding: 24px;
+  border-bottom: 1px solid #f1f5f9;
+  background: linear-gradient(to bottom, #ffffff, #fafafa);
+  border-radius: 20px 20px 0 0;
+  text-align: left;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.current-time {
-  font-size: 32px;
+.card-header h2 {
+  font-size: 18px;
   font-weight: 700;
-  color: #2563eb;
-  margin-bottom: 15px;
+  color: #1e293b;
+  margin: 0;
 }
 
-.current-status {
-  font-size: 16px;
+.sub-text {
+  font-size: 14px;
+  color: #64748b;
   font-weight: 500;
 }
 
-.status-in { color: #10b981; } /* 초록색 */
-.status-out { color: #ef4444; } /* 빨간색 */
-
-.commute-options {
-  display: flex;
-  gap: 15px;
-  margin-top: 20px;
-  margin-bottom: 20px;
-}
-
-.form-group {
+.card-body {
+  padding: 24px;
+  flex-grow: 1;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
 }
 
-.form-group label {
-  font-size: 12px;
-  color: #6b7280;
-  margin-bottom: 5px;
-}
-
-.select {
-  padding: 8px 12px;
-  font-size: 13px;
-  border-radius: 8px;
-  border: 1px solid #d1d5db;
-  background-color: #ffffff;
-  cursor: pointer;
-  min-width: 120px;
-}
-
-.btn {
-  padding: 12px 25px;
-  font-size: 16px;
-  border-radius: 10px;
-  border: none;
-  color: #ffffff;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-  min-width: 150px;
-  margin-bottom: 15px;
-}
-
-.btn-clock-in {
-  background-color: #2563eb;
-}
-
-.btn-clock-in:hover:not(:disabled) {
-  background-color: #1d4ed8;
-}
-
-.btn-clock-out {
-  background-color: #ef4444;
-}
-
-.btn-clock-out:hover:not(:disabled) {
-  background-color: #dc2626;
-}
-
-.btn:disabled {
-  background-color: #a0aec0;
-  cursor: not-allowed;
-}
-
-.ip-status {
-  font-size: 12px;
-  color: #6b7280;
-  margin-top: 10px;
-}
-
-.ip-status .status-success { color: #10b981; }
-.ip-status .status-fail { color: #ef4444; }
-
-.status-loading {
-  text-align: center;
-  padding: 50px 20px;
-  font-size: 14px;
-  color: #9ca3af;
-}
-
-.clock-in-info {
-  width: 100%;
+.commute-content {
   display: flex;
   flex-direction: column;
-  align-items: center;   /* ✅ 블록 자체 가운데 */
+  gap: 20px;
 }
 
-.clock-in-info .info-list {
-  list-style: none;
-  padding: 0;
-  margin: 20px 0 0;
-  width: 100%;
-  max-width: 420px;      /* ✅ 보기좋은 폭 */
-}
-
-.clock-in-info .info-list li {
+/* User Info Grid */
+.user-info-grid {
   display: grid;
-  grid-template-columns: 110px 1fr; /* ✅ 라벨/값 */
-  align-items: center;
-  column-gap: 12px;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  background-color: #f8fafc;
+  padding: 16px;
+  border-radius: 12px;
   margin-bottom: 10px;
 }
 
-.clock-in-info .info-list li strong {
-  width: auto;           /* ✅ 기존 80px 제거 */
-  display: block;
-  text-align: right;     /* 라벨은 오른쪽 정렬 */
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
-.clock-in-info .info-list li span {
-  text-align: left;      /* 값은 왼쪽 정렬 */
+.info-item .label { font-size: 11px; color: #94a3b8; font-weight: 600; }
+.info-item .value { font-size: 13px; color: #334155; font-weight: 700; }
+
+/* Action Buttons Grid */
+.action-buttons-grid {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+    height: 120px;
 }
 
-.department-commute-card {
-  /* 부서원 현황 카드는 특별한 정렬 없이 기본 flex column 유지 */
+.split-btn {
+    flex: 1;
+    border: none;
+    border-radius: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 16px;
+    position: relative;
+    overflow: hidden;
 }
 
-.table-container {
-  overflow-x: auto;
+.btn-content {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+    z-index: 2;
+}
+
+.btn-title {
+    font-size: 16px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn-time {
+    font-size: 20px;
+    font-weight: 400;
+    opacity: 0.9;
+}
+
+/* Styles based on User Request Logic */
+/* 
+   - Before Clock In: Both Inactive
+   - Clocked In: Left Active, Right Inactive (but clickable)
+   - Clocked Out: Left Inactive, Right Active (showing Out time)
+   
+   CSS Classes:
+   .btn-in.active (Blue)
+   .btn-in.inactive (Gray, default)
+   .btn-out.active (Blue)
+   .btn-out.inactive (Gray, default)
+*/
+
+.split-btn.active {
+    background-color: #3b82f6; 
+    color: white;
+    box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+}
+
+.split-btn.inactive {
+    background-color: #f1f5f9; /* Light Gray */
+    color: #94a3b8; /* Dim text */
+    box-shadow: none;
+}
+.split-btn.inactive:hover:not(:disabled) {
+    background-color: #e2e8f0;
+    color: #64748b;
+}
+
+/* User asked for "Left bright if In, Right inactive" */
+/* and "Before In, both off" */
+
+/* Weekly History List */
+.weekly-history-list {
+    margin-top: auto;
+    border-top: 1px solid #f1f5f9;
+    padding-top: 20px;
+    flex-grow: 1;
+}
+
+.list-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+.list-header h4 {
+    font-size: 14px;
+    font-weight: 700;
+    color: #334155;
+    margin: 0;
+}
+.total-hours {
+    font-size: 12px;
+    color: #3b82f6;
+    font-weight: 600;
+}
+
+.weekly-history-list ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.weekly-history-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 4px;
+    border-bottom: 1px solid #f8fafc;
+    font-size: 13px;
+    color: #475569;
+}
+
+.weekly-history-list li.today {
+    background-color: #f8fafc;
+    border-radius: 8px;
+    padding: 12px 8px;
+    margin: 0 -8px;
+}
+
+.day-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 30px;
+}
+.day-name { font-size: 12px; color: #334155; font-weight: 700; }
+.day-date { font-size: 14px; color: #1e293b; font-weight: 700; margin-top: 2px; }
+
+.work-status {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-left: 16px;
+}
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+.status-dot.blue { background-color: #3b82f6; }
+.status-dot.orange { background-color: #f97316; }
+.status-dot.gray { background-color: #e2e8f0; }
+
+.work-times {
+    font-size: 13px;
+    color: #334155;
+    font-weight: 500;
+}
+
+.work-duration {
+    font-size: 13px;
+    color: #3b82f6;
+    font-weight: 600;
+    width: 50px;
+    text-align: right;
+}
+
+
+/* ===============================
+   Right Column: Calendar (2/3)
+   =============================== */
+.dashboard-right {
+  flex: 2; /* 2/3 비율 */
+  min-width: 0; /* Flex overflow 방지 */
+}
+
+.calendar-card {
+  height: 100%;
+  background-color: #ffffff;
+  border-radius: 20px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+}
+
+.card-header-simple {
+  padding: 20px 24px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.card-header-simple h3 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+}
+
+.calendar-body {
+  padding: 20px;
   flex-grow: 1;
+  position: relative;
+  overflow-y: auto;
 }
 
-.member-commute-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.member-commute-table th, .member-commute-table td {
-  padding: 10px 12px;
-  text-align: left;
-  border-bottom: 1px solid #f3f4f6;
-  font-size: 13px;
-  color: #374151;
-}
-
-.member-commute-table th {
-  background-color: #f9fafb;
-  font-weight: 600;
-  color: #4b5563;
-}
-
-.member-commute-table tbody tr:last-child td {
-  border-bottom: none;
-}
-
-.member-commute-table .status-badge {
-  padding: 4px 8px;
-  border-radius: 999px;
-  font-size: 11px;
-  font-weight: 500;
-  white-space: nowrap;
-}
-.member-commute-table .status-badge.status-in { background-color: #d1fae5; color: #065f46; } /* 출근 */
-.member-commute-table .status-badge.status-out { background-color: #fee2e2; color: #991b1b; } /* 퇴근 */
-.member-commute-table .status-badge.status-away { background-color: #fef9c3; color: #a16207; } /* 외근 */
-.member-commute-table .status-badge.status-home { background-color: #e0f2fe; color: #075985; } /* 재택 */
-.member-commute-table .status-badge.status-leave { background-color: #e5e7eb; color: #4b5563; } /* 휴가 */
-
-.no-results {
-  text-align: center;
-  padding: 30px;
-  color: #9ca3af;
+.calendar-loading-overlay {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(255,255,255,0.8);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 10;
+  gap: 10px;
+  color: #64748b;
   font-size: 14px;
+}
+
+.spinner {
+  width: 24px; height: 24px;
+  border: 3px solid #e2e8f0;
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* FullCalendar Customization */
+:deep(.fc-header-toolbar) {
+  margin-bottom: 1.5rem !important;
+  display: flex;
+  justify-content: flex-start; /* Align Left */
+  gap: 20px;
+}
+
+:deep(.fc-toolbar-chunk) {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+:deep(.fc-toolbar-title) {
+  font-size: 1.25rem !important;
+  font-weight: 700;
+  color: #334155;
+}
+
+:deep(.fc-button-primary) {
+  background-color: #f1f5f9;
+  border: none;
+  color: #475569;
+  font-weight: 600;
+  box-shadow: none;
+  padding: 6px 12px;
+}
+
+:deep(.fc-button-primary:hover) {
+  background-color: #e2e8f0;
+  color: #1e293b;
+}
+
+:deep(.fc-button-active) {
+  background-color: #e2e8f0 !important;
+  color: #1e293b !important;
+}
+
+:deep(.fc-daygrid-day-number) {
+  color: #64748b;
+  font-size: 13px;
+  text-decoration: none;
+}
+
+:deep(.fc-col-header-cell-cushion) {
+  color: #334155; /* Darker Slate */
+  font-size: 13px;
+  font-weight: 800; /* Extra Bold */
+  text-transform: uppercase;
+  opacity: 1;
+}
+
+:deep(.fc-event) {
+  border: none;
+  border-radius: 4px;
+  font-size: 11px;
+  padding: 2px 4px;
+  margin-bottom: 2px;
+  cursor: pointer;
+}
+
+:deep(.event-department-attendance) {
+  background-color: #dbeafe; /* Slightly Darker Blue BG */
+  color: #1e3a8a; /* Very Dark Blue Text for max contrast */
+  border-left: 4px solid #1e3a8a;
+  font-weight: 800; /* Extra Bold */
+  font-size: 12px; /* Slightly larger if possible, sticking to requested bold */
 }
 </style>
