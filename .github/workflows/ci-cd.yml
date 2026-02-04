@@ -39,9 +39,7 @@ jobs:
 
       - name: Zip dist
         run: |
-          cd dist
-          zip -r ../../dist-${{ github.sha }}.zip .
-          cd ..
+          zip -r ../dist-${{ github.sha }}.zip dist
 
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
