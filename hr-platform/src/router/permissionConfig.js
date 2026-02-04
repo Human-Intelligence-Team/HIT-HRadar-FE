@@ -1,4 +1,10 @@
 export const permissionConfig = {
+    // --- Platform Admin ---
+    '/admin/company-applications': 'PLATFORM_ADMIN',
+    '/admin/user-accounts': 'PLATFORM_ADMIN',
+    '/admin/approval-document-types': 'PLATFORM_ADMIN',
+    '/admin/permissions': 'PLATFORM_ADMIN',
+
     // --- Notice ---
     '/notice': 'NOTICE_READ',
     '/notice/create': 'NOTICE_MANAGE',

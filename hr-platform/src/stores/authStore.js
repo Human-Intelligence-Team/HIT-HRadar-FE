@@ -40,7 +40,6 @@ export const useAuthStore = defineStore('auth', () => {
   const isLoggedIn = computed(() => !!accessToken.value && !!user.value?.userId);
   const isAdmin = computed(() => (user.value?.role || '').toUpperCase() === 'ADMIN');
   const hasPermission = (permKey) => {
-    if (isAdmin.value) return true; // ADMIN은 모든 권한 허용
     return permissions.value.includes(permKey);
   };
 

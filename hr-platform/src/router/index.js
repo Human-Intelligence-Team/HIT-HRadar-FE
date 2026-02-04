@@ -329,44 +329,26 @@ router.beforeEach((to, from) => {
     return // Allow public
   }
 
-  // 2. Logged in as ADMIN -> Only Admin pages or landing
-  if (auth.isAdmin) {
-    const isAdminPath = to.path.startsWith('/admin')
-    if (!isAdminPath && !isPublic) {
-      return auth.firstAccessiblePath() || '/admin/company-applications'
+  // 2. Redirect away from public landing pages if already logged in
+  if (isPublic) {
+    return auth.firstAccessiblePath() || '/policy'
+  }
+
+  // 3. Check Permissions (permissionConfig)
+  let requiredPerm = null
+  // Check from specific to general (child to parent)
+  for (let i = to.matched.length - 1; i >= 0; i--) {
+    const path = to.matched[i].path
+    if (permissionConfig[path]) {
+      requiredPerm = permissionConfig[path]
+      break
     }
   }
 
-  // 3. Logged in as USER -> No Admin pages & Check Permissions
-  if (!auth.isAdmin) {
-    const isAdminPath = to.path.startsWith('/admin')
-    if (isAdminPath) {
-      alert('접근 권한이 없습니다.')
-      // If direct load (!from.matched.length), redirect. Otherwise stay (cancel).
-      return from.matched.length > 0 ? false : '/policy'
-    }
-
-    // 세부 권한 체크 (permissionConfig)
-    let requiredPerm = null
-    // Check from specific to general (child to parent)
-    for (let i = to.matched.length - 1; i >= 0; i--) {
-      const path = to.matched[i].path
-      if (permissionConfig[path]) {
-        requiredPerm = permissionConfig[path]
-        break
-      }
-    }
-
-    if (requiredPerm && !auth.hasPermission(requiredPerm)) {
-      alert('해당 메뉴에 대한 접근 권한이 없습니다.')
-      // If direct load (!from.matched.length), redirect. Otherwise stay (cancel).
-      return from.matched.length > 0 ? false : (auth.firstAccessiblePath() || '/policy')
-    }
-
-    // Redirect away from landing to main app
-    if (isPublic) {
-      return '/policy'
-    }
+  if (requiredPerm && !auth.hasPermission(requiredPerm)) {
+    alert('해당 메뉴에 대한 접근 권한이 없습니다.')
+    // If direct load (!from.matched.length), redirect. Otherwise stay (cancel).
+    return from.matched.length > 0 ? false : (auth.firstAccessiblePath() || '/policy')
   }
 })
 
