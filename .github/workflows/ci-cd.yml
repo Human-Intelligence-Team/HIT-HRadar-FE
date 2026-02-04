@@ -1,0 +1,80 @@
+name: Frontend CI/CD (prod)
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  AWS_REGION: ap-northeast-2
+  HOSTING_BUCKET: hradar-hosting
+  ARTIFACT_BUCKET: s3-hradar-bucket
+  CLOUDFRONT_DISTRIBUTION_ID: E7X7Y7ZUCT1LO
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci
+
+      # prod 모드 빌드
+      - name: Build (prod)
+        run: npm run build -- --mode prod
+
+      - name: Zip dist
+        run: |
+          cd dist
+          zip -r ../dist-${{ github.sha }}.zip .
+          cd ..
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Upload artifact zip
+        run: |
+          aws s3 cp dist-${{ github.sha }}.zip \
+            s3://${ARTIFACT_BUCKET}/dist-${{ github.sha }}.zip
+
+      - name: Clear hosting bucket
+        run: aws s3 rm s3://${HOSTING_BUCKET} --recursive
+
+      - name: Deploy to hosting bucket
+        run: |
+          unzip dist-${{ github.sha }}.zip -d deploy
+          aws s3 sync deploy s3://${HOSTING_BUCKET}
+
+      - name: Invalidate CloudFront cache
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id ${CLOUDFRONT_DISTRIBUTION_ID} \
+            --paths "/*"
+
+      - name: Notify Discord
+        if: always()
+        run: |
+          STATUS="SUCCESS"
+          if [ "${{ job.status }}" != "success" ]; then
+            STATUS="FAILED"
+          fi
+
+          curl -H "Content-Type: application/json" \
+            -d "{
+              \"content\": \"🌐 **Frontend 배포 결과**\n브랜치: \`main\`\n커밋: \`${{ github.sha }}\`\n상태: **${STATUS}**\nURL: https://hradar.link\n로그: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\"
+            }" \
+            ${{ secrets.DISCORD_FE_WEBHOOK_URL }}
