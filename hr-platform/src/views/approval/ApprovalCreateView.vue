@@ -23,7 +23,14 @@
 
       <div class="form-group">
         <label for="content">본문 (선택 사항)</label>
-        <textarea id="content" v-model="form.content" class="input-field" rows="5" placeholder="내용을 입력하세요."></textarea>
+        <textarea 
+            id="content" 
+            v-model="form.content" 
+            class="input-field" 
+            rows="5" 
+            maxlength="2000"
+            placeholder="내용을 입력하세요. (최대 2000자)"
+        ></textarea>
       </div>
 
       <DepartmentEmployeeSelector label="결재자" v-model="form.approverIds" hint="결재자를 검색하여 추가하세요." :maxItems="5" />

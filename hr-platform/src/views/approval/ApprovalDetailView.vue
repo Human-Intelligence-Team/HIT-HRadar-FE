@@ -5,14 +5,19 @@
     </div>
 
     <section v-if="document" class="card approval-detail-card">
-      <div class="detail-header">
-        <h2>{{ document.title }}</h2>
-        <span :class="['status-badge', document.status.toLowerCase()]">{{ document.status }}</span>
-      </div>
-
-      <div class="detail-meta">
-        <p><strong>문서 유형:</strong> {{ document.docType }}</p>
-        <p><strong>제출 일시:</strong> {{ formatDate(document.submittedAt) }}</p>
+      <!-- Header Section -->
+      <div class="detail-header-column">
+        <div class="header-top">
+          <h2 class="doc-title">{{ document.title }}</h2>
+          <span :class="['status-badge', document.status.toLowerCase()]">{{ document.status }}</span>
+        </div>
+        <div class="header-meta-row">
+          <span class="meta-label">문서 유형:</span>
+          <span class="meta-value">{{ document.docType }}</span>
+          <span class="divider">|</span>
+          <span class="meta-label">제출 일시:</span>
+          <span class="meta-value">{{ formatDate(document.submittedAt) }}</span>
+        </div>
       </div>
 
       <div class="detail-content">
@@ -20,16 +25,28 @@
         <p>{{ document.content }}</p>
       </div>
 
+      <!-- Placeholder for "Leave Details" if needed later ("본문 밑에 휴가 있고") -->
+      <!-- Ideally we would render dynamic components here based on docType -->
+
       <hr />
 
       <ApprovalLineDisplay :steps="document.approvalSteps" />
       
       <div v-if="document.references && document.references.length > 0" class="approval-references">
         <h3>참조자</h3>
-        <div class="reference-list">
-          <span v-for="ref in document.references" :key="ref.referenceId" class="reference-item">
-            {{ ref.referrerName }} ({{ ref.referrerId }})
-          </span>
+        <div class="reference-container">
+          <div class="reference-list">
+            <span v-for="ref in visibleReferences" :key="ref.referenceId" class="reference-item">
+              {{ ref.referrerName }} ({{ ref.referrerId }})
+            </span>
+          </div>
+          <button 
+            v-if="document.references.length > 5 && !isReferencesExpanded" 
+            @click="isReferencesExpanded = true" 
+            class="btn-more-refs"
+          >
+            + 더보기
+          </button>
         </div>
       </div>
 
@@ -41,47 +58,53 @@
 
       <div class="approval-comments">
         <h3>댓글</h3>
-        <p v-if="!document.comments || document.comments.length === 0" class="no-comments">아직 댓글이 없습니다.</p>
-        <div v-else class="comment-list-container">
-          <div v-for="comment in document.comments" :key="comment.commentId" :class="['comment-item', { 'is-reply': comment.parentCommentId }]">
-            <div class="comment-header">
-              <span class="comment-writer">{{ comment.writerName || comment.writerId }}</span>
-              <span class="comment-date">{{ formatDate(comment.createdAt) }}</span>
-              <button v-if="canAddComment" @click="replyTo(comment)" class="btn-small btn-reply">답글</button>
+        <div class="comment-section-body">
+            <p v-if="!document.comments || document.comments.length === 0" class="no-comments">아직 댓글이 없습니다.</p>
+            <div v-else class="comment-list-container">
+            <div v-for="comment in document.comments" :key="comment.commentId" :class="['comment-item', { 'is-reply': comment.parentCommentId }]">
+                <div class="comment-header">
+                <span class="comment-writer">{{ comment.writerName || comment.writerId }}</span>
+                <span class="comment-date">{{ formatDate(comment.createdAt) }}</span>
+                <button v-if="canAddComment" @click="replyTo(comment)" class="btn-small btn-reply">답글</button>
+                </div>
+                <div class="comment-content">{{ comment.content }}</div>
             </div>
-            <div class="comment-content">{{ comment.content }}</div>
-          </div>
-        </div>
+            </div>
 
-        <div v-if="canAddComment" class="comment-input-area">
-          <hr />
-          <h4>새 댓글 추가</h4>
-          <div v-if="replyToCommentId" class="reply-indicator">
-            <p><strong>{{ replyToCommentWriter }}</strong> 님에게 답글 작성 중
-              <button @click="cancelReply" class="btn-small btn-cancel-reply">취소</button>
-            </p>
-          </div>
-          <textarea
-            id="newCommentInput"
-            v-model="newCommentContent"
-            rows="3"
-            placeholder="댓글을 입력하세요..."
-            class="input-field"
-          ></textarea>
-          <div class="comment-actions">
-            <button @click="postComment" class="btn btn-primary">등록</button>
-          </div>
+            <!-- Styled Comment Input -->
+            <div v-if="canAddComment" class="comment-input-area styled-input">
+                <div v-if="replyToCommentId" class="reply-indicator">
+                    <span><strong>{{ replyToCommentWriter }}</strong> 님에게 답글 작성 중</span>
+                    <button @click="cancelReply" class="btn-text-cancel">✖</button>
+                </div>
+                
+                <div class="input-wrapper">
+                    <input
+                        id="newCommentInput"
+                        v-model="newCommentContent"
+                        placeholder="댓글을 작성하세요..."
+                        class="rounded-input"
+                        @keyup.enter="postComment"
+                        autocomplete="off"
+                    />
+                    <button @click="postComment" class="btn-send-icon" :disabled="!newCommentContent.trim()">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
+                        <path d="M3.478 2.404a.75.75 0 0 0-.926.941l2.432 7.905H13.5a.75.75 0 0 1 0 1.5H4.984l-2.432 7.905a.75.75 0 0 0 .926.94 60.519 60.519 0 0 0 18.445-8.986.75.75 0 0 0 0-1.218A60.517 60.517 0 0 0 3.478 2.404Z" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
         </div>
       </div>
 
       <div class="action-buttons">
-        <!-- Conditional rendering based on user role and document status -->
         <button v-if="canSubmit" class="btn btn-primary" @click="submit">상신</button>
         <button v-if="canWithdraw" class="btn btn-secondary" @click="withdraw">회수</button>
         <button v-if="canApprove" class="btn btn-primary" @click="approve">승인</button>
         <button v-if="canReject" class="btn btn-danger" @click="showRejectModal = true">반려</button>
       </div>
     </section>
+
     <div v-else class="loading-message">
       문서 정보를 불러오는 중...
     </div>
@@ -125,6 +148,14 @@ const rejectReason = ref('');
 
 const docId = computed(() => route.params.docId);
 const currentUserId = computed(() => authStore.user?.employeeId); // Assuming employeeId is the actorId
+
+// References Expand Logic
+const isReferencesExpanded = ref(false);
+const visibleReferences = computed(() => {
+    if (!document.value || !document.value.references) return [];
+    if (isReferencesExpanded.value) return document.value.references;
+    return document.value.references.slice(0, 5);
+});
 
 const fetchDocumentDetail = async () => {
   try {
@@ -218,7 +249,7 @@ const replyTo = (comment) => {
   replyToCommentWriter.value = comment.writerId;
   newCommentContent.value = `@${comment.writerId} `;
   // Focus on the comment input field
-  const commentInput = document.value.getElementById('newCommentInput');
+  const commentInput = window.document.getElementById('newCommentInput');
   if (commentInput) {
     commentInput.focus();
   }
@@ -309,6 +340,7 @@ onMounted(() => {
   max-width: 960px;
   margin: 0 auto;
   padding: 32px 16px;
+  font-family: 'Inter', sans-serif;
 }
 
 .section-title {
@@ -318,19 +350,13 @@ onMounted(() => {
 .section-title h1 {
   font-size: 24px;
   font-weight: bold;
-  color: #333;
-}
-
-.section-title .sub {
-  margin-top: 8px;
-  font-size: 14px;
-  color: #666;
+  color: #1f2937;
 }
 
 .card {
   background: #ffffff;
   border-radius: 12px;
-  padding: 24px;
+  padding: 32px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
 }
 
@@ -338,110 +364,48 @@ onMounted(() => {
   margin-top: 20px;
 }
 
-.detail-header {
+/* Header Column Layout */
+.detail-header-column {
+    margin-bottom: 24px;
+    border-bottom: 1px solid #e5e7eb;
+    padding-bottom: 20px;
+}
+
+.header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.doc-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+}
+
+.header-meta-row {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 15px;
-}
-
-.detail-header h2 {
-  font-size: 28px;
-  color: #333;
-  margin: 0;
-}
-
-.status-badge {
-  padding: 5px 12px;
-  border-radius: 20px;
-  font-size: 13px;
-  font-weight: 600;
-  color: #fff;
-  text-transform: uppercase;
-}
-
-.status-badge.draft { background-color: #6c757d; } /* Grey */
-.status-badge.in_progress { background-color: #007bff; } /* Blue */
-.status-badge.approved { background-color: #28a745; } /* Green */
-.status-badge.rejected { background-color: #dc3545; } /* Red */
-.status-badge.withdrawn { background-color: #ffc107; color: #343a40; } /* Yellow */
-
-.detail-meta p {
-  font-size: 14px;
-  color: #555;
-  margin-bottom: 5px;
-}
-
-.detail-content {
-  margin-top: 25px;
-}
-
-.detail-content h3,
-.approval-line h3,
-.approval-history h3,
-.approval-comments h3 {
-  font-size: 18px;
-  color: #333;
-  margin-bottom: 15px;
-  border-bottom: 1px solid #eee;
-  padding-bottom: 8px;
-}
-
-.approval-references {
-  margin-top: 30px;
-}
-
-.reference-list {
-  display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 8px;
+  font-size: 14px; /* Slightly smaller as requested */
+  color: #6b7280;
 }
 
-.reference-item {
-  background-color: #f1f3f5;
-  padding: 6px 12px;
-  border-radius: 20px;
-  font-size: 14px;
-  color: #495057;
+.meta-label {
+    font-weight: 500;
 }
 
-.detail-content p {
-  font-size: 16px;
-  line-height: 1.6;
-  color: #444;
-  white-space: pre-wrap; /* Preserve whitespace and line breaks */
+.meta-value {
+    color: #374151;
+    font-weight: 600;
 }
 
-hr {
-  border: none;
-  border-top: 1px solid #eee;
-  margin: 30px 0;
-}
-
-.line-steps,
-.history-list,
-.comment-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.line-steps li,
-.history-list li,
-.comment-list li {
-  background-color: #f8f9fa;
-  border-radius: 8px;
-  padding: 10px 15px;
-  margin-bottom: 10px;
-  font-size: 14px;
-  color: #555;
-}
-
-.action-buttons {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-top: 30px;
+.divider {
+    color: #d1d5db;
+    margin: 0 4px;
 }
 
 .btn {
@@ -481,52 +445,48 @@ hr {
   background-color: #c82333;
 }
 
-.loading-message {
-  text-align: center;
-  padding: 50px;
-  font-size: 18px;
-  color: #777;
+.status-badge {
+  padding: 6px 12px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+  text-transform: uppercase;
 }
 
-/* Modal Styles */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
+.status-badge.draft { background-color: #ecf5ff; color: #3182f6; } /* Project Blue */
+.status-badge.in_progress { background-color: #fff7ed; color: #c2410c; }
+.status-badge.approved { background-color: #ecfdf5; color: #047857; }
+.status-badge.rejected { background-color: #fef2f2; color: #b91c1c; }
+.status-badge.withdrawn { background-color: #fffbeb; color: #b45309; }
+
+.detail-content {
+  margin-top: 24px;
 }
 
-.modal-content {
-  background: #fff;
-  padding: 30px;
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-  width: 90%;
-  max-width: 500px;
+.detail-content h3,
+.approval-line h3,
+.approval-history h3,
+.approval-comments h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #f3f4f6;
 }
 
-.modal-content h3 {
-  margin-top: 0;
-  margin-bottom: 20px;
-  font-size: 20px;
-  color: #333;
+.detail-content p {
+  font-size: 16px;
+  line-height: 1.7;
+  color: #1f2937;
+  white-space: pre-wrap;
 }
 
-.modal-content textarea {
-  width: 100%;
-  min-height: 120px;
-  padding: 10px;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  font-size: 14px;
-  resize: vertical;
-  margin-bottom: 20px;
+hr {
+  border: none;
+  border-top: 1px solid #f3f4f6;
+  margin: 32px 0;
 }
 
 .modal-actions {
@@ -619,6 +579,13 @@ hr {
 .comment-actions {
   display: flex;
   justify-content: flex-end;
+}
+
+.action-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 30px;
 }
 
 .btn-small {
