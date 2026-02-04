@@ -114,7 +114,14 @@
               <div class="spinner"></div>
               <span>캘린더 로딩 중...</span>
            </div>
-           <FullCalendar ref="fullCalendar" :options="calendarOptions" />
+           <FullCalendar ref="fullCalendar" :options="calendarOptions">
+             <template #eventContent="arg">
+               <div class="custom-event-content">
+                 <div class="dot" :style="{ backgroundColor: getWorkTypeColor(arg.event.extendedProps.workType) }"></div>
+                 <div class="event-title">{{ arg.event.title }}</div>
+               </div>
+             </template>
+           </FullCalendar>
         </div>
       </div>
     </div>
@@ -172,6 +179,16 @@ const selectedAttendance = ref(null);
 /* =====================
    유틸
 ===================== */
+const getWorkTypeColor = (type) => {
+  if (!type) return '#94a3b8'; // Default Gray
+  if (type.includes('재택')) return '#10b981'; // Green
+  if (type.includes('내근') || type.includes('출근')) return '#3b82f6'; // Blue
+  if (type.includes('출장')) return '#8b5cf6'; // Purple
+  if (type.includes('휴가')) return '#ef4444'; // Red
+  if (type.includes('외근')) return '#f59e0b'; // Orange
+  return '#3b82f6'; // Default Blue
+};
+
 const getTodayString = () => {
   const d = new Date();
   const year = d.getFullYear();
@@ -875,13 +892,46 @@ onMounted(() => {
   padding: 2px 4px;
   margin-bottom: 2px;
   cursor: pointer;
+  background-color: transparent !important; /* Make default BG transparent */
+  padding: 0;
 }
 
-:deep(.event-department-attendance) {
-  background-color: #dbeafe; /* Slightly Darker Blue BG */
-  color: #1e3a8a; /* Very Dark Blue Text for max contrast */
-  border-left: 4px solid #1e3a8a;
-  font-weight: 800; /* Extra Bold */
-  font-size: 12px; /* Slightly larger if possible, sticking to requested bold */
+:deep(.fc-daygrid-event-harness) {
+    margin-bottom: 2px;
+}
+
+/* Hide default dot if any */
+:deep(.fc-daygrid-event-dot) {
+    display: none;
+}
+
+/* Custom Event Content */
+.custom-event-content {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 2px 4px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.custom-event-content:hover {
+    background-color: #f1f5f9;
+}
+
+.dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.event-title {
+    font-size: 12px;
+    font-weight: 800; /* Extra Bold as requested */
+    color: #1e293b; /* Dark Slate */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 </style>

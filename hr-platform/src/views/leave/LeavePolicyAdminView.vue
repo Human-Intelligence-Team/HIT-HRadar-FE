@@ -8,6 +8,10 @@
       <!-- 정책 목록 -->
       <div class="policy-list-card">
         <h2>등록된 휴가 정책</h2>
+        <div class="policy-list-header">
+            <span>정책명</span>
+            <span>상세 내용</span>
+        </div>
         <ul v-if="policies.length > 0" class="policy-list">
           <li v-for="policy in policies" :key="policy.policyId" class="policy-item">
             <div class="policy-name">{{ policy.typeName }}</div>
@@ -162,6 +166,17 @@ h2 {
   padding-bottom: 0.75rem;
 }
 
+.policy-list-header {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  background-color: #f9fafb;
+  border-bottom: 2px solid #e5e7eb;
+  font-weight: 700;
+  color: #374151;
+  font-size: 0.9rem;
+}
+
 .policy-list {
   list-style: none;
   padding: 0;
@@ -171,6 +186,9 @@ h2 {
 }
 
 .policy-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   padding: 1rem;
   border-radius: 8px;
   transition: background-color 0.2s;
@@ -187,12 +205,15 @@ h2 {
 .policy-name {
   font-weight: 600;
   color: #1f2937;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0; /* Remove bottom margin */
+  flex-shrink: 0;
+  margin-right: 1rem;
 }
 
 .policy-details {
   font-size: 0.875rem;
   color: #6b7280;
+  text-align: right; /* Right align the details */
 }
 
 .no-policies {

@@ -9,6 +9,9 @@
 
     <!-- 연차 현황 -->
     <div class="stats-container">
+      <div class="stats-header">
+        <h3>{{ targetYear }}년도 연차 현황</h3>
+      </div>
       <div class="stat-card">
         <div class="stat-value">{{ leaveStats.granted }}일</div>
         <div class="stat-label">부여받은 연차</div>
@@ -31,13 +34,7 @@
     <!-- 개인 연차 사용 기록 -->
     <div class="history-card">
         <h2>개인 연차 사용 기록</h2>
-        <div v-if="isLoading" class="loading-state">
-            <p>데이터를 불러오는 중입니다...</p>
-        </div>
-        <div v-else-if="leaves.length === 0" class="empty-state">
-            <p>휴가 신청 내역이 없습니다.</p>
-        </div>
-        <div v-else class="leave-table-container">
+        <div class="leave-table-container">
             <table class="leave-table">
             <thead>
                 <tr>
@@ -50,7 +47,13 @@
                 </tr>
             </thead>
             <tbody>
-                <tr v-for="leave in leaves" :key="leave.leaveId">
+                <tr v-if="isLoading">
+                    <td colspan="6" class="loading-state">데이터를 불러오는 중입니다...</td>
+                </tr>
+                <tr v-else-if="leaves.length === 0">
+                    <td colspan="6" class="empty-state">휴가 신청 내역이 없습니다.</td>
+                </tr>
+                <tr v-else v-for="leave in leaves" :key="leave.leaveId">
                 <td>{{ formatDateTime(leave.requestedAt) }}</td>
                 <td>{{ leave.leaveType }}</td>
                 <td>{{ leave.startDate }} ~ {{ leave.endDate }}</td>
@@ -109,6 +112,11 @@ const leaveStats = computed(() => {
         used: totalUsed,
         remaining: totalGranted - totalUsed,
     }
+});
+
+const targetYear = computed(() => {
+    // Default to the current year (2026)
+    return new Date().getFullYear();
 });
 
 
@@ -173,7 +181,7 @@ onMounted(reloadData);
   margin-bottom: 2rem;
 }
 .user-details h2 {
-  font-size: 1.8rem;
+  font-size: 1.5rem;
   font-weight: 700;
 }
 .user-details p {
@@ -185,16 +193,32 @@ onMounted(reloadData);
 .stats-container {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 1.5rem;
-  margin-bottom: 2.5rem;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 1.25rem;
+  background-color: #fff;
+}
+
+.stats-header {
+  grid-column: 1 / -1;
+  margin-bottom: 0.25rem;
+}
+
+.stats-header h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #111827;
 }
 
 .stat-card {
-  background: #fff;
+  background: #f8f9fa; /* Slight contrast against white container */
   border-radius: 12px;
-  padding: 1.5rem;
+  padding: 1.25rem;
   text-align: center;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  /* box-shadow removed to look flatter inside border, or keep it subtle */
+  border: 1px solid #f3f4f6;
 }
 
 .stat-value {

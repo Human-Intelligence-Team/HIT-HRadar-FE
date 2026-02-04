@@ -2,7 +2,6 @@
   <div class="page">
     <div class="section-title">
       <h1>결재 문서 유형 관리</h1>
-      <div class="sub">인사팀에서 결재 문서 유형을 생성, 수정, 삭제합니다.</div>
     </div>
 
     <section class="card document-type-management">
@@ -23,13 +22,13 @@
           <tr v-if="documentTypes.length === 0">
             <td colspan="4" class="no-data">등록된 문서 유형이 없습니다.</td>
           </tr>
-          <tr v-for="type in documentTypes" :key="type.docId">
-            <td>{{ type.docId }}</td>
+          <tr v-for="(type, index) in documentTypes" :key="type.typeId">
+            <td>{{ index + 1 }}</td>
             <td>{{ type.docType }}</td>
             <td>{{ type.name }}</td>
             <td>
               <button class="btn btn-secondary btn-small" @click="openEditModal(type)">수정</button>
-              <button class="btn btn-danger btn-small" @click="deleteDocumentType(type.docId)">삭제</button>
+              <button class="btn btn-danger btn-small" @click="deleteDocumentType(type.typeId)">삭제</button>
             </td>
           </tr>
         </tbody>
@@ -85,8 +84,9 @@ const fetchDocumentTypes = async () => {
   try {
     const response = await fetchApprovalDocumentTypes();
     // Backend returns ApprovalDocumentTypeResponse which has typeId, docType, name, isActive
+    console.log('Approval Types Raw Data:', response.data.data);
     documentTypes.value = response.data.data.map(type => ({
-      typeId: type.typeId, // Use typeId as primary key
+      typeId: type.docId, // Fix: Use docId from backend response
       docType: type.docType,
       name: type.name,
       active: type.active // Also store active status
