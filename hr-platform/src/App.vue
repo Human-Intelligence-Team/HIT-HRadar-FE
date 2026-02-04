@@ -1,11 +1,44 @@
-<script setup></script>
-
 <template>
-  <h1>You did it!</h1>
-  <p>
-    Visit <a href="https://vuejs.org/" target="_blank" rel="noopener">vuejs.org</a> to read the
-    documentation
-  </p>
+  <RouterView />
 </template>
 
-<style scoped></style>
+<script setup>
+import { watch } from 'vue'
+import { connectSSE, disconnectSSE } from '@/api/notificationSse.js'
+import { useNotificationStore } from '@/stores/notificationStore.js'
+import { useAuthStore } from '@/stores/authStore.js'
+
+
+const notificationStore = useNotificationStore()
+const auth = useAuthStore()
+
+// onMounted(async () => {
+//   auth.loadFromStorage()
+//
+//   if (auth.accessToken) {
+//     await auth.loadProfile()
+//   }
+// })
+
+// router.beforeEach(async (to) => {
+//   if (auth.accessToken && !auth.profile.name) {
+//     await auth.loadProfile()
+//   }
+// })
+
+watch(
+  () => auth.isLoggedIn,
+  async (loggedIn) => {
+    if (loggedIn) {
+        await notificationStore.load()
+
+        connectSSE((data) => {
+          notificationStore.push(data)
+        })
+    } else {
+      disconnectSSE()
+    }
+  },
+  { immediate: true },
+)
+</script>
