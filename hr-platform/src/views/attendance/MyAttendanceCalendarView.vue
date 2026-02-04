@@ -6,8 +6,12 @@
       </div>
     </div>
     <div class="calendar-container card">
-      <div v-if="loading" class="calendar-loading">캘린더 데이터를 불러오는 중...</div>
-      <FullCalendar v-else :options="calendarOptions" />
+      <!-- v-if 대신 오버레이 표시로 변경하여 캘린더 언마운트와 그로 인한 무한 루프 방지 -->
+      <div v-if="loading" class="loading-overlay">
+        <div class="spinner"></div>
+        <span>데이터를 불러오는 중...</span>
+      </div>
+      <FullCalendar :key="calendarKey" ref="fullCalendar" :options="calendarOptions" />
     </div>
 
     <!-- 근무 상세 정보 모달 -->
@@ -31,10 +35,12 @@ import AttendanceDetailModal from '@/components/attendance/AttendanceDetailModal
 
 const auth = useAuthStore();
 const employeeId = computed(() => auth.user?.employeeId);
-const departmentId = computed(() => auth.user?.deptId); // Assuming deptId is available in auth.user
+const departmentId = computed(() => auth.user?.departmentId); // authStore.js의 변수명과 일치하도록 수정
 
 const calendarEvents = ref([]);
 const loading = ref(false);
+const fullCalendar = ref(null);
+const calendarKey = computed(() => `${employeeId.value}-${departmentId.value}`); // ID가 바뀌면 캘린더 전체를 다시 그리도록 강제
 
 // 모달 관련 상태
 const isModalOpen = ref(false);
@@ -43,34 +49,36 @@ const selectedAttendance = ref(null);
 const calendarOptions = ref({
   plugins: [dayGridPlugin, interactionPlugin, bootstrap5Plugin],
   initialView: 'dayGridMonth',
-  events: calendarEvents,
+  events: async (info, successCallback, failureCallback) => {
+    if (!employeeId.value || !departmentId.value) {
+      successCallback([]);
+      return;
+    }
+    try {
+      const start = info.startStr.split('T')[0];
+      const end = new Date(info.end);
+      end.setDate(end.getDate() - 1);
+      const endDateStr = end.toISOString().split('T')[0];
+      
+      const events = await fetchCalendarEvents(start, endDateStr);
+      successCallback(events);
+    } catch (error) {
+      failureCallback(error);
+    }
+  },
   headerToolbar: {
     left: 'prev,next today',
     center: 'title',
     right: 'dayGridMonth'
   },
-  locale: 'ko', // 한국어 설정
-  dayMaxEvents: true, // +more 링크 표시
+  locale: 'ko',
+  dayMaxEvents: true,
   eventDidMount: function(info) {
     if (info.event.extendedProps.type) {
       info.el.classList.add('event-' + info.event.extendedProps.type);
     }
   },
-  datesSet: async (dateInfo) => {
-    // 캘린더 날짜 범위가 변경될 때마다 이벤트 다시 로드
-    if (employeeId.value && departmentId.value) { // Ensure both are available
-      const start = new Date(dateInfo.start);
-      const end = new Date(dateInfo.end);
-      end.setDate(end.getDate() - 1);
-
-      const startDateStr = start.toISOString().split('T')[0];
-      const endDateStr = end.toISOString().split('T')[0];
-
-      await fetchCalendarEvents(startDateStr, endDateStr);
-    }
-  },
   eventClick: (info) => {
-    // 모달 표시
     selectedAttendance.value = {
       ...info.event.extendedProps,
       workDate: info.event.startStr,
@@ -84,16 +92,22 @@ const fetchCalendarEvents = async (startDate, endDate) => {
   loading.value = true;
   try {
     // Fetch attendance for the current user
-    const attendanceResponse = await fetchAttendanceCalendar({
-      targetDeptId: departmentId.value, // 내 부서 전체 조회로 변경
+    const params = {
+      targetEmpId: Number(employeeId.value), // 확실한 숫자 변환
       fromDate: startDate,
       toDate: endDate
-    });
+    };
+    console.log('Sending request with params:', params);
+
+    const attendanceResponse = await fetchAttendanceCalendar(params);
     // TODO: Need a backend API to fetch leaves for the entire department or all employees
     // For now, only fetching current user's leaves will not achieve the 'department members' leave status goal.
     // const leaveResponse = await fetchMyLeaves();
 
-    console.log('Department Attendance Response:', attendanceResponse.data);
+    console.log('Attendance API Response Data:', attendanceResponse.data);
+    if (!attendanceResponse.data || attendanceResponse.data.length === 0) {
+      console.warn('API returned empty results for employeeId:', employeeId.value);
+    }
 
     let events = [];
 
@@ -155,29 +169,19 @@ const fetchCalendarEvents = async (startDate, endDate) => {
     // }
     // dummy data for debugging removed
     
-    calendarEvents.value = events;
-    console.log('Final events for calendar:', calendarEvents.value);
+    // calendarEvents.value = events; // 더 이상 ref를 직접 갈아끼우지 않고 반환합니다.
+    return events;
 
   } catch (error) {
     console.error('캘린더 이벤트를 불러오는 데 실패했습니다:', error);
-    // alert('캘린더 데이터를 불러오는 중 오류가 발생했습니다.'); // 사용자 요청에 따라 alert 제거
+    return [];
   } finally {
     loading.value = false;
   }
 };
 
 onMounted(() => {
-  // 컴포넌트 마운트 시 현재 월의 범위로 초기 데이터 로드
-  if (employeeId.value && departmentId.value) {
-    const today = new Date();
-    const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-    const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0); // 다음 달 0일 = 이번 달 마지막 날
-
-    const startDateStr = startOfMonth.toISOString().split('T')[0];
-    const endDateStr = endOfMonth.toISOString().split('T')[0];
-
-    fetchCalendarEvents(startDateStr, endDateStr)
-  }
+  // FullCalendar가 events 함수를 통해 직접 관리하므로 수동 호출이 필요 없습니다.
 });
 </script>
 
@@ -198,16 +202,42 @@ onMounted(() => {
   margin-top: 4px;
 }
 .calendar-container {
+  position: relative; /* 로딩 오버레이 기준점 */
   background-color: #ffffff;
   border: 1px solid #e5e7eb;
   border-radius: 14px;
   padding: 20px;
+  min-height: 400px;
 }
 
-.calendar-loading {
-  text-align: center;
-  padding: 50px;
-  color: #9ca3af;
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(255, 255, 255, 0.7);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  border-radius: 14px;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #2563eb;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 10px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 /* FullCalendar 기본 스타일 오버라이드 및 커스텀 */

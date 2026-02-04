@@ -153,41 +153,43 @@ const updateCurrentTime = () => {
 /* =====================
    초기 데이터 로딩
 ===================== */
-const fetchInitialData = async () => {
-  if (!employeeId.value || !departmentId.value) return;
+const fetchMyStatus = async (showLoading = true) => {
+  if (!employeeId.value) return;
 
-  loading.value.myStatus = true;
+  if (showLoading) loading.value.myStatus = true;
   try {
-    const { data } = await fetchMyTodayAttendance(employeeId.value, getTodayString());
+    const targetId = Number(employeeId.value);
+    console.log('Fetching my status for today:', targetId, getTodayString());
+    const { data } = await fetchMyTodayAttendance(targetId, getTodayString());
+    console.log('My status response:', data);
 
-    if (data && data.checkInTime && !data.checkOutTime)  {
-      // 출근한 상태 (퇴근 기록 없음)
+    if (data && data.checkInTime && !data.checkOutTime) {
       clockInInfo.value = {
         clockInTime: extractTime(data.checkInTime),
         name: userInfo.value?.name || '-',
         department: userInfo.value?.department || '-',
-        workingType: data.workType || '-', // AttendanceDetailResponseDto에 workType이 있는지 확인 필요
+        workingType: data.workType || '-',
         workplace: data.workPlace || 'OFFICE',
         ipAddress: data.ipAddress || '-',
         workDate: data.workDate || getTodayString(),
         overtimeStatus: data.overtimeStatus || '없음'
       };
     } else {
-      // 미출근 또는 이미 퇴근함
       clockInInfo.value = null;
       initialWorkInfo.value.workType = data?.workType || '-';
       initialWorkInfo.value.workplace = data?.workPlace || '-';
     }
   } catch (e) {
     clockInInfo.value = null;
-    initialWorkInfo.value.workType = '-';
-    initialWorkInfo.value.workplace = '-';
   } finally {
-    loading.value.myStatus = false;
+    if (showLoading) loading.value.myStatus = false;
   }
+};
 
-  /* 부서원 현황 */
-  loading.value.department = true;
+const fetchDepartmentStatus = async (showLoading = true) => {
+  if (!departmentId.value) return;
+
+  if (showLoading) loading.value.department = true;
   try {
     const res = await fetchAttendanceCalendar({
       targetDeptId: departmentId.value,
@@ -195,28 +197,34 @@ const fetchInitialData = async () => {
       toDate: getTodayString()
     });
 
-      departmentMembers.value = (res.data || []).map(d => {
-        // 분 단위를 시간 포맷으로 변환 (예: 125분 -> 2시간 5분)
-        const totalMin = d.totalWorkMinutes || 0;
-        const hours = Math.floor(totalMin / 60);
-        const mins = totalMin % 60;
-        const workingTimeStr = totalMin > 0 ? `${hours}시간 ${mins}분` : '-';
+    departmentMembers.value = (res.data || []).map(d => {
+      const totalMin = d.totalWorkMinutes || 0;
+      const hours = Math.floor(totalMin / 60);
+      const mins = totalMin % 60;
+      const workingTimeStr = totalMin > 0 ? `${hours}시간 ${mins}분` : '-';
 
-        return {
-          employeeId: d.empId,
-          name: d.empName,
-          department: d.departmentName || '-',
-          jobTitle: d.jobTitle || '-',
-          status: d.status || '미출근', // 상태가 null이면 미출근 처리
-          workingHours: workingTimeStr,
-          workplace: d.location || '-'
-        };
-      });
+      return {
+        employeeId: d.empId,
+        name: d.empName,
+        department: d.departmentName || '-',
+        jobTitle: d.jobTitle || '-',
+        status: d.status || '미출근',
+        workingHours: workingTimeStr,
+        workplace: d.location || '-'
+      };
+    });
   } catch (e) {
     departmentMembers.value = [];
   } finally {
-    loading.value.department = false;
+    if (showLoading) loading.value.department = false;
   }
+};
+
+const fetchInitialData = async () => {
+  await Promise.all([
+    fetchMyStatus(true),
+    fetchDepartmentStatus(true)
+  ]);
 };
 
 /* =====================
@@ -230,6 +238,7 @@ const clockInOut = async () => {
     const actionText = data.attendanceStatusType === 'CHECK_IN' ? '출근' : '퇴근';
     alert(`${actionText} 처리가 완료되었습니다.`);
 
+    // ✅ 즉시 UI 업데이트: 서버 데이터를 기다리지 않고 응답 결과를 바로 반영 (플리커링 방지)
     if (data.attendanceStatusType === 'CHECK_IN') {
       clockInInfo.value = {
         clockInTime: extractTime(data.checkInTime || data.clockInTime),
@@ -244,6 +253,10 @@ const clockInOut = async () => {
     } else {
       clockInInfo.value = null;
     }
+
+    // ✅ 하단 정보만 로딩 표시 없이 조용히 갱신
+    fetchDepartmentStatus(false);
+
 
   } catch (e) {
     alert(e.response?.data?.message || '출퇴근 처리 중 오류가 발생했습니다.');
