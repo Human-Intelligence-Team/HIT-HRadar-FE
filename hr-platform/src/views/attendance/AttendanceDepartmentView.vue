@@ -26,11 +26,8 @@
     <!-- 출퇴근 기록 테이블 -->
     <div class="attendance-records-container card">
       <h3>출퇴근 기록</h3>
-      <div v-if="loading" class="loading-indicator">데이터를 불러오는 중...</div>
-      <div v-else-if="attendanceRecords.length === 0" class="no-results">
-        해당 날짜와 부서의 출퇴근 기록이 없습니다.
-      </div>
-      <div v-else class="table-container">
+      
+      <div class="table-container">
         <table class="attendance-table">
           <thead>
             <tr>
@@ -46,7 +43,13 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="record in filteredRecords" :key="record.employeeId">
+            <tr v-if="loading">
+                <td colspan="9" class="loading-indicator">데이터를 불러오는 중...</td>
+            </tr>
+            <tr v-else-if="attendanceRecords.length === 0">
+                <td colspan="9" class="no-results">해당 날짜와 부서의 출퇴근 기록이 없습니다.</td>
+            </tr>
+            <tr v-else v-for="record in filteredRecords" :key="record.employeeId">
               <td>{{ record.name }}</td>
               <td>{{ record.jobTitle }}</td>
               <td>{{ record.department }}</td>
@@ -68,6 +71,7 @@
 import { ref, onMounted, computed, watch } from 'vue';
 import { useAuthStore } from '@/stores/authStore';
 import { getAllDepartmentsByCompany } from '@/api/departmentApi';
+import { fetchAttendanceCalendar } from '@/api/attendanceApi';
 
 const auth = useAuthStore();
 const companyId = computed(() => auth.user?.companyId);
@@ -107,68 +111,61 @@ onMounted(() => {
 });
 
 const fetchRecords = async () => {
-  if (!companyId.value) {
-    // alert('회사 정보를 불러올 수 없습니다.'); // 불필요한 알림 제거
-    return;
-  }
-  loading.value = true;
-  attendanceRecords.value = []; // 초기화
-
-  try {
-    let response;
-    // ...
-
-    // AttendanceListResponseDto[] 구조를 가정.
-    // 각 DTO는 여러 직원의 기록을 포함할 수 있으므로, 단일 배열로 평탄화 필요.
-    // 백엔드 AttendanceQueryController의 getAttendanceList 응답은 List<AttendanceListResponseDto>
-    // AttendanceListResponseDto는 부서원이 한 명의 출결 기록을 나타내는 DTO
-    // 이 예시에서는 단순화하여 각 AttendanceListResponseDto가 테이블의 한 행이 된다고 가정.
-    const flatRecords = [];
-    if (response.data && Array.isArray(response.data)) {
-        response.data.forEach(deptRecord => {
-            // 백엔드 AttendanceQueryController의 getAttendanceList 응답 DTO 구조에 맞춰 매핑
-            // { employeeId, employeeName, departmentName, jobTitle, attendanceRecords: [{workDate, workPlace, workType, clockInTime, clockOutTime, workingHours, status}] }
-            // 테이블은 한 사람의 하루 기록을 나타내므로, attendanceRecords 배열에서 해당 날짜 기록을 찾음
-            if (deptRecord.attendanceRecords && deptRecord.attendanceRecords.length > 0) {
-                // 단일 날짜 조회이므로 첫 번째 기록만 사용
-                const record = deptRecord.attendanceRecords[0];
-                flatRecords.push({
-                    employeeId: deptRecord.employeeId,
-                    name: deptRecord.employeeName,
-                    jobTitle: deptRecord.jobTitle,
-                    department: deptRecord.departmentName,
-                    workingType: record.workType,
-                    workplace: record.workPlace,
-                    clockInTime: record.clockInTime ? record.clockInTime.substring(11, 16) : '-',
-                    clockOutTime: record.clockOutTime ? record.clockOutTime.substring(11, 16) : '-',
-                    workingHours: record.workingHours || '-',
-                    status: record.status
-                });
-            } else {
-                // 해당 날짜에 기록이 없는 경우
-                flatRecords.push({
-                    employeeId: deptRecord.employeeId,
-                    name: deptRecord.employeeName,
-                    jobTitle: deptRecord.jobTitle,
-                    department: deptRecord.departmentName,
-                    workingType: '-',
-                    workplace: '-',
-                    clockInTime: '-',
-                    clockOutTime: '-',
-                    workingHours: '-',
-                    status: '기록 없음' // 또는 '미정'
-                });
-            }
-        });
+    if (!companyId.value || !selectedDepartmentId.value) {
+        return;
     }
+    loading.value = true;
+    attendanceRecords.value = [];
 
-    attendanceRecords.value = flatRecords;
+    try {
+        const response = await fetchAttendanceCalendar({
+            targetDeptId: selectedDepartmentId.value,
+            fromDate: selectedDate.value,
+            toDate: selectedDate.value
+        });
 
-  } catch (error) {
-    console.error('부서 일일 근태를 불러오는 데 실패했습니다:', error);
-  } finally {
-    loading.value = false;
-  }
+        const flatRecords = [];
+        const data = response.data?.data || response.data || [];
+        
+        if (Array.isArray(data)) {
+            data.forEach(record => {
+                const checkIn = record.checkInTime ? extractTime(record.checkInTime) : '-';
+                const checkOut = record.checkOutTime ? extractTime(record.checkOutTime) : '-';
+                
+                let workDuration = '-';
+                if (record.totalWorkMinutes > 0) {
+                    const h = Math.floor(record.totalWorkMinutes / 60);
+                    const m = record.totalWorkMinutes % 60;
+                    workDuration = `${h}h ${m}m`;
+                }
+
+                flatRecords.push({
+                    employeeId: record.empId,
+                    name: record.empName,
+                    jobTitle: record.position || '-',
+                    department: record.departmentName || '-', 
+                    workingType: record.workType || '-',
+                    workplace: record.location || '-',
+                    clockInTime: checkIn,
+                    clockOutTime: checkOut,
+                    workingHours: workDuration,
+                    status: record.status || '미출근'
+                });
+            });
+        }
+        attendanceRecords.value = flatRecords;
+    } catch (error) {
+        console.error('부서 근태 조회 실패:', error);
+    } finally {
+        loading.value = false;
+    }
+};
+
+const extractTime = (v) => {
+  if (!v) return '-';
+  if (v.length === 8) return v.substring(0, 5);
+  if (v.includes('T')) return v.split('T')[1].slice(0, 5);
+  return v;
 };
 
 const filteredRecords = computed(() => {
@@ -209,12 +206,6 @@ watch([selectedDate, selectedDepartmentId], () => {
   font-size: 24px;
   font-weight: 700;
   margin: 0;
-}
-
-.title-group .sub {
-  font-size: 14px;
-  color: #6b7280;
-  margin-top: 4px;
 }
 
 .filter-controls {
@@ -317,16 +308,12 @@ watch([selectedDate, selectedDepartmentId], () => {
 }
 
 .status-badge {
-  padding: 4px 10px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 500;
-  white-space: nowrap;
+    padding: 0.25rem 0.6rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    display: inline-block;
 }
-.status-badge.status-normal { background-color: #d1fae5; color: #065f46; } /* 정상 */
-.status-badge.status-late { background-color: #fef3c7; color: #a16207; } /* 지각 */
-.status-badge.status-absent { background-color: #fee2e2; color: #991b1b; } /* 결근 */
-.status-badge.status-not-out { background-color: #e0e7ff; color: #1e40af; } /* 미퇴근 */
-.status-badge.status-leave { background-color: #e5e7eb; color: #4b5563; } /* 휴가 */
 .status-badge.status-no-record { background-color: #f3f4f6; color: #6b7280; } /* 기록 없음 */
 </style>
