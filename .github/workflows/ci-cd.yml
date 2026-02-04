@@ -68,8 +68,8 @@ jobs:
       # zip 풀어서 배포
       - name: Deploy to hosting bucket
         run: |
-          unzip dist-${{ github.sha }}.zip -d deploy
-          aws s3 sync deploy s3://${HOSTING_BUCKET}
+          unzip dist-${{ github.sha }}.zip
+          aws s3 sync dist s3://${HOSTING_BUCKET}
 
       # CloudFront 캐시 무효화
       - name: Invalidate CloudFront cache
