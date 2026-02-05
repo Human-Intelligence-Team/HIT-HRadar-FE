@@ -29,11 +29,11 @@
               </div>
               <div class="info-item">
                 <span class="label">근무 유형</span>
-                <span class="value">{{ clockInInfo?.workingType || initialWorkInfo?.workType || '-' }}</span>
+                <span class="value">{{ mapWorkType(clockInInfo?.workingType || initialWorkInfo?.workType) }}</span>
               </div>
               <div class="info-item">
                 <span class="label">근무 장소</span>
-                <span class="value">{{ clockInInfo?.workplace || initialWorkInfo?.workplace || '-' }}</span>
+                <span class="value">{{ mapLocation(clockInInfo?.workplace || initialWorkInfo?.workplace) }}</span>
               </div>
             </div>
 
@@ -117,7 +117,7 @@
            <FullCalendar ref="fullCalendar" :options="calendarOptions">
              <template #eventContent="arg">
                <div class="custom-event-content">
-                 <div class="dot" :style="{ backgroundColor: getWorkTypeColor(arg.event.extendedProps.workType) }"></div>
+                 <div class="dot" :style="{ backgroundColor: getWorkTypeColor(arg.event.extendedProps.workType, arg.event.extendedProps.status) }"></div>
                  <div class="event-title">{{ arg.event.title }}</div>
                </div>
              </template>
@@ -179,13 +179,14 @@ const selectedAttendance = ref(null);
 /* =====================
    유틸
 ===================== */
-const getWorkTypeColor = (type) => {
+const getWorkTypeColor = (type, status) => {
+  if (status === '퇴근') return '#94a3b8'; // Gray for Clocked out
   if (!type) return '#94a3b8'; // Default Gray
-  if (type.includes('재택')) return '#10b981'; // Green
-  if (type.includes('내근') || type.includes('출근')) return '#3b82f6'; // Blue
-  if (type.includes('출장')) return '#8b5cf6'; // Purple
-  if (type.includes('휴가')) return '#ef4444'; // Red
-  if (type.includes('외근')) return '#f59e0b'; // Orange
+  if (type.includes('재택') || type === 'REMOTE') return '#10b981'; // Green
+  if (type.includes('내근') || type.includes('출근') || type === 'WORK') return '#3b82f6'; // Blue
+  if (type.includes('출장') || type === 'TRIP') return '#8b5cf6'; // Purple
+  if (type.includes('휴가') || type === 'VACATION') return '#ef4444'; // Red
+  if (type.includes('외근') || type === 'FIELD') return '#f59e0b'; // Orange
   return '#3b82f6'; // Default Blue
 };
 
@@ -224,6 +225,30 @@ const extractTime = (v) => {
   if (v.length === 8) return v.substring(0, 5); // HH:mm
   if (v.includes('T')) return v.split('T')[1].slice(0, 5);
   return null;
+};
+
+const mapWorkType = (type) => {
+    if (!type || type === '-') return '-';
+    const mapper = {
+        'WORK': '내근',
+        'REMOTE': '재택',
+        'FIELD': '외근',
+        'TRIP': '출장',
+        'VACATION': '휴가'
+    };
+    return mapper[type] || type;
+};
+
+const mapLocation = (loc) => {
+    if (!loc || loc === '-') return '-';
+    const mapper = {
+        'OFFICE': '사무실',
+        'HOME': '재택(자택)',
+        'FIELD': '현장(외근)',
+        'TRIP': '출장지',
+        'NONE': '-'
+    };
+    return mapper[loc] || loc;
 };
 
 /* =====================
@@ -423,10 +448,11 @@ const fetchCalendarData = async (startDate, endDate) => {
         
         let title = record.empName;
         if (title.length > 3) title = title.substring(0,3); 
-        if (record.workType && record.workType !== '내근') { 
-             title += ` (${record.workType})`;
-        } else if (record.location && record.workType === '내근') {
-             // Pass
+        
+        if (status === '퇴근') {
+            title += ` (퇴근)`;
+        } else if (record.workType && record.workType !== '내근' && record.workType !== 'WORK') { 
+             title += ` (${mapWorkType(record.workType)})`;
         }
     
         // Calculate duration if available

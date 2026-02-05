@@ -60,7 +60,7 @@
                 <td class="reason-cell">{{ leave.reason }}</td>
                 <td>
                     <span :class="['badge', getStatusBadgeClass(leave.approvalStatus)]">
-                        {{ leave.approvalStatus || '확인중' }}
+                        {{ getStatusLabel(leave.approvalStatus) }}
                     </span>
                 </td>
                 <td>{{ leave.leaveDays }}일</td>
@@ -153,15 +153,23 @@ const formatDateTime = (isoString) => {
     return date.toLocaleString('ko-KR');
 }
 
+const getStatusLabel = (status) => {
+    const labels = {
+        'DRAFT': '임시저장',
+        'IN_PROGRESS': '상신',
+        'APPROVED': '승인',
+        'REJECTED': '반려',
+        'WITHDRAWN': '회수'
+    };
+    return labels[status] || status || '-';
+}
+
 const getStatusBadgeClass = (status) => {
     const classes = {
-        'DRAFT': 'badge-gray',
-        'TEMP': 'badge-gray',
-        'IN_PROGRESS': 'badge-blue', // Main backend status
-        'PROCEEDING': 'badge-blue',  // Legacy/Frontend alias
-        'PENDING': 'badge-blue',
         'APPROVED': 'badge-green',
         'REJECTED': 'badge-red',
+        'IN_PROGRESS': 'badge-blue', 
+        'DRAFT': 'badge-gray',
         'WITHDRAWN': 'badge-yellow'
     };
     return classes[status] || 'badge-gray';

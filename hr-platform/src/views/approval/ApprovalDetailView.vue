@@ -17,6 +17,14 @@
           <span class="divider">|</span>
           <span class="meta-label">제출 일시:</span>
           <span class="meta-value">{{ formatDate(document.submittedAt) }}</span>
+          
+          <template v-if="parsedPayload && parsedPayload.startDate">
+             <span class="divider">|</span>
+             <span class="meta-label">기간:</span>
+             <span class="meta-value">
+                {{ parsedPayload.startDate }} ~ {{ parsedPayload.endDate || parsedPayload.startDate }}
+             </span>
+          </template>
         </div>
       </div>
 
@@ -36,16 +44,16 @@
         <h3>참조자</h3>
         <div class="reference-container">
           <div class="reference-list">
-            <span v-for="ref in visibleReferences" :key="ref.referenceId" class="reference-item">
-              {{ ref.referrerName }} ({{ ref.referrerId }})
+            <span v-for="ref in visibleReferences" :key="ref.referenceId" class="reference-badge">
+              {{ ref.referrerName }} <span class="ref-id">({{ ref.referrerId }})</span>
             </span>
           </div>
           <button 
-            v-if="document.references.length > 5 && !isReferencesExpanded" 
-            @click="isReferencesExpanded = true" 
-            class="btn-more-refs"
+            v-if="document.references.length > 6" 
+            @click="toggleReferences" 
+            class="btn-text-more"
           >
-            + 더보기
+            {{ isReferencesExpanded ? '접기' : `+ ${document.references.length - 6}명 더보기` }}
           </button>
         </div>
       </div>
@@ -79,18 +87,15 @@
                 </div>
                 
                 <div class="input-wrapper">
-                    <input
+                    <textarea
                         id="newCommentInput"
                         v-model="newCommentContent"
                         placeholder="댓글을 작성하세요..."
-                        class="rounded-input"
-                        @keyup.enter="postComment"
-                        autocomplete="off"
-                    />
-                    <button @click="postComment" class="btn-send-icon" :disabled="!newCommentContent.trim()">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
-                        <path d="M3.478 2.404a.75.75 0 0 0-.926.941l2.432 7.905H13.5a.75.75 0 0 1 0 1.5H4.984l-2.432 7.905a.75.75 0 0 0 .926.94 60.519 60.519 0 0 0 18.445-8.986.75.75 0 0 0 0-1.218A60.517 60.517 0 0 0 3.478 2.404Z" />
-                        </svg>
+                        class="comment-textarea"
+                        rows="2"
+                    ></textarea>
+                    <button @click="postComment" class="btn-send-custom" :disabled="!newCommentContent.trim()">
+                        등록
                     </button>
                 </div>
             </div>
@@ -139,7 +144,7 @@ import {
 import { useAuthStore } from '@/stores/authStore'; // Assuming authStore is available for current user info
 
 const route = useRoute();
-const router = useRouter();
+// const router = useRouter(); // Unused router assignment
 const authStore = useAuthStore();
 
 const document = ref(null);
@@ -149,12 +154,25 @@ const rejectReason = ref('');
 const docId = computed(() => route.params.docId);
 const currentUserId = computed(() => authStore.user?.employeeId); // Assuming employeeId is the actorId
 
-// References Expand Logic
 const isReferencesExpanded = ref(false);
 const visibleReferences = computed(() => {
     if (!document.value || !document.value.references) return [];
     if (isReferencesExpanded.value) return document.value.references;
-    return document.value.references.slice(0, 5);
+    return document.value.references.slice(0, 6);
+});
+
+const toggleReferences = () => {
+    isReferencesExpanded.value = !isReferencesExpanded.value;
+};
+
+const parsedPayload = computed(() => {
+    if (!document.value || !document.value.payload) return null;
+    try {
+        return JSON.parse(document.value.payload);
+    } catch (e) {
+        console.error("Failed to parse payload:", e);
+        return null;
+    }
 });
 
 const fetchDocumentDetail = async () => {
@@ -620,11 +638,155 @@ hr {
   margin: 0;
 }
 
+/* Reference Styling */
+.reference-container {
+  display: flex;
+  align-items: flex-start; /* Align button with first row if needed */
+  gap: 12px;
+  flex-wrap: wrap; /* Allow wrapping */
+}
+
+.reference-list {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr); /* Enforce 6 items per row */
+  gap: 8px;
+  width: 100%; /* Occupy full width */
+}
+
+.reference-badge {
+  background-color: #f3f4f6;
+  padding: 4px 10px;
+  border-radius: 99px;
+  font-size: 13px;
+  color: #374151;
+  display: flex; /* Changed to flex for centering content */
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #e5e7eb;
+  white-space: nowrap; /* Prevent wrapping inside badge */
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ref-id {
+  color: #9ca3af;
+  font-size: 11px;
+  margin-left: 4px;
+}
+
+.btn-text-more {
+  background: none;
+  border: none;
+  color: #6b7280;
+  cursor: pointer;
+  font-size: 13px;
+  padding: 4px 8px;
+  text-decoration: underline;
+}
+.btn-text-more:hover {
+  color: #111827;
+}
+
 .btn-cancel-reply {
-  background-color: #dc3545;
-  color: #fff;
+  background: none;
+  border: none;
+  color: #6b7280;
+  cursor: pointer;
 }
 .btn-cancel-reply:hover {
-  background-color: #c82333;
+  color: #dc3545;
+}
+
+/* Updated Comment Input */
+.comment-textarea {
+  flex-grow: 1;
+  min-height: 48px; /* Start smaller */
+  padding: 10px 14px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 14px;
+  resize: none;
+  transition: all 0.2s;
+}
+.comment-textarea:focus {
+  border-color: #3b82f6;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+  min-height: 80px; /* Expand on focus */
+}
+
+.input-wrapper {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.btn-send-custom {
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  height: 44px; /* Align with initial textarea height roughly */
+  white-space: nowrap;
+}
+.btn-send-custom:disabled {
+  background-color: #d1d5db;
+  cursor: not-allowed;
+}
+.btn-send-custom:hover:not(:disabled) {
+  background-color: #2563eb;
+}
+
+/* Modal Styling */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  padding: 24px;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 500px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.modal-content h3 {
+  margin-top: 0;
+  margin-bottom: 16px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.modal-content textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  font-family: inherit;
+  resize: vertical;
+  box-sizing: border-box;
+}
+
+.modal-content textarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 </style>
