@@ -11,10 +11,7 @@ export const useChatbotStore = defineStore('chatbot', {
     opened: false,
     messages: [
       { from: 'bot', text: '안녕하세요! 인사 제도/규정 관련해서 무엇을 도와드릴까요?' },
-      { from: 'bot', text: '먼저 카테고리를 선택하시면 더 정확한 답변을 얻을 수 있습니다.' },
-      { from: 'bot', text: '※ 개인 인사정보는 “요약”만 제공하며 상세 수치는 노출하지 않습니다.' },
     ],
-    selectedCategory: null,
     sessionId: generateUniqueId(), // Initialize sessionId
   }),
 
@@ -28,35 +25,21 @@ export const useChatbotStore = defineStore('chatbot', {
     clear() {
       this.messages = [
         { from: 'bot', text: '안녕하세요! 인사 제도/규정 관련해서 무엇을 도와드릴까요?' },
-        { from: 'bot', text: '먼저 카테고리를 선택하시면 더 정확한 답변을 얻을 수 있습니다.' },
-        { from: 'bot', text: '※ 개인 인사정보는 “요약”만 제공하며 상세 수치는 노출하지 않습니다.' },
       ]
-      this.selectedCategory = null
       this.sessionId = generateUniqueId() // Reset sessionId on chat clear
     },
-    async sendUser(text, category = null) {
+    async sendUser(text) {
       this.messages.push({ from: 'user', text })
-
-      let messageToSend = text;
-      if (category) {
-        messageToSend = `[${category}] ${text}`;
-      }
 
       try {
         const response = await sendChatApi({
-          message: messageToSend,
+          message: text,
           sessionId: this.sessionId,
         });
         this.messages.push({ from: 'bot', text: response.data.answer });
       } catch (error) {
         console.error('Error sending chat message:', error);
         this.messages.push({ from: 'bot', text: '죄송합니다. 메시지를 보내는 데 실패했습니다. 다시 시도해 주세요.' });
-      }
-    },
-    setSelectedCategory(category) {
-      this.selectedCategory = category
-      if (category) {
-        this.messages.push({ from: 'bot', text: `카테고리 [${category}]를 선택했습니다. 질문을 입력해주세요.` });
       }
     },
   },

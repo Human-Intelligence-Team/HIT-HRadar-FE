@@ -1,7 +1,9 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
+import { permissionConfig } from '@/router/permissionConfig'
 
 import PolicyView from '@/views/policy/PolicyView.vue'
+import PolicyDetailView from '@/views/policy/PolicyDetailView.vue'
 import NoticeView from '@/views/notice/NoticeView.vue'
 
 import AppLayout from '@/components/layout/AppLayout.vue'
@@ -33,8 +35,6 @@ import CompetencyReportAllCreateView
   from '@/views/report/CompetencyReportAllCreateView.vue'
 import CompetencyReportEmployeeAllListView
   from '@/views/report/CompetencyReportEmployeeAllListView.vue'
-import CompetencyReportDetailView
-  from '@/views/report/CompetencyReportDetailView.vue'
 import TagModalView from '@/views/contents/tag/TagModalView.vue'
 import GoalListView from '@/views/goal/GoalListView.vue'
 import HRGoalDashboard from '@/views/goal/HRGoalDashboard.vue'
@@ -69,6 +69,7 @@ import NoticeDetailView from '@/views/notice/NoticeDetailView.vue'
 import NoticeCreateView from '@/views/notice/NoticeCreateView.vue'
 import NoticeEditView from '@/views/notice/NoticeEditView.vue'
 import HomeView from '@/views/auth/HomeView.vue'
+import GatewayView from '@/views/auth/GatewayView.vue'
 import CompanyRegisterView from '@/views/auth/CompanyRegisterView.vue'
 
 import AdminLayout from '@/components/layout/AdminLayout.vue'
@@ -81,14 +82,18 @@ import DepartmentManageView from '@/views/department/DepartmentManageView.vue'
 import AttendanceIpPolicyView from '@/views/attendance/AttendanceIpPolicyView.vue'
 import AttendanceCommuteView from '@/views/attendance/AttendanceCommuteView.vue'
 import AttendanceDepartmentView from '@/views/attendance/AttendanceDepartmentView.vue'
-import MyAttendanceCalendarView from '@/views/attendance/MyAttendanceCalendarView.vue'
 import DepartmentAttendanceCalendarView from '@/views/attendance/DepartmentAttendanceCalendarView.vue'
 import AttendanceEmployeeDetailView from '@/views/attendance/AttendanceEmployeeDetailView.vue'
+import MyDashboard from '@/views/dashboard/MyDashboard.vue'
+import EmpDashboard from '@/views/dashboard/EmpDashboard.vue'
 
 import ContentsCustomCodeView
   from '@/views/contents/content/ContentsCustomCodeView.vue'
 
 const routes = [
+
+
+
 
 
   {
@@ -99,7 +104,16 @@ const routes = [
   {
     path: '/home',
     component: AuthLayout,
-    children: [{ path: '', component: HomeView }],
+    children: [
+      { path: '', component: HomeView }
+    ],
+  },
+  {
+    path: '/gateway',
+    component: AuthLayout,
+    children: [
+      { path: '', component: GatewayView }
+    ],
   },
 
   {
@@ -110,6 +124,7 @@ const routes = [
       { path: 'company-applications', component: AdminComAppList },
       { path: 'user-accounts', component: AdminUserAccountList },
       { path: 'approval-document-types', component: ApprovalDocumentTypeManagementView, meta: { requiresAdmin: true } },
+      { path: 'permissions', component: () => import('@/views/admin/PermissionRegistryView.vue') },
     ]
   },
 
@@ -118,6 +133,17 @@ const routes = [
     children: [
       { path: '', redirect: '/policy' },
       { path: 'policy', component: PolicyView },
+      { path: 'notice', name: 'notice-list', component: NoticeListView, meta: { permission: 'NOTICE_READ' } },
+      { path: 'notice/create', name: 'notice-create', component: NoticeCreateView, meta: { permission: 'NOTICE_MANAGE' } },
+      { path: 'notice/:id', name: 'notice-detail', component: NoticeDetailView, props: true, meta: { permission: 'NOTICE_READ' } },
+      { path: 'notice/:id/edit', name: 'notice-edit', component: NoticeEditView, props: true, meta: { permission: 'NOTICE_MANAGE' } },
+      {
+        path: 'policy',
+        children: [
+          { path: '', name: 'policy', component: PolicyView },
+          { path: ':id', name: 'policy-detail', component: PolicyDetailView, props: true },
+        ]
+      },
       {
         path: 'notice',
         component: NoticeView,
@@ -129,9 +155,25 @@ const routes = [
         ]
       },
 
-      // 조직/부서 관리
+      // 조직/부서/사원 관리
       { path: 'organization', component: DepartmentListView },
+      { path: 'department/org-chart', component: () => import('@/views/department/OrganizationChartView.vue') }, // Organization Chart
       { path: 'department/manage', component: DepartmentManageView },
+      { path: 'employee', component: () => import('@/views/personnel/EmployeeListView.vue') },
+      { path: 'personnel/employees/list', component: () => import('@/views/personnel/EmployeeReadOnlyView.vue') }, // Read-Only Employee List
+      { path: 'personnel/positions', component: () => import('@/views/personnel/PositionManageView.vue') },
+      { path: 'personnel/positions/list', component: () => import('@/views/personnel/PositionReadOnlyView.vue') }, // Read-Only Position List
+
+
+      // 인사 발령 및 이력
+      { path: 'personnel/appointment', component: () => import('@/views/personnel/PersonnelAppointmentView.vue') },
+      { path: 'personnel/history', component: () => import('@/views/personnel/PersonnelAppointmentHistoryView.vue') },
+
+      // 회사 관리
+      { path: 'company/my', component: () => import('@/views/company/MyCompanyView.vue') },
+      { path: 'company/my-manage', component: () => import('@/views/company/MyCompanyManageView.vue') },
+      { path: 'company/roles', component: () => import('@/views/company/RoleManageView.vue') },
+      { path: 'company/manage', component: () => import('@/views/company/CompanyManageView.vue') },
 
 
       //성과평가-목표관리
@@ -148,7 +190,6 @@ const routes = [
           { path: '/all/competency/report/employee', component: CompetencyReportEmployeeAllListView },
           { path: '/dept/competency/report', component: CompetencyReportDeptListView },
           { path: '/me/competency/report', component: CompetencyReportMeListView },
-          { path: '/me/competency/report/detail/:competencyReportId', component: CompetencyReportDetailView },
         ]
       },
       { path: 'salary/dashboard', component: SalaryDashboardView },
@@ -220,20 +261,20 @@ const routes = [
       { path: '/evaluation/response/my/result', component: EvaluationMyResultPage },
       { path: '/to/grading/objection', component: AdminGradeObjectionPage },
       { path: '/hr/objections/:objectionId', name: 'AdminGradeObjectionDetailPage', component: AdminGradeObjectionDetailPage },
-
-
-
       { path: '/to/grading/objection', component: AdminGradeObjectionPage },
       { path: '/hr/objections/:objectionId', name: 'AdminGradeObjectionDetailPage', component: AdminGradeObjectionDetailPage },
+
+
+      //대시보드
+      { path: '/my/dashboard', component: MyDashboard },
+      { path: '/hr/dashboard', component: EmpDashboard },
+
 
       {
         path: 'approval',
         children: [
           { path: 'create', component: () => import('@/views/approval/ApprovalCreateView.vue') },
           { path: 'my-documents', component: () => import('@/views/approval/ApprovalMyListView.vue') },
-          { path: 'approval-tasks', component: () => import('@/views/approval/ApprovalInboxListView.vue') },
-          { path: 'rejected-documents', component: () => import('@/views/approval/ApprovalRejectedListView.vue') },
-          { path: 'references', component: () => import('@/views/approval/ApprovalReferenceListView.vue') },
           { path: 'all-documents', component: () => import('@/views/approval/ApprovalAllListView.vue') },
           { path: 'admin', component: () => import('@/views/admin/ApprovalDocumentTypeManagementView.vue') },
           { path: ':docId', component: () => import('@/views/approval/ApprovalDetailView.vue'), props: true },
@@ -248,7 +289,6 @@ const routes = [
           { path: 'commute', component: AttendanceCommuteView }, // 사원 출퇴근 관리
           { path: 'ip-policy', component: AttendanceIpPolicyView }, // 인사팀 IP 정책 관리
           { path: 'department', component: AttendanceDepartmentView }, // 인사팀 부서 출퇴근 관리
-          { path: 'my-calendar', component: MyAttendanceCalendarView }, // 나의 근태 캘린더
           { path: 'department-calendar', component: DepartmentAttendanceCalendarView }, // 부서별 근태 캘린더 (인사팀)
           { path: 'employee-detail/:employeeId/:workDate', name: 'AttendanceEmployeeDetail', component: AttendanceEmployeeDetailView, props: true }, // 사원 근태 상세 조회
         ],
@@ -263,6 +303,10 @@ const routes = [
           { path: 'admin/department-history', component: () => import('@/views/leave/DepartmentLeaveHistoryView.vue'), meta: { requiresAdmin: true } },
         ],
       },
+
+      // 마이페이지 (사용자 본인 정보)
+      { path: 'my-profile', name: 'MyProfile', component: () => import('@/views/user/MyProfileView.vue') },
+      { path: 'my-department', name: 'MyDepartment', component: () => import('@/views/department/MyDepartmentView.vue') },
     ],
   },
 ]
@@ -272,32 +316,43 @@ const router = createRouter({
   routes,
 })
 
-router.beforeEach((to) => {
+router.beforeEach((to, from) => {
   const auth = useAuthStore()
 
-  const publicPaths = ['/home', '/register-company']
+  const publicPaths = ['/home', '/register-company', '/gateway']
   const isPublic = publicPaths.includes(to.path)
 
-  // 로그인 안 했는데 보호 페이지 접근
-  if (!auth.isLoggedIn && !isPublic) {
-    return { path: '/home', query: { redirect: to.fullPath } }
+  // 1. Not logged in -> Redirect to gateway (unless public)
+  if (!auth.isLoggedIn) {
+    if (to.path === '/') {
+      return '/home'
+    }
+    if (!isPublic) {
+      return { path: '/gateway', query: { redirect: to.fullPath } }
+    }
+    return // Allow public
   }
 
-  // 로그인 했는데, 관리자 페이지에 권한 없이 접근
-  if (to.meta.requiresAdmin && !auth.isAdmin) {
-    alert('접근 권한이 없습니다.');
-    return '/notice'; // 혹은 권한 없음 페이지로
+  // 2. Redirect away from public landing pages if already logged in
+  if (isPublic) {
+    return auth.firstAccessiblePath() || '/policy'
   }
 
-  // 로그인 했는데 로그인 페이지 접근
-  if (auth.isLoggedIn && to.path === '/login') {
-    return auth.firstAccessiblePath() || '/'
+  // 3. Check Permissions (permissionConfig)
+  let requiredPerm = null
+  // Check from specific to general (child to parent)
+  for (let i = to.matched.length - 1; i >= 0; i--) {
+    const path = to.matched[i].path
+    if (permissionConfig[path]) {
+      requiredPerm = permissionConfig[path]
+      break
+    }
   }
-  // 로그인 했는데 /home 접근하면 첫 접근 가능 페이지로 보냄
-  if (auth.isLoggedIn && isPublic) {
-    const next = auth.firstAccessiblePath?.()
-    // next가 '/', '/home', '' 같은 값이면 루프 나기 쉬우니 안전값 강제
-    return next && next !== '/' && next !== '/home' ? next : '/policy'
+
+  if (requiredPerm && !auth.hasPermission(requiredPerm)) {
+    alert('해당 메뉴에 대한 접근 권한이 없습니다.')
+    // If direct load (!from.matched.length), redirect. Otherwise stay (cancel).
+    return from.matched.length > 0 ? false : (auth.firstAccessiblePath() || '/policy')
   }
 })
 

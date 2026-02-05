@@ -66,7 +66,7 @@ export const fetchAttendanceIpPolicies = async (comId) => {
  * 출/퇴근 처리 (IP 기반)
  */
 export const processAttendance = async () => {
-  return await axios.post(`api/v1/attendance/check`);
+  return await axios.post(`/api/v1/attendance/check`);
 };
 
 /**
@@ -87,7 +87,7 @@ export const fetchAttendanceCalendar = async ({
   fromDate,
   toDate
 }) => {
-  return await axios.get('/api/v1/attendance', {
+  return await axios.get('/api/v1/attendance/calendar', {
     params: {
       targetEmpId,
       targetDeptId,

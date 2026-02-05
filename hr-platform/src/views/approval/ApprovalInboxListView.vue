@@ -23,7 +23,11 @@
             <td>{{ doc.docId }}</td>
             <td>{{ doc.title }}</td>
             <td>{{ doc.docType }}</td>
-            <td>{{ doc.status }}</td>
+            <td>
+              <span :class="['status-badge', doc.status ? doc.status.toLowerCase() : '']">
+                {{ doc.status }}
+              </span>
+            </td>
             <td>{{ formatDate(doc.submittedAt) }}</td>
           </tr>
         </tbody>
@@ -88,12 +92,6 @@ onMounted(() => {
   color: #333;
 }
 
-.section-title .sub {
-  margin-top: 8px;
-  font-size: 14px;
-  color: #666;
-}
-
 .card {
   background: #ffffff;
   border-radius: 12px;
@@ -137,4 +135,21 @@ onMounted(() => {
   color: #888;
   padding: 40px;
 }
+
+/* Status Badge Styles */
+.status-badge {
+  padding: 6px 12px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+  text-transform: uppercase;
+  display: inline-block;
+}
+
+.status-badge.draft { background-color: #ecf5ff; color: #3182f6; }
+.status-badge.in_progress { background-color: #fff7ed; color: #c2410c; }
+.status-badge.approved { background-color: #ecfdf5; color: #047857; }
+.status-badge.rejected { background-color: #fef2f2; color: #b91c1c; }
+.status-badge.withdrawn { background-color: #fffbeb; color: #b45309; } /* Orange/Amber for withdrawn */
 </style>

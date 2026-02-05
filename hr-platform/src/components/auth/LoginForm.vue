@@ -8,12 +8,15 @@
           v-model="companyCode"
           placeholder="Company Code"
           @blur="validateCompanyCode"
+          @input="validateCompanyCode"
           autocomplete="new-password"
           spellcheck="false"
         />
-        <p v-if="errors.companyCode" class="error">
-          {{ errors.companyCode }}
-        </p>
+        <Transition name="error-slide">
+          <p v-if="errors.companyCode" class="error">
+            {{ errors.companyCode }}
+          </p>
+        </Transition>
       </div>
 
       <div class="field">
@@ -21,12 +24,15 @@
           v-model="loginId"
           placeholder="ID"
           @blur="validateLoginId"
+          @input="validateLoginId"
           autocomplete="new-password"
           spellcheck="false"
         />
-        <p v-if="errors.loginId" class="error">
-          {{ errors.loginId }}
-        </p>
+        <Transition name="error-slide">
+          <p v-if="errors.loginId" class="error">
+            {{ errors.loginId }}
+          </p>
+        </Transition>
       </div>
 
       <div class="field">
@@ -35,12 +41,15 @@
           type="password"
           placeholder="Password"
           @blur="validatePassword"
+          @input="validatePassword"
           autocomplete="new-password"
           spellcheck="false"
         />
-        <p v-if="errors.password" class="error">
-          {{ errors.password }}
-        </p>
+        <Transition name="error-slide">
+          <p v-if="errors.password" class="error">
+            {{ errors.password }}
+          </p>
+        </Transition>
       </div>
 
       <p v-if="serverError" class="server-error">
@@ -136,7 +145,7 @@ h1 {
   margin-bottom: 28px;
   font-size: 24px;
   font-weight: 800;
-  color: #0f172a;
+  color: #ffffff; /* White text for blue bg */
   text-align: center;
   letter-spacing: -0.02em;
 }
@@ -150,24 +159,24 @@ input {
   height: 48px;
   padding: 0 16px;
   font-size: 0.95rem;
-  color: #1e293b;
-  background: rgba(255, 255, 255, 0.8);
-  border: 1px solid #cbd5e1;
-  border-radius: 12px;
+  color: #ffffff; /* White input text */
+  background: rgba(255, 255, 255, 0.1); /* Glass effect */
+  border: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: 12px;
   transition: all 0.2s;
   user-select: text;
+  cursor: text;
 }
 
 input::placeholder {
-  color: #94a3b8;
+  color: rgba(255, 255, 255, 0.6);
 }
 
 input:focus {
   outline: none;
-  background: white;
-  border-color: #2563eb;
-  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+  background: rgba(255, 255, 255, 0.2);
+  border-color: #ffffff;
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.1);
 }
 
 .error {
@@ -218,5 +227,21 @@ input:focus {
   transform: none;
   box-shadow: none;
   background: #94a3b8;
+}
+
+/* Error Transition */
+.error-slide-enter-active,
+.error-slide-leave-active {
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.5, 1);
+  max-height: 24px;
+  opacity: 1;
+  overflow: hidden;
+}
+.error-slide-enter-from,
+.error-slide-leave-to {
+  max-height: 0;
+  opacity: 0;
+  transform: translateY(-5px);
+  margin-top: 0;
 }
 </style>

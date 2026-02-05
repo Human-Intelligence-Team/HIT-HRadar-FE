@@ -9,6 +9,9 @@
 
     <!-- 연차 현황 -->
     <div class="stats-container">
+      <div class="stats-header">
+        <h3>{{ targetYear }}년도 연차 현황</h3>
+      </div>
       <div class="stat-card">
         <div class="stat-value">{{ leaveStats.granted }}일</div>
         <div class="stat-label">부여받은 연차</div>
@@ -31,13 +34,7 @@
     <!-- 개인 연차 사용 기록 -->
     <div class="history-card">
         <h2>개인 연차 사용 기록</h2>
-        <div v-if="isLoading" class="loading-state">
-            <p>데이터를 불러오는 중입니다...</p>
-        </div>
-        <div v-else-if="leaves.length === 0" class="empty-state">
-            <p>휴가 신청 내역이 없습니다.</p>
-        </div>
-        <div v-else class="leave-table-container">
+        <div class="leave-table-container">
             <table class="leave-table">
             <thead>
                 <tr>
@@ -50,14 +47,20 @@
                 </tr>
             </thead>
             <tbody>
-                <tr v-for="leave in leaves" :key="leave.leaveId">
+                <tr v-if="isLoading">
+                    <td colspan="6" class="loading-state">데이터를 불러오는 중입니다...</td>
+                </tr>
+                <tr v-else-if="leaves.length === 0">
+                    <td colspan="6" class="empty-state">휴가 신청 내역이 없습니다.</td>
+                </tr>
+                <tr v-else v-for="leave in leaves" :key="leave.leaveId">
                 <td>{{ formatDateTime(leave.requestedAt) }}</td>
                 <td>{{ leave.leaveType }}</td>
                 <td>{{ leave.startDate }} ~ {{ leave.endDate }}</td>
                 <td class="reason-cell">{{ leave.reason }}</td>
                 <td>
                     <span :class="['badge', getStatusBadgeClass(leave.approvalStatus)]">
-                        {{ leave.approvalStatus || '확인중' }}
+                        {{ getStatusLabel(leave.approvalStatus) }}
                     </span>
                 </td>
                 <td>{{ leave.leaveDays }}일</td>
@@ -81,7 +84,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
 import { useAuthStore } from '@/stores/authStore';
-import { getMyLeaves } from '@/api/leaveApi'; 
+import { getMyLeaves, getMyLeaveGrants } from '@/api/leaveApi';
 import LeaveApplyModal from '@/components/leave/LeaveApplyModal.vue';
 
 const authStore = useAuthStore();
@@ -90,9 +93,6 @@ const availableGrants = ref([]);
 const isLoading = ref(true);
 const isApplyModalOpen = ref(false);
 
-const currentYear = new Date().getFullYear();
-
-// TODO: This should come from authStore or a dedicated user info API call
 const userInfo = ref({
   name: authStore.user?.name || '홍길동',
   department: authStore.user?.departmentName || '개발팀',
@@ -114,28 +114,22 @@ const leaveStats = computed(() => {
     }
 });
 
+const targetYear = computed(() => {
+    // Default to the current year (2026)
+    return new Date().getFullYear();
+});
+
 
 const reloadData = async () => {
   isLoading.value = true;
   try {
     // 1. Fetch Grants
-    // TODO: There's no API to get all grants for a user. Mocking.
-    const grantsResponse = { data: { data: [
-        { grantId: 1, year: 2024, totalDays: 15, remainingDays: 10.5 },
-        { grantId: 2, year: 2023, totalDays: 1, remainingDays: 0 },
-    ]}};
-    availableGrants.value = grantsResponse.data.data;
+    const grantsResponse = await getMyLeaveGrants();
+    availableGrants.value = grantsResponse.data.data || [];
 
     // 2. Fetch Leave History
     const leavesResponse = await getMyLeaves();
-    // TODO: The backend `LeaveListDto` needs `docId`, `approvalStatus`, `requestedAt`, `reason`. Simulating.
-    leaves.value = (leavesResponse.data.data || []).map(leave => ({
-        ...leave,
-        docId: leave.docId || Math.floor(100 + Math.random() * 900),
-        approvalStatus: ['DRAFT', 'PROCEEDING', 'APPROVED', 'REJECTED'][Math.floor(Math.random() * 4)],
-        requestedAt: new Date().toISOString(),
-        reason: '개인 사유'
-    }));
+    leaves.value = leavesResponse.data.data || [];
 
   } catch (error) {
     console.error('데이터 로딩 중 오류 발생:', error);
@@ -159,12 +153,24 @@ const formatDateTime = (isoString) => {
     return date.toLocaleString('ko-KR');
 }
 
+const getStatusLabel = (status) => {
+    const labels = {
+        'DRAFT': '임시저장',
+        'IN_PROGRESS': '상신',
+        'APPROVED': '승인',
+        'REJECTED': '반려',
+        'WITHDRAWN': '회수'
+    };
+    return labels[status] || status || '-';
+}
+
 const getStatusBadgeClass = (status) => {
     const classes = {
-        'DRAFT': 'badge-gray',
-        'PROCEEDING': 'badge-blue',
         'APPROVED': 'badge-green',
         'REJECTED': 'badge-red',
+        'IN_PROGRESS': 'badge-blue', 
+        'DRAFT': 'badge-gray',
+        'WITHDRAWN': 'badge-yellow'
     };
     return classes[status] || 'badge-gray';
 }
@@ -183,7 +189,7 @@ onMounted(reloadData);
   margin-bottom: 2rem;
 }
 .user-details h2 {
-  font-size: 1.8rem;
+  font-size: 1.5rem;
   font-weight: 700;
 }
 .user-details p {
@@ -195,16 +201,32 @@ onMounted(reloadData);
 .stats-container {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 1.5rem;
-  margin-bottom: 2.5rem;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 1.25rem;
+  background-color: #fff;
+}
+
+.stats-header {
+  grid-column: 1 / -1;
+  margin-bottom: 0.25rem;
+}
+
+.stats-header h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #111827;
 }
 
 .stat-card {
-  background: #fff;
+  background: #f8f9fa; /* Slight contrast against white container */
   border-radius: 12px;
-  padding: 1.5rem;
+  padding: 1.25rem;
   text-align: center;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  /* box-shadow removed to look flatter inside border, or keep it subtle */
+  border: 1px solid #f3f4f6;
 }
 
 .stat-value {

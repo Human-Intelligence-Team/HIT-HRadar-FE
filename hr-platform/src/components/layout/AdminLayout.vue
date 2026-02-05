@@ -29,6 +29,10 @@
             <span>사용자 계정 관리</span>
             <span class="arrow">›</span>
           </RouterLink>
+          <RouterLink to="/admin/permissions" class="nav-item" active-class="active">
+            <span>권한 레지스트리</span>
+            <span class="arrow">›</span>
+          </RouterLink>
           <!-- Future Admin Menus -->
         </nav>
       </aside>
@@ -38,12 +42,18 @@
         <RouterView />
       </main>
     </div>
+
+    <!-- Chatbot Components -->
+    <ChatbotButton />
+    <ChatbotModal />
   </div>
 </template>
 
 <script setup>
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
+import ChatbotButton from '@/components/chatbot/ChatbotButton.vue'
+import ChatbotModal from '@/components/chatbot/ChatbotModal.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()

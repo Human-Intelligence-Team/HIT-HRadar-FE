@@ -1,54 +1,81 @@
 <template>
   <div class="page-container">
-    <div v-if="loading" class="loading-indicator">
-      <p>Loading...</p>
+    <div v-if="loading" class="loading-state">
+      <div class="spinner"></div>
+      <p>공지사항을 불러오는 중입니다...</p>
     </div>
     
-    <div v-else-if="!notice" class="no-data">
+    <div v-else-if="!notice" class="empty-state">
+      <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="empty-icon"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
       <p>공지사항을 찾을 수 없습니다.</p>
-       <button @click="goBack" class="btn secondary">목록으로</button>
+      <button @click="goBack" class="btn secondary">목록으로 돌아가기</button>
     </div>
 
-    <div v-else class="notice-container">
-      <div class="notice-header">
-        <h1 class="notice-title">{{ notice.title }}</h1>
-        <div class="notice-meta">
-          <span>ID: {{ notice.noticeId }}</span>
-          <span>|</span>
-          <span>카테고리: {{ notice.categoryName }}</span>
-          <span>|</span>
-          <span>작성자: {{ notice.createdByName }}</span>
-          <span>|</span>
-          <span>작성일: {{ formatDateTime(notice.createdAt) }}</span>
-          <template v-if="notice.updatedAt">
-            <span>|</span>
-            <span>최종 수정자: {{ notice.updatedByName }}</span>
-            <span>|</span>
-            <span>수정일: {{ formatDateTime(notice.updatedAt) }}</span>
-          </template>
+    <div v-else class="content-wrapper">
+      <!-- Header / Title Area -->
+      <div class="header-section">
+        <button @click="goBack" class="btn ghost back-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+          목록
+        </button>
+        <div class="action-buttons">
+          <!-- Author Actions -->
+          <button @click="goToEdit" class="btn secondary small">수정</button>
+          <button @click="handleDelete" class="btn danger small">삭제</button>
         </div>
       </div>
 
-      <div class="notice-content" v-html="notice.content">
-      </div>
+      <div class="card detail-card">
+        <div class="card-hd detail-header">
+           <!-- Top Row: Category only -->
+           <div class="meta-row top">
+             <span class="badge">{{ notice.categoryName }}</span>
+           </div>
+           
+           <h1 class="notice-title">{{ notice.title }}</h1>
+           
+           <!-- Bottom Row: Author | Date | Modifier -->
+           <div class="meta-row bottom">
+             <div class="author-info">
+               <span class="author-name">작성자 : {{ notice.createdByName }}</span>
+             </div>
+             <div class="meta-divider"></div>
+             <div class="date-info">
+               <span>등록일 : {{ formatDateTime(notice.createdAt) }}</span>
+             </div>
+             <div class="meta-divider" v-if="notice.updatedAt"></div>
+             <div class="update-info" v-if="notice.updatedAt">
+               <span>최종 수정 : {{ formatDateTime(notice.updatedAt) }} <span v-if="notice.updatedByName">({{ notice.updatedByName }})</span></span>
+             </div>
+           </div>
+        </div>
 
-      <!-- Attachments - assuming notice.attachments will contain data like { url, name } -->
-      <div v-if="notice.attachments && notice.attachments.length > 0" class="attachment-section">
-        <h3>첨부파일</h3>
-        <ul>
-          <li v-for="(file, index) in notice.attachments" :key="index">
-            <a :href="file.url" target="_blank" rel="noopener noreferrer">{{ file.name }}</a>
-          </li>
-        </ul>
-      </div>
-
-      <div class="button-group">
-        <button @click="goBack" class="btn secondary">목록</button>
-        <!-- The logic for isCurrentUserAuthor needs to be revised based on available API data -->
-        <!-- For now, assuming current user can edit/delete for demonstration -->
-        <div class="author-actions">
-          <button @click="goToEdit" class="btn primary">수정</button>
-          <button @click="handleDelete" class="btn danger">삭제</button>
+        <div class="card-bd detail-body">
+          <div class="notice-content" v-html="notice.content"></div>
+        </div>
+        
+        <!-- Attachments Section -->
+        <div v-if="notice.attachments && notice.attachments.length > 0" class="card-ft attachments-section">
+          <h3>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
+            첨부파일 ({{ notice.attachments.length }})
+          </h3>
+          <div class="attachment-list">
+            <a 
+              v-for="(file, index) in notice.attachments" 
+              :key="index"
+              :href="file.url" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              class="attachment-item"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="file-icon"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>
+              <span class="filename">{{ file.originalName }}</span>
+              <span class="download-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+              </span>
+            </a>
+          </div>
         </div>
       </div>
     </div>
@@ -58,7 +85,6 @@
 <script setup>
 import { onMounted, computed } from 'vue';
 import { useNoticeStore } from '@/stores/noticeStore';
-// import { useAuthStore } from '@/stores/authStore'; // Auth store might be needed for actual authorization checks
 import { useRouter, useRoute } from 'vue-router';
 
 const props = defineProps({
@@ -69,10 +95,9 @@ const props = defineProps({
 });
 
 const store = useNoticeStore();
-// const authStore = useAuthStore(); // Uncomment if needed for authorization
 const router = useRouter();
 const route = useRoute();
-const noticeId = route.params.id; // Get ID from route params
+const noticeId = route.params.id;
 
 const notice = computed(() => store.currentNotice);
 const loading = computed(() => store.loading);
@@ -95,7 +120,6 @@ async function handleDelete() {
       await store.deleteNotice(noticeId);
       router.push({ name: 'notice-list' });
     } catch (error) {
-      // Alert is handled by Axios interceptor
       console.error('Failed to delete notice:', error);
     }
   }
@@ -116,152 +140,203 @@ function formatDateTime(dateString) {
 
 <style scoped>
 .page-container {
-  max-width: 900px;
+  max-width: 1000px;
   margin: 0 auto;
-  padding: 20px;
-  color: var(--text-main);
 }
 
-.notice-container {
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 30px;
-}
-
-.notice-header {
-  border-bottom: 1px solid var(--border);
-  padding-bottom: 20px;
-  margin-bottom: 20px;
-}
-
-.notice-title {
-  font-size: 28px;
-  font-weight: 700;
-  margin-bottom: 10px;
-}
-
-.notice-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  font-size: 13px;
-  color: var(--text-sub);
-}
-.notice-meta span {
-    white-space: nowrap; /* Prevent breaking in the middle of a meta item */
-}
-
-.notice-content {
-  margin-bottom: 30px;
-  min-height: 100px; /* Ensure content area has some height */
-  line-height: 1.7;
-  font-size: 16px;
-  white-space: pre-wrap; /* For rendering potential plain text with line breaks */
-}
-
-/* Style images within the content */
-.notice-content :deep(img) {
-  max-width: 100%;
-  height: auto;
-  display: block; /* Prevent extra space below image */
-  margin: 10px 0; /* Some spacing above/below images */
-  border-radius: 4px;
-}
-
-.attachment-section {
-  margin-top: 20px;
-  padding: 20px;
-  background-color: var(--background-color);
-  border-radius: 6px;
-  border: 1px solid var(--border);
-}
-
-.attachment-section h3 {
-  margin-top: 0;
-  margin-bottom: 15px;
-  font-size: 18px;
-  color: var(--text-main);
-}
-
-.attachment-section ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.attachment-section li {
-    margin-bottom: 8px;
-}
-
-.attachment-section li a {
-  color: var(--primary);
-  text-decoration: none;
-  font-size: 15px;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-.attachment-section li a:hover {
-    text-decoration: underline;
-}
-/* Optional: add an icon for attachments */
-.attachment-section li a::before {
-    content: "📎"; /* Paperclip emoji or a custom icon */
-    font-size: 1em;
-}
-
-.button-group {
+/* Header & Navigation */
+.header-section {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 30px;
+  margin-bottom: 16px;
+}
+.back-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding-left: 8px;
+  color: var(--text-sub);
+}
+.back-btn:hover {
+  color: var(--text-main);
+  background: rgba(255,255,255,0.05);
+}
+.action-buttons {
+  display: flex;
+  gap: 8px;
 }
 
-.author-actions {
+/* Detail Card */
+.detail-card {
+  overflow: hidden;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Detail Header */
+.detail-header {
   display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px 32px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-soft); /* Slightly different bg for header maybe? */
+}
+.meta-row {
+  display: flex;
+  align-items: center;
+}
+.meta-row.top {
+  justify-content: space-between;
+}
+.badge {
+  background: var(--primary-soft);
+  color: var(--primary);
+  border: 1px solid rgba(79, 124, 255, 0.2);
+  padding: 4px 10px;
+  border-radius: 99px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.date {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.notice-title {
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.4;
+  color: var(--text-main);
+  margin: 0;
+}
+.meta-row.bottom {
+  gap: 16px;
+  font-size: 13px;
+  color: var(--text-sub);
+}
+.author-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.avatar-placeholder {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary), #8b5cf6);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+}
+.author-name {
+  font-weight: 500;
+  color: var(--text-main);
+}
+.meta-divider {
+  width: 1px;
+  height: 12px;
+  background: var(--border);
+}
+
+/* Content Body */
+.detail-body {
+  padding: 40px 32px;
+  min-height: 300px;
+}
+.notice-content {
+  line-height: 1.8;
+  font-size: 15px;
+  color: var(--text-main);
+}
+.notice-content :deep(img) {
+  max-width: 100%;
+  border-radius: 8px;
+  margin: 16px 0;
+  box-shadow: var(--shadow-sm);
+}
+.notice-content :deep(p) {
+  margin-bottom: 16px;
+}
+
+/* Attachments */
+.attachments-section {
+  background: var(--bg-soft);
+  padding: 20px 32px;
+  border-top: 1px solid var(--border);
+}
+.attachments-section h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-sub);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.attachment-list {
+  display: flex;
+  flex-wrap: wrap;
   gap: 10px;
 }
-
-.btn {
-  padding: 10px 20px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-  transition: background-color 0.2s;
-}
-
-.btn.primary {
-  background-color: var(--primary);
-  color: var(--text-on-primary);
-}
-
-.btn.primary:hover {
-    background-color: var(--primary-dark);
-}
-
-.btn.secondary {
-  background-color: var(--background-color);
-  color: var(--text-main);
+.attachment-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--panel);
   border: 1px solid var(--border);
+  border-radius: 8px;
+  text-decoration: none;
+  font-size: 13px;
+  color: var(--text-main);
+  transition: all 0.2s;
 }
-.btn.secondary:hover {
-    background-color: var(--panel);
+.attachment-item:hover {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+  color: var(--primary);
+  transform: translateY(-1px);
 }
-
-.btn.danger {
-    background-color: var(--danger);
-    color: var(--text-on-primary);
-}
-.btn.danger:hover {
-    background-color: var(--danger-dark);
-}
-
-.loading-indicator, .no-data {
-  text-align: center;
-  padding: 50px;
+.file-icon {
   color: var(--text-sub);
+}
+.attachment-item:hover .file-icon {
+  color: var(--primary);
+}
+.download-icon {
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.attachment-item:hover .download-icon {
+  opacity: 1;
+}
+
+/* Loading & Empty States */
+.loading-state, .empty-state {
+  display: flex;
+  flex-direction: column;
+  items-align: center;
+  justify-content: center;
+  padding: 80px 0;
+  text-align: center;
+  color: var(--text-sub);
+}
+.spinner {
+  width: 30px;
+  height: 30px;
+  border: 3px solid rgba(255,255,255,0.1);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 16px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.empty-icon {
+  margin-bottom: 16px;
+  opacity: 0.5;
 }
 </style>

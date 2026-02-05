@@ -29,16 +29,45 @@
         @drop.prevent="handleDrop"
         @dragover.prevent
         @paste="handlePaste"
-        v-html="form.content"
       ></div>
     </div>
 
     <!-- Attachments -->
     <div class="form-group">
       <label>첨부파일</label>
-      <input type="file" multiple @change="handleFileUpload" class="form-input-file" ref="fileInputRef" style="display: none;" />
-      <button type="button" @click="triggerFileInput" class="btn">파일 선택</button>
+      <input
+        type="file"
+        multiple
+        @change="handleFileUpload"
+        class="form-input-file"
+        ref="fileInputRef"
+        style="display: none"
+      />
+      <div
+        class="file-drop-zone"
+        @click="triggerFileInput"
+        @drop.prevent="handleFileDrop"
+        @dragover.prevent
+        @dragenter.prevent
+      >
+        <p>여기에 파일을 드래그 앤 드롭하거나 클릭하여 파일을 선택하세요.</p>
+      </div>
+      <!-- Existing Attachments -->
+      <div v-if="form.existingAttachments.length" class="file-list">
+        <div class="sub-label">기존 첨부파일</div>
+        <div v-for="file in form.existingAttachments" :key="file.id" class="file-item">
+          <span :class="{ 'removed-text': form.deletedAttachmentIds.includes(file.id) }">
+            {{ file.originalName }}
+          </span>
+          <button type="button" @click="toggleDeleteExisting(file.id)" class="btn-remove">
+            {{ form.deletedAttachmentIds.includes(file.id) ? '복구' : '✕' }}
+          </button>
+        </div>
+      </div>
+
+      <!-- New Attachments -->
       <div v-if="form.attachments.length" class="file-list">
+        <div v-if="form.existingAttachments.length" class="sub-label">새 첨부파일</div>
         <div v-for="(file, index) in form.attachments" :key="index" class="file-item">
           <span>{{ file.name }}</span>
           <button type="button" @click="removeFile(index)" class="btn-remove">✕</button>
@@ -74,6 +103,7 @@ const store = useNoticeStore()
 
 const categories = computed(() => store.categories)
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL
+const fileBaseUrl = import.meta.env.VITE_FILE_BASE_URL || apiBaseUrl
 
 const form = ref({
   title: '',
@@ -81,10 +111,26 @@ const form = ref({
   categoryId: '',
   attachments: [], // For new files to be uploaded
   existingAttachments: [], // For files that are already on the notice
+  deletedAttachmentIds: [], // Added for tracking deletions
 })
 
 const editorRef = ref(null)
 const fileInputRef = ref(null)
+
+function processContent(content) {
+  if (!content) return ''
+  const apiBase = import.meta.env.VITE_API_BASE_URL
+  if (!apiBase) return content
+
+  return content.replace(/<img[^>]+src="([^">]+)"/g, (match, src) => {
+    // If it starts with /api and not http, prepend base
+    if (src.startsWith('/api/v1/files')) {
+       const baseUrl = apiBase.endsWith('/') ? apiBase.slice(0, -1) : apiBase
+       return match.replace(src, `${baseUrl}${src}`)
+    }
+    return match
+  })
+}
 
 // Populate form when notice prop is provided (for editing)
 watch(
@@ -94,8 +140,10 @@ watch(
       form.value.title = newNotice.title || ''
       form.value.content = newNotice.content || ''
       form.value.categoryId = newNotice.categoryId || ''
-      form.value.existingAttachments = newNotice.attachments || [] // Assuming the prop contains attachments
-      if(editorRef.value) editorRef.value.innerHTML = newNotice.content || ''
+      form.value.existingAttachments = newNotice.attachments || []
+      form.value.deletedAttachmentIds = []
+      // When loading into editor, process the content to show images with full URL
+      if(editorRef.value) editorRef.value.innerHTML = processContent(newNotice.content || '')
     }
   },
   { immediate: true }
@@ -107,7 +155,7 @@ onMounted(() => {
   }
   // Set initial content for contenteditable div
   if(editorRef.value) {
-    editorRef.value.innerHTML = form.value.content
+    editorRef.value.innerHTML = processContent(form.value.content)
   }
 })
 
@@ -133,7 +181,20 @@ async function uploadAndInsert(file) {
   if (!file?.type.startsWith('image/')) return
   try {
     const relativeUrl = await store.uploadImage(file)
-    const absoluteUrl = apiBaseUrl + relativeUrl
+    // Use fileBaseUrl for direct access locally. Even if it starts with /, we want to prefix it 
+    // if it's an API path (implied by this context) so it renders correctly in the editor.
+    // However, we should be careful. If fileBaseUrl is just '/' then it's same.
+    // The user explicitly asked to "attach VITE_API_BASE_URL endpoint".
+    // So we assume we want absolute URL or at least prefixed with API base.
+    
+    let absoluteUrl = relativeUrl
+    if (!relativeUrl.startsWith('http')) {
+        // Remove leading slash from relativeUrl to avoid double slash if fileBaseUrl has trailing slash
+        // OR handle it smartly.
+        const baseUrl = fileBaseUrl.endsWith('/') ? fileBaseUrl.slice(0, -1) : fileBaseUrl
+        const cleanRelative = relativeUrl.startsWith('/') ? relativeUrl : '/' + relativeUrl
+        absoluteUrl = `${baseUrl}${cleanRelative}`
+    }
     insertImageAtCursor(absoluteUrl)
     // Update content model after insertion
     if (editorRef.value) form.value.content = editorRef.value.innerHTML
@@ -147,6 +208,11 @@ function handleDrop(e) {
   const file = e.dataTransfer.files[0]
   uploadAndInsert(file)
 }
+
+function handleFileDrop(e) {
+  form.value.attachments.push(...e.dataTransfer.files)
+}
+
 
 function handlePaste(e) {
   const item = [...e.clipboardData.items].find((i) => i.type.startsWith('image/'))
@@ -168,13 +234,33 @@ function removeFile(index) {
   form.value.attachments.splice(index, 1)
 }
 
+function toggleDeleteExisting(id) {
+  const index = form.value.deletedAttachmentIds.indexOf(id)
+  if (index > -1) {
+    form.value.deletedAttachmentIds.splice(index, 1)
+  } else {
+    form.value.deletedAttachmentIds.push(id)
+  }
+}
+
 function handleSubmit() {
+  // Clean content before saving: remove API base URL to keep paths relative
+  let contentToSave = form.value.content
+  const apiBase = import.meta.env.VITE_API_BASE_URL
+  if (apiBase) {
+      // Create a regex to match the base URL
+      // Escape special characters in apiBase for regex
+      const escapedBase = apiBase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+      const regex = new RegExp(escapedBase, 'g')
+      contentToSave = contentToSave.replace(regex, '')
+  }
+
   const payload = {
     title: form.value.title,
-    content: form.value.content,
+    content: contentToSave,
     categoryId: form.value.categoryId,
     attachments: form.value.attachments,
-    // When editing, you might need to handle existing attachments too
+    deletedAttachmentIds: form.value.deletedAttachmentIds
   }
   emit('submit', payload)
 }
@@ -215,9 +301,25 @@ function handleSubmit() {
   background-color: var(--panel);
   color: var(--text-main);
   outline: none;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  text-align: left; /* Added to ensure text aligns to the left */
 }
 .editor:focus {
   border-color: var(--primary);
+}
+.file-drop-zone {
+  border: 2px dashed var(--border);
+  border-radius: 6px;
+  padding: 20px;
+  text-align: center;
+  cursor: pointer;
+  background-color: var(--panel-translucent);
+  color: var(--text-sub);
+}
+.file-drop-zone:hover {
+  border-color: var(--primary);
+  background-color: var(--panel);
 }
 .file-list {
   margin-top: 10px;
@@ -238,6 +340,22 @@ function handleSubmit() {
   border: none;
   color: var(--text-sub);
   cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+.btn-remove:hover {
+  background-color: var(--bg-hover);
+  color: var(--danger);
+}
+.sub-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+.removed-text {
+  text-decoration: line-through;
+  opacity: 0.5;
 }
 .button-group {
   display: flex;
