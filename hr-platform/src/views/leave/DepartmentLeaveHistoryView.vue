@@ -28,25 +28,34 @@
           <label for="leave-type">휴가 종류</label>
           <select id="leave-type" v-model="filters.leaveType">
             <option value="">전체</option>
-            <option v-for="policy in leavePolicies" :key="policy.policyId" :value="policy.typeName">
-              {{ policy.typeName }}
+            <option v-for="type in uniqueLeaveTypes" :key="type" :value="type">
+              {{ type }}
             </option>
           </select>
         </div>
         <div class="filter-field">
           <label for="employee-name">이름</label>
-          <input type="text" id="employee-name" v-model="filters.employeeName" placeholder="사원명 검색">
+          <select id="employee-name" v-model="filters.employeeName">
+            <option value="">전체</option>
+            <option v-for="name in uniqueEmployees" :key="name" :value="name">
+              {{ name }}
+            </option>
+          </select>
         </div>
       </div>
-      <div class="filter-actions">
-        <button @click="resetFilters" class="btn-secondary">초기화</button>
-        <button @click="applyFilters" class="btn-primary">조회</button>
-      </div>
+
+      <!-- Actions moved to history card -->
     </div>
 
     <!-- 부서 휴가 사용 기록 -->
     <div class="history-card">
-      <h2>조회 결과</h2>
+      <div class="card-header-row">
+        <h2>조회 결과</h2>
+        <div class="header-actions">
+            <button @click="resetFilters" class="btn-secondary">초기화</button>
+            <button @click="applyFilters" class="btn-primary">조회</button>
+        </div>
+      </div>
        <div v-if="isLoading" class="loading-state">
         <p>데이터를 불러오는 중입니다...</p>
       </div>
@@ -57,30 +66,30 @@
         <table class="leave-table">
             <thead>
                 <tr>
-                <th>신청일시</th>
+                <th>기간</th>
+                <th>휴가 종류</th>
                 <th>부서</th>
                 <th>이름</th>
-                <th>휴가 종류</th>
-                <th>기간</th>
-                <th>사유</th>
                 <th>결재결과</th>
                 <th>차감일수</th>
+                <th>사유</th>
+                <th>신청일시</th>
                 </tr>
             </thead>
             <tbody>
                 <tr v-for="leave in filteredLeaves" :key="leave.leaveId">
-                <td>{{ formatDateTime(leave.requestedAt) }}</td>
-                <td>{{ leave.departmentName || '-' }}</td> <!-- Fallback if null -->
-                <td>{{ leave.empName }}</td>
-                <td>{{ leave.leaveType }}</td>
                 <td>{{ leave.startDate }} ~ {{ leave.endDate }}</td>
-                <td class="reason-cell">{{ leave.reason }}</td>
+                <td>{{ leave.leaveType }}</td>
+                <td>{{ leave.departmentName || '-' }}</td>
+                <td>{{ leave.empName }}</td>
                 <td>
                     <span :class="['badge', getStatusBadgeClass(leave.approvalStatus)]">
                         {{ leave.approvalStatus }}
                     </span>
                 </td>
                 <td>{{ leave.leaveDays }}일</td>
+                <td class="reason-cell">{{ leave.reason }}</td>
+                <td>{{ formatDateTime(leave.requestedAt) }}</td>
                 </tr>
             </tbody>
         </table>
@@ -90,7 +99,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { getDepartmentLeaves, getLeavePolicies } from '@/api/leaveApi';
 import { getAllDepartmentsByCompany } from '@/api/departmentApi';
 import { useAuthStore } from '@/stores/authStore';
@@ -110,6 +119,19 @@ const filters = ref({
 const isLoading = ref(true);
 const allLeaves = ref([]); 
 const filteredLeaves = ref([]);
+
+const uniqueEmployees = computed(() => {
+    if (!allLeaves.value) return [];
+    const names = allLeaves.value.map(l => l.empName).filter(n => n);
+    return [...new Set(names)].sort();
+});
+
+const uniqueLeaveTypes = computed(() => {
+    const policyTypes = leavePolicies.value.map(p => p.typeName);
+    const usedTypes = allLeaves.value.map(l => l.leaveType).filter(t => t);
+    const allTypes = [...policyTypes, ...usedTypes, '연차']; 
+    return [...new Set(allTypes)].sort();
+});
 
 
 const applyFilters = () => {
@@ -230,79 +252,201 @@ onMounted(() => {
   padding: 2rem;
   max-width: 1400px;
   margin: 0 auto;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
 .page-header {
   margin-bottom: 2rem;
 }
-.page-header h1 { font-size: 1.8rem; font-weight: 700; }
-.page-header p { font-size: 1rem; color: #6b7280; }
+.page-header h1 { 
+    font-size: 1.75rem; 
+    font-weight: 700; 
+    color: #111827; 
+    letter-spacing: -0.025em;
+}
 
+/* Filter Section */
 .filter-card {
   background: #fff;
   border-radius: 12px;
   padding: 1.5rem;
   margin-bottom: 2rem;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  border: 1px solid #e5e7eb;
 }
 
 .filter-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1.5rem;
-}
-
-.filter-field { display: flex; flex-direction: column; }
-.filter-field label { font-size: 0.875rem; font-weight: 500; margin-bottom: 0.5rem; }
-.filter-field input, .filter-field select { padding: 0.6rem; border: 1px solid #d1d5db; border-radius: 8px; }
-.date-inputs { display: flex; align-items: center; gap: 0.5rem; }
-
-.filter-actions {
   display: flex;
-  justify-content: flex-end;
-  gap: 1rem;
-  margin-top: 1.5rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid #e5e7eb;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  align-items: flex-end;
 }
+
+.filter-field { 
+    display: flex; 
+    flex-direction: column; 
+    min-width: 200px;
+    flex: 1;
+}
+
+.filter-field label { 
+    font-size: 0.875rem; 
+    font-weight: 600; 
+    color: #374151; 
+    margin-bottom: 0.5rem; 
+}
+
+.filter-field input, 
+.filter-field select { 
+    padding: 0.625rem 0.875rem; 
+    border: 1px solid #d1d5db; 
+    border-radius: 6px; 
+    font-size: 0.875rem; 
+    color: #1f2937;
+    transition: all 0.2s;
+    background-color: #fff;
+}
+
+.filter-field input:focus, 
+.filter-field select:focus {
+    outline: none;
+    border-color: #4f46e5;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.date-inputs { 
+    display: flex; 
+    align-items: center; 
+    gap: 0.5rem; 
+}
+.date-inputs input { flex: 1; }
+
+/* Filter actions removed */
 
 .btn-primary, .btn-secondary {
-  padding: 0.6rem 1.5rem;
-  border-radius: 8px;
-  font-weight: 600;
+  padding: 0.625rem 1.25rem;
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 0.875rem;
   cursor: pointer;
-  border: none;
+  border: 1px solid transparent;
+  transition: all 0.2s;
 }
-.btn-primary { background-color: #4f46e5; color: white; }
-.btn-secondary { background-color: #e5e7eb; color: #1f2937; }
 
+.btn-primary { 
+    background-color: #4f46e5; 
+    color: white; 
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+.btn-primary:hover { background-color: #4338ca; }
+
+.btn-secondary { 
+    background-color: #fff; 
+    color: #374151; 
+    border-color: #d1d5db; 
+}
+.btn-secondary:hover { background-color: #f9fafb; border-color: #9ca3af; }
+
+
+/* History Card & Table */
 .history-card {
   background: #fff;
   border-radius: 12px;
-  padding: 1.5rem;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  border: 1px solid #e5e7eb;
+  overflow: hidden; /* For rounded corners on table */
 }
-.history-card h2 { font-size: 1.25rem; font-weight: 600; margin-bottom: 1.5rem; }
 
-.loading-state, .empty-state { text-align: center; padding: 3rem 0; color: #6b7280; }
+.card-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.history-card h2 { 
+    font-size: 1.125rem; 
+    font-weight: 600; 
+    margin: 0;
+    color: #111827;
+}
+
+.header-actions {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.leave-table-container {
+    overflow-x: auto;
+    max-height: 600px; /* Enable vertical scroll */
+}
 
 .leave-table {
   width: 100%;
-  border-collapse: collapse;
-  text-align: center;
+  border-collapse: separate;
+  border-spacing: 0;
+  text-align: left;
 }
-.leave-table th, .leave-table td {
-  padding: 1rem 0.75rem;
-  border-bottom: 1px solid #e9ecef;
-  font-size: 0.9rem;
+
+.leave-table th {
+  padding: 0.875rem 1.5rem;
+  background-color: #f9fafb;
+  color: #4b5563;
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid #e5e7eb;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  white-space: nowrap;
+}
+
+.leave-table td {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 0.875rem;
+  color: #1f2937;
   vertical-align: middle;
 }
-.leave-table th { font-weight: 600; background-color: #f8f9fa; }
-.reason-cell { max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: left; }
 
-.badge { padding: 0.25rem 0.6rem; border-radius: 12px; font-size: 0.75rem; font-weight: 600; }
-.badge-blue { background-color: #e0e7ff; color: #3730a3; }
-.badge-green { background-color: #d1fae5; color: #065f46; }
-.badge-red { background-color: #fee2e2; color: #991b1b; }
-.badge-gray { background-color: #f3f4f6; color: #4b5563; }
+.leave-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.leave-table tbody tr:hover {
+    background-color: #f9fafb;
+}
+
+.reason-cell { 
+    max-width: 200px; 
+    white-space: nowrap; 
+    overflow: hidden; 
+    text-overflow: ellipsis; 
+}
+
+.loading-state, .empty-state {
+    padding: 4rem 2rem;
+    text-align: center;
+    color: #6b7280;
+}
+
+/* Badges */
+.badge { 
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.75rem; 
+    border-radius: 9999px; 
+    font-size: 0.75rem; 
+    font-weight: 500;
+    line-height: 1;
+}
+.badge-blue { background-color: #eff6ff; color: #1e40af; }
+.badge-green { background-color: #ecfdf5; color: #047857; }
+.badge-red { background-color: #fef2f2; color: #b91c1c; }
+.badge-gray { background-color: #f3f4f6; color: #374151; }
+.badge-yellow { background-color: #fffbeb; color: #b45309; }
 </style>
+```

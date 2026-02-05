@@ -12,10 +12,10 @@
             <!-- 프로필 섹션 -->
             <div class="profile-section">
               <div class="profile-icon">
-                {{ attendance?.employeeName ? attendance.employeeName.charAt(0) : '사' }}
+                {{ getProfileIconText(attendance) }}
               </div>
               <div class="name-value">{{ attendance?.employeeName }}</div>
-              <div class="dept-value">{{ attendance?.deptName || '미지정 부서' }}</div>
+              <div class="dept-value">{{ attendance?.deptName || 'HIT' }}</div>
             </div>
 
             <div class="divider"></div>
@@ -24,6 +24,11 @@
             <div class="info-row">
               <span class="info-label">근무 날짜</span>
               <span class="info-value">{{ attendance?.workDate }}</span>
+            </div>
+
+            <div class="info-row">
+              <span class="info-label">부서</span>
+              <span class="info-value">{{ attendance?.deptName || '-' }}</span>
             </div>
 
             <div class="info-row">
@@ -42,6 +47,19 @@
               <span class="info-label">근무 유형</span>
               <span class="info-value">{{ attendance?.workType || '-' }}</span>
             </div>
+            
+            <div class="info-row" v-if="attendance?.totalWorkTime">
+              <span class="info-label">총 근무시간</span>
+              <span class="info-value">{{ attendance.totalWorkTime }}</span>
+            </div>
+
+            <div class="info-row" v-if="attendance?.overtimeStatus">
+              <span class="info-label">초과근무</span>
+              <span class="info-value" :class="{'highlight-red': attendance.overtimeStatus === '발생'}">
+                  {{ attendance.overtimeStatus }}
+              </span>
+            </div>
+
           </div>
 
           <div class="modal-footer">
@@ -65,6 +83,10 @@ const emit = defineEmits(['close']);
 
 const close = () => {
   emit('close');
+};
+
+const getProfileIconText = () => {
+    return 'HIT';
 };
 
 const getStatusClass = (status) => {
@@ -161,7 +183,7 @@ const getStatusClass = (status) => {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 28px;
+  font-size: 20px; /* Text size */
   font-weight: 700;
   margin-bottom: 16px;
 }
@@ -203,6 +225,10 @@ const getStatusClass = (status) => {
   font-size: 16px;
   color: #333d4b;
   font-weight: 600;
+}
+
+.highlight-red {
+    color: #e94949;
 }
 
 /* 상태 뱃지 스타일 개선 */

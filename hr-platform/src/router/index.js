@@ -79,7 +79,6 @@ import DepartmentManageView from '@/views/department/DepartmentManageView.vue'
 import AttendanceIpPolicyView from '@/views/attendance/AttendanceIpPolicyView.vue'
 import AttendanceCommuteView from '@/views/attendance/AttendanceCommuteView.vue'
 import AttendanceDepartmentView from '@/views/attendance/AttendanceDepartmentView.vue'
-import MyAttendanceCalendarView from '@/views/attendance/MyAttendanceCalendarView.vue'
 import DepartmentAttendanceCalendarView from '@/views/attendance/DepartmentAttendanceCalendarView.vue'
 import AttendanceEmployeeDetailView from '@/views/attendance/AttendanceEmployeeDetailView.vue'
 import MyDashboard from '@/views/dashboard/MyDashboard.vue'
@@ -284,7 +283,6 @@ const routes = [
           { path: 'commute', component: AttendanceCommuteView }, // 사원 출퇴근 관리
           { path: 'ip-policy', component: AttendanceIpPolicyView }, // 인사팀 IP 정책 관리
           { path: 'department', component: AttendanceDepartmentView }, // 인사팀 부서 출퇴근 관리
-          { path: 'my-calendar', component: MyAttendanceCalendarView }, // 나의 근태 캘린더
           { path: 'department-calendar', component: DepartmentAttendanceCalendarView }, // 부서별 근태 캘린더 (인사팀)
           { path: 'employee-detail/:employeeId/:workDate', name: 'AttendanceEmployeeDetail', component: AttendanceEmployeeDetailView, props: true }, // 사원 근태 상세 조회
         ],
@@ -329,44 +327,26 @@ router.beforeEach((to, from) => {
     return // Allow public
   }
 
-  // 2. Logged in as ADMIN -> Only Admin pages or landing
-  if (auth.isAdmin) {
-    const isAdminPath = to.path.startsWith('/admin')
-    if (!isAdminPath && !isPublic) {
-      return auth.firstAccessiblePath() || '/admin/company-applications'
+  // 2. Redirect away from public landing pages if already logged in
+  if (isPublic) {
+    return auth.firstAccessiblePath() || '/policy'
+  }
+
+  // 3. Check Permissions (permissionConfig)
+  let requiredPerm = null
+  // Check from specific to general (child to parent)
+  for (let i = to.matched.length - 1; i >= 0; i--) {
+    const path = to.matched[i].path
+    if (permissionConfig[path]) {
+      requiredPerm = permissionConfig[path]
+      break
     }
   }
 
-  // 3. Logged in as USER -> No Admin pages & Check Permissions
-  if (!auth.isAdmin) {
-    const isAdminPath = to.path.startsWith('/admin')
-    if (isAdminPath) {
-      alert('접근 권한이 없습니다.')
-      // If direct load (!from.matched.length), redirect. Otherwise stay (cancel).
-      return from.matched.length > 0 ? false : '/policy'
-    }
-
-    // 세부 권한 체크 (permissionConfig)
-    let requiredPerm = null
-    // Check from specific to general (child to parent)
-    for (let i = to.matched.length - 1; i >= 0; i--) {
-      const path = to.matched[i].path
-      if (permissionConfig[path]) {
-        requiredPerm = permissionConfig[path]
-        break
-      }
-    }
-
-    if (requiredPerm && !auth.hasPermission(requiredPerm)) {
-      alert('해당 메뉴에 대한 접근 권한이 없습니다.')
-      // If direct load (!from.matched.length), redirect. Otherwise stay (cancel).
-      return from.matched.length > 0 ? false : (auth.firstAccessiblePath() || '/policy')
-    }
-
-    // Redirect away from landing to main app
-    if (isPublic) {
-      return '/policy'
-    }
+  if (requiredPerm && !auth.hasPermission(requiredPerm)) {
+    alert('해당 메뉴에 대한 접근 권한이 없습니다.')
+    // If direct load (!from.matched.length), redirect. Otherwise stay (cancel).
+    return from.matched.length > 0 ? false : (auth.firstAccessiblePath() || '/policy')
   }
 })
 
