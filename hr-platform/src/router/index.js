@@ -16,7 +16,7 @@ import ContentsCreateView from '@/views/contents/content/ContentsCreateView.vue'
 import ContentsListView from '@/views/contents/content/ContentsListView.vue'
 import ContentsDetailView from '@/views/contents/content/ContentsDetailView.vue'
 import BasicSalaryAllListView from "@/views/salary/basicSalary/BasicSalaryAllListView.vue";
-import BasicSalaryCreateView from "@/views/salary/basicSalary/BasicSalaryCreateView.vue";
+import BasicSalaryCreateView from "@/views/salary/BasicSalaryCreateView.vue";
 import CompensationSalaryCreateView from "@/views/salary/compensationSalary/CompensationSalaryCreateView.vue";
 import CompensationSalaryAllListView from "@/views/salary/compensationSalary/CompensationSalaryAllListView.vue";
 import BasicSalaryAllDetailView from "@/views/salary/basicSalary/BasicSalaryAllDetailView.vue";
@@ -156,11 +156,11 @@ const routes = [
         path: 'salary/basic', component: BasicSalaryView,
         children: [
           { path: '/all/salary/basic', component: BasicSalaryAllListView },
-          { path: '/all/salary/basic/employee/:year', component: BasicSalaryEmployeeListView },
+          { path: '/all/salary/basic/employee/:docId', component: BasicSalaryEmployeeListView },
           { path: '/me/salary/basic', component: BasicSalarMeListView },
-          { path: '/all/salary/basic/create', component: BasicSalaryCreateView },
-          { path: '/all/salary/basic/detail/:basicId', component: BasicSalaryAllDetailView },
-          { path: '/me/salary/history/:basicId', component: SalaryEmployeeHistoryView },
+          { path: '/all/salary/create', component: BasicSalaryCreateView },
+          { path: '/all/salary/basic/detail/:id', component: BasicSalaryAllDetailView },
+          { path: '/me/salary/history/:id', component: SalaryEmployeeHistoryView },
         ]
       },
       {
@@ -168,7 +168,7 @@ const routes = [
         children: [
           { path: '/all/salary/compensation', component: CompensationSalaryAllListView },
           { path: '/all/salary/compensation/create', component: CompensationSalaryCreateView },
-          { path: '/all/salary/compensation/detail/:compensationId', component: CompensationSalaryDetailView },
+          { path: '/all/salary/compensation/employee/:docId', component: CompensationSalaryDetailView },
         ]
       },
       {

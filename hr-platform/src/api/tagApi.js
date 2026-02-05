@@ -16,3 +16,7 @@ export const deleteTags = (payload) => {
   return axios.post('/api/v1/tags/delete', payload);
 }
 
+/* 태그 목록 조회 */
+export const fetchTagsByTagName = (params) => {
+  return axios.get(`/api/v1/tags/${params}`);
+}

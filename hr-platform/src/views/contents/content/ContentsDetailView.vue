@@ -141,7 +141,7 @@ onMounted(() => {
           <td colspan="2" rowspan="2">
             <div colspan="3" class="tag-box">
               <div class="tag-box">
-                <div class="tag" v-for="tag in content.tags" :key="tag">#{{ tag.tagId }}</div>
+                <div class="tag" v-for="tag in content.tags" :key="tag">#{{ tag.tagName }}</div>
               </div>
             </div>
           </td>

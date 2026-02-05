@@ -5,7 +5,7 @@ const submitting = ref(false)
 const errorMessage = ref('')
 const tags = ref([])
 const tagCount = ref(0)
-const emit = defineEmits(['close'])
+const emit = defineEmits(['close', 'select'])
 const tagData = reactive({
   tagName: '',
 })
@@ -16,11 +16,16 @@ const isModalOpen = () => {
 
 // 태그 조회
 const getTagList = async () => {
+
+  let param = {
+    tagName: tagData.tagName,
+  }
+
   // validation
   submitting.value = true
 
   try {
-    let result = await fetchTags(null)
+    let result = await fetchTags(param)
     let data = result.data
 
     console.log(data)
@@ -34,66 +39,19 @@ const getTagList = async () => {
     alert(errorMessage.value)
   } finally {
     submitting.value = false
-    tagData.tagName = ''
   }
 }
 
-// 태그 validation
-const tagCheck = (tagName) => {
-  let tag = tagName.trim()
-
-  if (!tag) {
-    alert('태그명을 입력해 주세요.')
+const selectTags = () => {
+  const selectedTags = tags.value.filter(tag => tag.checked)
+  if (selectedTags.length === 0) {
+    alert('태그를 선택해주세요.')
     return
   }
-
-  if (tag.length > 45) {
-    alert('태그는 최대 45자까지 입력이 가능합니다.')
-    return
-  }
-
-  return tagName
+  emit('select', selectedTags)
+  emit('close')
 }
 
-
-// 태그 등록
-const tagAdd = async () => {
-  submitting.value = true
-
-  // validation
-  let tag = tagCheck(tagData.tagName)
-  if (!tag) {
-    return
-  }
-
-  submitting.value = true
-
-  const payload = {
-    tagName: tag,
-  }
-
-  try {
-    let result = await createTag(payload)
-    let data = result.data.success
-
-    console.log(data)
-    if (data) {
-      alert('태그 등록되었습니다.')
-    }
-  } catch (e) {
-    if (e.status === 400) {
-      alert(e.customMessage)
-    } else {
-      console.log(e)
-      errorMessage.value = e.message || '태그 등록 중 오류가 발생했습니다.'
-      alert(errorMessage.value)
-    }
-  } finally {
-    submitting.value = false
-    tagData.tagName = ''
-    getTagList()
-  }
-}
 
 onMounted(() => {
   getTagList()
@@ -122,8 +80,8 @@ onMounted(() => {
       <div class="btn-box">
         <button type="button"
                 class="btn primary"
-                @click="tagAdd"
-        >등록</button>
+                @click="getTagList"
+        >조회</button>
       </div>
     </div>
 
@@ -131,15 +89,26 @@ onMounted(() => {
 
     <div class="side-content">
       <span class="total-span">총 {{ tagCount }} 개</span>
+      <div>
+        <div class="btn-box" style="float: right; margin-bottom: 10px;">
+        <button type="button"
+                class="btn primary"
+                @click="selectTags"
+        >선택</button>
+      </div>
+      </div>
+
       <table class="table">
         <thead class="tbl-hd">
           <tr>
+            <th style="width: 10%"></th>
             <th style="width: 40%">태그 명</th>
             <th style="width: 40%">사용 개수</th>
           </tr>
         </thead>
         <tbody class="tbl-bd">
           <tr v-for="tag in tags" :key="tag.tagId">
+            <td><input type="checkbox" v-model="tag.checked"></td>
             <td>{{ tag.tagName }}</td>
             <td>{{ tag.tagCount }}</td>
           </tr>

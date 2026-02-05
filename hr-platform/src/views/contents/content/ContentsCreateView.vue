@@ -4,6 +4,7 @@ import { onMounted, reactive, ref } from 'vue'
 import TagSideModalView from '@/views/contents/content/TagSideModalView.vue'
 import { fetchCustomCodes } from '@/api/contentsCustomCodeApi.js'
 import { createContent, fetchContentDetail, updateContent } from '@/api/contentApi.js'
+import {fetchTagsByTagName} from '@/api/tagApi.js'
 
 const submitting = ref(false)
 const errorMessage = ref('')
@@ -15,6 +16,7 @@ const levels = ref([])
 const types = ref([])
 const isTagModalOpen = ref(false)
 const tagInput = ref('')
+const searchedTags = ref([])
 const contentData = reactive({
   contentId : '',
   title: '', // 제목
@@ -23,8 +25,8 @@ const contentData = reactive({
   learningTime: '',
   resourcePath: '',
   notes: '',
-  tags: [1, 2, 3],
-  isDeleted: 'Y',
+  tags: [],
+  isDeleted: 'N',
 })
 
 // 목록으로 이동
@@ -65,15 +67,62 @@ const getCustomCodeList = async () => {
 }
 
 // 태그 입력
-const onTagKeydown = (e) => {
-  if (e.key === 'Enter' || e.key === ',') {
-    e.preventDefault()
+const onTagKeydown = async (e) => {
+  let param = e.target.value
+  if (!param) {
+    searchedTags.value = []
+    return
+  }
 
-    const value = tagInput.value.trim()
+  try {
+    const result = await fetchTagsByTagName(param)
+    const data = result.data
 
-    console.log('value: ' + value)
+    if (data.success) {
+      searchedTags.value = data.data
+    } else {
+      searchedTags.value = []
+    }
+  } catch (e) {
+    console.error(e)
+    searchedTags.value = []
   }
 }
+
+// 태그 선택
+const selectTag = (tag) => {
+  // 이미 존재하는지 확인
+  const exists = contentData.tags.some(t => t.tagId === tag.tagId || t === tag.tagId)
+  if (!exists) {
+    // 태그 객체 자체를 저장 (화면 표시 및 ID 추출용)
+    contentData.tags.push(tag)
+  }
+  tagInput.value = ''
+  searchedTags.value = []
+}
+
+// 태그 삭제
+const removeTag = (index) => {
+  contentData.tags.splice(index, 1)
+}
+
+// 모달에서 태그 선택
+const handleSelectedTags = (selectedTags) => {
+  // contentData.tags가 null이나 undefined일 경우 빈 배열로 취급
+  const currentTags = contentData.tags || [];
+
+  const newTags = selectedTags.filter(
+    (tag) => !currentTags.some((t) => (t.tagId === tag.tagId) || (t === tag.tagId)),
+  );
+
+  if (currentTags.length + newTags.length > 5) {
+    alert('태그는 최대 5개까지만 등록 가능합니다.');
+    return;
+  }
+
+  if (!contentData.tags) contentData.tags = [];
+  contentData.tags.push(...newTags);
+};
 
 // 모달 오픈/닫기
 const isModalOpen = () => {
@@ -116,6 +165,11 @@ const contentValid = () => {
     return
   }
 
+  if (!contentData.tags || contentData.tags.length === 0) {
+    alert('태그는 필수입니다.')
+    return
+  }
+
   let payload = {
     contentId : contentData.contentId,
     title: contentData.title,
@@ -125,9 +179,11 @@ const contentValid = () => {
     isDeleted: contentData.isDeleted,
     notes: contentData.notes,
     resourcePath: contentData.resourcePath,
-    tags: (Array.isArray(contentData.tags) ? contentData.tags : [contentData.tags]).map((id) =>
-      Number(id),
-    ),
+    tags: contentData.tags.map((tag) => {
+      const id = typeof tag === 'object' && tag !== null ? tag.tagId : tag;
+      return Number(id);
+    }),
+
   }
 
   console.log('$$$$$$$$$  ' + payload.title)
@@ -155,7 +211,7 @@ const resetContent = () => {
   contentData.isDeleted = 'Y'
   contentData.notes = ''
   contentData.resourcePath = ''
-  contentData.tags = [1, 2, 3]
+  contentData.tags = []
 }
 
 // 컨텐츠 저장
@@ -200,6 +256,7 @@ const getContentDetail = async (contentId) => {
       contentData.tags = contents.tags
 
       console.log("contents.type" + contents.type)
+      console.log("contents.level" + contents.level)
       console.log("contents.level" + contents.level)
 
     }
@@ -272,15 +329,19 @@ onMounted(() => {
           </tr>
           <tr>
             <th>학습시간</th>
-            <td  colspan="2">
-              <input
-                class="input-tbl"
-                type="text"
-                v-model="contentData.learningTime"
-                @input="onLearningTimeInput"
-                placeholder="숫자만 입력"
-                maxlength="4"
-              />
+            <td colspan="2">
+              <div style="display: flex; align-items: center">
+                <input
+                  class="input-tbl"
+                  type="text"
+                  v-model="contentData.learningTime"
+                  @input="onLearningTimeInput"
+                  placeholder="숫자만 입력"
+                  maxlength="4"
+                  style="width: 150px; margin-right: 10px"
+                />
+                 <span>분</span>
+              </div>
             </td>
             <td></td>
           </tr>
@@ -321,23 +382,10 @@ onMounted(() => {
               </div>
             </th>
             <td colspan="2" rowspan="2">
-              <input
-                class="input-tbl"
-                type="text"
-                placeholder="태그를 입략헤주세요."
-                maxlength="50"
-                v-model="tagInput"
-                @keydown="onTagKeydown"
-              />
-
               <div colspan="3" class="tag-box">
-                <div class="tag">
-                  #영업
-                  <spna>X</spna>
-                </div>
-                <div class="tag">
-                  #신입
-                  <spna>X</spna>
+                <div class="tag" v-for="(tag, index) in contentData.tags" :key="tag.tagId || index">
+                  #{{ tag.tagName || tag }}
+                  <span @click="removeTag(index)">X</span>
                 </div>
               </div>
             </td>
@@ -355,7 +403,7 @@ onMounted(() => {
           </button>
         </div>
       </div>
-      <TagSideModalView v-if="isTagModalOpen" @close="isModalOpen" />
+      <TagSideModalView v-if="isTagModalOpen" @close="isModalOpen" @select="handleSelectedTags" />
     </div>
   </div>
 </template>
@@ -364,4 +412,34 @@ onMounted(() => {
 @import '@/assets/styles/searchBox.css';
 @import '@/views/contents/style/tableCss.css';
 @import '@/views/contents/style/sideBox.css';
+
+.td-flex-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+
+.tag-search-list {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  list-style: none;
+  padding: 0;
+  margin-top: 5px;
+  max-height: 150px;
+  overflow-y: auto;
+  position: absolute; /* 필요에 따라 조정 */
+  width: 200px; /* 필요에 따라 조정 */
+  z-index: 10;
+}
+
+.tag-search-list li {
+  padding: 8px;
+  cursor: pointer;
+}
+
+.tag-search-list li:hover {
+  background-color: #f0f0f0;
+}
 </style>

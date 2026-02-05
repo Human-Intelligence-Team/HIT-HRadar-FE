@@ -17,7 +17,7 @@ const searchData = reactive({
   type: '',
   level: '',
   learningTime: '',
-  tags: [],
+  tag: '',
   isDeleted: 'N',
 })
 
@@ -76,7 +76,7 @@ function resetSearch() {
   searchData.level = ''
   searchData.learningTime = ''
   searchData.isDeleted = ''
-  searchData.tags = []
+  searchData.tag = ''
 }
 
 // 검색
@@ -108,7 +108,7 @@ function searchBtn() {
     level: searchData.level,
     learningTime: searchData.learningTime,
     isDeleted: searchData.isDeleted,
-    tags: searchData.tags, // 나중에 배열로 변경
+    tag: searchData.tag,
   }
 
   // 검색
@@ -171,7 +171,7 @@ onMounted(() => {
 
         <div class="search-section">
           <div class="label">태그</div>
-          <input class="input" type="text" v-model="searchData.tags" />
+          <input class="input" type="text" v-model="searchData.tag" />
         </div>
 
       </div>
@@ -211,8 +211,16 @@ onMounted(() => {
               <td>{{ item.typeName }}</td>
               <td>{{ item.levelName }}</td>
               <td>{{ item.learningTime }}</td>
-              <td><!-- TODO : 태그 목록 수정하기 -->
-                  <div>{{item.tags[0].tagId }}</div>
+              <td>
+                <div class="tag-container">
+                  <span
+                    v-for="tag in item.tags"
+                    :key="tag.tagId || tag.id"
+                    class="tag-item"
+                  >
+                    #{{ tag.tagName }}
+                  </span>
+                </div>
               </td>
             </tr>
           </tbody>

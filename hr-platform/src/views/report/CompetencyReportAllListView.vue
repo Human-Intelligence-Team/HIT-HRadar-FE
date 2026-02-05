@@ -3,7 +3,7 @@ import { useRouter } from 'vue-router'
 import { onMounted, ref } from 'vue'
 import CompetencyReportCreateModal from '@/views/report/CompetencyReportCreateModal.vue'
 import { YEAR_OPTIONS } from '@/views/report/script/common.js'
-import { fetchReportsByAll } from '@/api/competencyReportApi.js'
+import {  fetchReportsByCycle } from '@/api/competencyReportApi.js'
 
 const submitting = ref(false)
 const errorMessage = ref('')
@@ -11,7 +11,7 @@ const router = useRouter()
 
 const year = ref('')
 const years = ref([])
-const reports = ref([])
+const cycles = ref([])
 
 const isCreateModalOpen = ref(false)
 
@@ -24,16 +24,14 @@ const isModalOpen = () => {
 
 // 상세 이동
 const goDetailPage = (year, quarter) => {
-  router.push(`/all/competency/report/employee/${year}/${quarter}`)
-
   router.push({
     path: '/all/competency/report/employee',
     query: {
+      type: 'all',
       year: year,
       quarter: quarter,
-    }
+    },
   })
-
 }
 
 // 검색
@@ -41,12 +39,12 @@ const searchReport = async (params) => {
   submitting.value = true
 
   try {
-    const result = await fetchReportsByAll(params)
+    const result = await fetchReportsByCycle(params)
     const data = result.data
 
     if (data.success) {
       // 저장
-      reports.value = data.data.reports
+      cycles.value = data.data.cycles
     }
   } catch (e) {
     errorMessage.value = e.message || '컨텐츠 조회 중 오류 발생'
@@ -60,7 +58,6 @@ const searchReport = async (params) => {
 function resetSearch() {
   year.value = ''
 }
-
 
 // 검색
 function searchBtn() {
@@ -117,36 +114,30 @@ onMounted(() => {
       </thead>
       <tbody
         class="tbl-bd"
-        v-for="item in reports"
-        :key="item.competencyReportId"
-        :value="item.competencyReportId"
+        v-for="item in cycles"
+        :key="item.cycleId"
+        :value="item.cycleId"
       >
-      <tr>
-        <td>{{ item.year }}</td>
-        <td>{{ item.quarter }}</td>
-        <td  @click="goDetailPage(item.year, item.quarter)">
-          {{ item.title }}
-        </td>
-        <td>{{ item.name }}</td>
-      </tr>
-
+        <tr>
+          <td>{{ item.year }}</td>
+          <td>{{ item.quarter }}</td>
+          <td @click="goDetailPage(item.year, item.quarter)">
+            {{ item.cycleName }}
+          </td>
+          <td>{{ item.empName }}</td>
+        </tr>
       </tbody>
-      <tr>
-        <td>2025</td>
-        <td>1</td>
-        <td  @click="goDetailPage(2025, 'Q1')">
-          2025년 1분기
-        </td>
-        <td>김사원</td>
-      </tr>
     </table>
   </div>
 
-  <CompetencyReportCreateModal v-if="isCreateModalOpen" @close="isModalOpen" />
+  <CompetencyReportCreateModal
+    v-if="isCreateModalOpen"
+    @close="isModalOpen" />
 </template>
 
 <style scoped>
 @import '@/assets/styles/searchBox.css';
+
 
 .section-btn {
   display: flex;

@@ -94,7 +94,6 @@ onMounted(() => {
           <th style="width: 10%">년도</th>
           <th style="width: 10%">회차</th>
           <th style="width: 30%">제목</th>
-          <th style="width: 10%">담당자</th>
         </tr>
       </thead>
       <tbody
@@ -107,17 +106,10 @@ onMounted(() => {
           <td>{{ item.year }}</td>
           <td>{{ item.quarter }}</td>
           <td @click="goDetailPage(item.competencyReportId)">
-            {{ item.title }}
+            {{ item.cycleName }}
           </td>
-          <td>{{ item.name }}</td>
         </tr>
       </tbody>
-      <tr>
-        <td>2025</td>
-        <td>1</td>
-        <td @click="goDetailPage(1)">2025년 1분기</td>
-        <td>김사원</td>
-      </tr>
     </table>
   </div>
 </template>

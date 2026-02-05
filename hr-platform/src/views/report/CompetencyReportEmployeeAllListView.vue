@@ -27,6 +27,8 @@ const goDetailPage = (competencyReportId) => {
     path: `/me/competency/report/detail/${competencyReportId}`,
     query: {
       type: 'all',
+      year: route.query.year,
+      quarter: route.query.quarter,
     },
   })
 }
@@ -129,8 +131,8 @@ onMounted(() => {
           <div class="label">직급</div>
           <select class="select" v-model="searchData.position">
             <option value="">전체</option>
-            <option v-for="dept in pointOptions" :key="dept.positionId" :value="dept.positionId">
-              {{ dept.name }}
+            <option v-for="item in pointOptions" :key="item.positionId" :value="item.positionId">
+              {{ item.name }}
             </option>
           </select>
         </div>
@@ -165,7 +167,6 @@ onMounted(() => {
           <th style="width: 10%">사번</th>
           <th style="width: 10%">사원명</th>
           <th style="width: 30%">제목</th>
-          <th style="width: 10%">담당자</th>
         </tr>
       </thead>
       <tbody
@@ -177,27 +178,15 @@ onMounted(() => {
         <tr>
           <td>{{ item.year }}</td>
           <td>{{ item.quarter }}</td>
-          <td>{{ item.dept }}</td>
-          <td>{{ item.position }}</td>
+          <td>{{ item.deptName }}</td>
+          <td>{{ item.positionName }}</td>
           <td>{{ item.employeeNo }}</td>
           <td>{{ item.employeeName }}</td>
           <td @click="goDetailPage(item.competencyReportId)">
-            {{ item.title }}
+            {{ item.cycleName }}
           </td>
-          <td>김사원</td>
         </tr>
-
       </tbody>
-      <tr @click="goDetailPage(1001)">
-        <td>2025</td>
-        <td>1</td>
-        <td>영업 1팀</td>
-        <td>사원</td>
-        <td>2344025</td>
-        <td>김사원</td>
-        <td>2025년 1분기 역량강화 리포트</td>
-        <td>김사원</td>
-      </tr>
     </table>
   </div>
 </template>
