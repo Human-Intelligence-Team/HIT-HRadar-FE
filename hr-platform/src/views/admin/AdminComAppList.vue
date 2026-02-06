@@ -34,18 +34,20 @@
     <div class="card list-card">
       <table class="data-table">
 <colgroup>
-          <col style="width: 15%" />
-          <col style="width: 12%" />
-          <col style="width: 10%" />
-          <col style="width: 13%" />
-          <col style="width: 20%" />
+          <col style="width: 14%" />
           <col style="width: 10%" />
           <col style="width: 10%" />
           <col style="width: 10%" />
+          <col style="width: 10%" />
+          <col style="width: 17%" />
+          <col style="width: 10%" />
+          <col style="width: 10%" />
+          <col style="width: 9%" />
         </colgroup>
         <thead>
           <tr>
             <th>회사명</th>
+            <th>회사코드</th>
             <th>사업자번호</th>
             <th>생성자명</th>
             <th>회사연락처</th>
@@ -57,12 +59,12 @@
         </thead>
         <tbody>
           <tr v-if="loading" class="no-data">
-            <td colspan="8">
+            <td colspan="9">
               <div class="loading-spinner"></div>
             </td>
           </tr>
           <tr v-else-if="list.length === 0" class="no-data">
-            <td colspan="8">데이터가 없습니다.</td>
+            <td colspan="9">데이터가 없습니다.</td>
           </tr>
           <tr 
             v-else 
@@ -72,6 +74,7 @@
             class="clickable-row"
           >
             <td class="fw-bold text-dark">{{ item.companyName || item.comName || item.name }}</td>
+            <td class="text-mono text-primary fw-bold">{{ item.companyCode || item.comCode || '-' }}</td>
             <td class="text-mono">{{ item.bizNo || item.businessNo || item.businessNumber }}</td>
             <td :title="item.createrName || item.creatorName || item.adminName">
               {{ item.createrName || item.creatorName || item.adminName || item.name || '-' }}
@@ -384,6 +387,7 @@ const handleReject = async (id, event) => {
 .text-gray { color: #94a3b8; font-size: 13px; }
 .text-mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace; letter-spacing: -0.02em; }
 .text-small { font-size: 13px; color: #475569; }
+.text-primary { color: #3182f6; }
 
 .no-data td {
   text-align: center;

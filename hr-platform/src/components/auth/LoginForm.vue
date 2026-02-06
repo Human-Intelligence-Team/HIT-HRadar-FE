@@ -5,11 +5,13 @@
 
       <div class="field">
         <input
+          id="companyCode"
+          name="companyCode"
           v-model="companyCode"
           placeholder="Company Code"
           @blur="validateCompanyCode"
           @input="validateCompanyCode"
-          autocomplete="new-password"
+          autocomplete="organization"
           spellcheck="false"
         />
         <Transition name="error-slide">
@@ -21,11 +23,13 @@
 
       <div class="field">
         <input
+          id="loginId"
+          name="loginId"
           v-model="loginId"
           placeholder="ID"
           @blur="validateLoginId"
           @input="validateLoginId"
-          autocomplete="new-password"
+          autocomplete="username"
           spellcheck="false"
         />
         <Transition name="error-slide">
@@ -37,12 +41,14 @@
 
       <div class="field">
         <input
+          id="password"
+          name="password"
           v-model="password"
           type="password"
           placeholder="Password"
           @blur="validatePassword"
           @input="validatePassword"
-          autocomplete="new-password"
+          autocomplete="current-password"
           spellcheck="false"
         />
         <Transition name="error-slide">

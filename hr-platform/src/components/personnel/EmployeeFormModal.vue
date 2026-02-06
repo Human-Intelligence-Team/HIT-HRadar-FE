@@ -16,39 +16,39 @@
           
           <!-- 공통 필수 정보 -->
           <div class="form-group">
-            <label>사번 <span class="required" v-if="!isViewMode">*</span></label>
-            <input type="text" v-model="form.employeeNo" class="input" :required="!isEditMode && !isViewMode" :disabled="isEditMode || isViewMode" placeholder="예: EMP2024001" />
+            <label for="employeeNo">사번 <span class="required" v-if="!isViewMode">*</span></label>
+            <input id="employeeNo" name="employeeNo" type="text" v-model="form.employeeNo" class="input" :required="!isEditMode && !isViewMode" :disabled="isEditMode || isViewMode" placeholder="예: EMP2024001" />
           </div>
 
           <div class="form-group">
-            <label>로그인 ID <span class="required" v-if="!isViewMode">*</span></label>
-            <input type="text" v-model="form.loginId" class="input" :required="!isEditMode && !isViewMode" :disabled="isEditMode || isViewMode" placeholder="예: user01" />
+            <label for="loginId">로그인 ID <span class="required" v-if="!isViewMode">*</span></label>
+            <input id="loginId" name="loginId" type="text" v-model="form.loginId" class="input" :required="!isEditMode && !isViewMode" :disabled="isEditMode || isViewMode" placeholder="예: user01" />
           </div>
 
           <div class="form-group" v-if="!isEditMode && !isViewMode">
-            <label>비밀번호 <span class="required">*</span></label>
-            <input type="password" v-model="form.password" class="input" required placeholder="초기 비밀번호" />
+            <label for="password">비밀번호 <span class="required">*</span></label>
+            <input id="password" name="password" type="password" v-model="form.password" class="input" required placeholder="초기 비밀번호" />
           </div>
 
           <div class="form-group">
-            <label>이름 <span class="required" v-if="!isViewMode">*</span></label>
-            <input type="text" v-model="form.name" class="input" :disabled="isViewMode" required />
+            <label for="empName">이름 <span class="required" v-if="!isViewMode">*</span></label>
+            <input id="empName" name="empName" type="text" v-model="form.name" class="input" :disabled="isViewMode" required />
           </div>
 
           <div class="form-group">
-            <label>이메일 <span class="required" v-if="!isViewMode">*</span></label>
-            <input type="email" v-model="form.email" class="input" :disabled="isViewMode" required />
+            <label for="email">이메일 <span class="required" v-if="!isViewMode">*</span></label>
+            <input id="email" name="email" type="email" v-model="form.email" class="input" :disabled="isViewMode" required />
           </div>
 
           <div class="form-group">
-            <label>휴대전화</label>
-            <input type="tel" v-model="form.phoneNo" class="input" :disabled="isViewMode" placeholder="010-0000-0000" />
+            <label for="phoneNo">휴대전화</label>
+            <input id="phoneNo" name="phoneNo" type="tel" v-model="form.phoneNo" class="input" :disabled="isViewMode" placeholder="010-0000-0000" />
           </div>
 
           <!-- 소속/직책 정보 -->
           <div class="form-group">
-            <label>부서</label>
-            <select v-model="form.deptId" class="input" :disabled="isViewMode">
+            <label for="deptId">부서</label>
+            <select id="deptId" name="deptId" v-model="form.deptId" class="input" :disabled="isViewMode">
               <option :value="null">미배정</option>
               <option v-for="dept in departments" :key="dept.deptId" :value="dept.deptId">
                 {{ dept.deptName }}
@@ -57,8 +57,8 @@
           </div>
 
           <div class="form-group">
-            <label>직위</label>
-            <select v-model="form.positionId" class="input" :disabled="isViewMode">
+            <label for="positionId">직위</label>
+            <select id="positionId" name="positionId" v-model="form.positionId" class="input" :disabled="isViewMode">
               <option :value="null">미배정</option>
               <option v-for="pos in positions" :key="pos.positionId" :value="pos.positionId">
                 {{ pos.name || pos.positionName }}
@@ -76,8 +76,8 @@
 
           <!-- 개인 상세 정보 -->
           <div class="form-group">
-            <label>성별</label>
-            <select v-model="form.gender" class="input" :disabled="isViewMode">
+            <label for="gender">성별</label>
+            <select id="gender" name="gender" v-model="form.gender" class="input" :disabled="isViewMode">
               <option value="">선택</option>
               <option value="MALE">남성</option>
               <option value="FEMALE">여성</option>
@@ -85,33 +85,40 @@
           </div>
           
           <div class="form-group">
-            <label>생년월일</label>
-            <input type="date" v-model="form.birth" class="input" :disabled="isViewMode" />
+            <label for="birth">생년월일</label>
+            <input id="birth" name="birth" type="date" v-model="form.birth" class="input" :disabled="isViewMode" />
           </div>
 
           <div class="form-group">
-            <label>입사일</label>
-            <input type="date" v-model="form.hireDate" class="input" :disabled="isViewMode" />
+            <label for="hireDate">입사일</label>
+            <input id="hireDate" name="hireDate" type="date" v-model="form.hireDate" class="input" :disabled="isViewMode" />
           </div>
           
           <div class="form-group" v-if="isEditMode || isViewMode">
-            <label>퇴사일</label>
-            <input type="date" v-model="form.exitDate" class="input" :disabled="isViewMode" />
+            <label for="exitDate">퇴사일</label>
+            <input id="exitDate" name="exitDate" type="date" v-model="form.exitDate" class="input" :disabled="isViewMode" />
           </div>
 
           <div class="form-group" v-if="isEditMode || isViewMode">
-            <label>내선번호</label>
-            <input type="text" v-model="form.extNo" class="input" :disabled="isViewMode" placeholder="예: 070-1234-5678" />
+            <label for="extNo">내선번호</label>
+            <input id="extNo" name="extNo" type="text" v-model="form.extNo" class="input" :disabled="isViewMode" placeholder="예: 070-1234-5678" />
           </div>
 
           <div class="form-actions">
-             <button type="button" class="btn secondary" @click="close">
-               {{ isViewMode ? '닫기' : '취소' }}
-             </button>
-            <button v-if="!isViewMode" type="submit" class="btn primary" :disabled="loading">
-              {{ loading ? '처리중...' : (isEditMode ? '수정 저장' : '등록 완료') }}
-            </button>
-          </div>
+             <div class="form-actions-left">
+               <button v-if="isEditMode" type="button" class="btn reset" @click="handleResetPassword" title="비밀번호를 1234로 초기화">
+                 <i class="pi pi-refresh"></i> 비밀번호 초기화
+               </button>
+             </div>
+             <div class="form-actions-right">
+               <button type="button" class="btn secondary" @click="close">
+                 {{ isViewMode ? '닫기' : '취소' }}
+               </button>
+               <button v-if="!isViewMode" type="submit" class="btn primary" :disabled="loading">
+                 {{ loading ? '처리중...' : (isEditMode ? '수정 저장' : '등록 완료') }}
+               </button>
+             </div>
+           </div>
         </form>
       </div>
     </div>
@@ -121,6 +128,7 @@
 <script setup>
 import { ref, watch, computed } from 'vue'
 import { createEmployee, updateEmployeeProfile, updateEmployeeAssignment } from '@/api/employeeApi'
+import { resetUserPassword } from '@/api/userAccount'
 
 const props = defineProps({
   visible: Boolean,
@@ -196,6 +204,26 @@ watch(() => props.visible, (val) => {
 
 const close = () => {
   emit('close')
+}
+
+const handleResetPassword = async () => {
+  if (!props.targetEmp || !props.targetEmp.accId) {
+    alert('계정 정보를 찾을 수 없습니다.')
+    return
+  }
+
+  if (!confirm(`${form.value.name} 님의 비밀번호를 초기화하시겠습니까?\n\n초기화 비밀번호: 1234\n\n⚠️ 해당 사원에게 즉시 비밀번호 변경을 안내해주세요.`)) {
+    return
+  }
+
+  try {
+    await resetUserPassword(props.targetEmp.accId)
+    alert(`✅ ${form.value.name} 님의 비밀번호가 "1234"로 초기화되었습니다.\n\n사원에게 즉시 비밀번호를 변경하도록 안내해주세요.`)
+  } catch (e) {
+    console.error(e)
+    const errorMsg = e.response?.data?.message || '비밀번호 초기화에 실패했습니다.'
+    alert(`❌ ${errorMsg}`)
+  }
 }
 
 const handleSubmit = async () => {
@@ -380,11 +408,23 @@ select.input {
 .form-actions {
   grid-column: 1 / -1; /* Span full width */
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between; /* Left and right sections */
+  align-items: center;
   gap: 10px;
   margin-top: 20px;
   padding-top: 20px;
   border-top: 1px solid var(--border);
+}
+
+.form-actions-left {
+  flex: 1;
+  display: flex;
+  gap: 10px;
+}
+
+.form-actions-right {
+  display: flex;
+  gap: 10px;
 }
 
 .btn {
@@ -394,10 +434,28 @@ select.input {
   font-weight: 500;
   cursor: pointer;
   border: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .btn.primary { background: var(--primary); color: white; }
 .btn.secondary { background: #f3f4f6; color: var(--text-main); }
+.btn.reset {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  transition: all 0.2s;
+}
+.btn.reset:hover {
+  background: #fee2e2;
+  border-color: #fca5a5;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(220, 38, 38, 0.1);
+}
+.btn.reset i {
+  font-size: 13px;
+}
 .btn:disabled { opacity: 0.7; cursor: not-allowed; }
 
 .roles-display { display: flex; flex-wrap: wrap; gap: 6px; padding: 4px 0; }

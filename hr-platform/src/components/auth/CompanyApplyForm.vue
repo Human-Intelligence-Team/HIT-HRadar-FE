@@ -8,8 +8,10 @@
 
       <div class="form-grid">
         <div class="form-group">
-          <label>회사명</label>
+          <label for="companyName">회사명</label>
           <input
+            id="companyName"
+            name="companyName"
             v-model="form.companyName"
             placeholder="상호명을 입력하세요"
             @blur="validateField('companyName')"
@@ -25,8 +27,10 @@
         </div>
 
         <div class="form-group">
-          <label>사업자등록번호</label>
+          <label for="bizNo">사업자등록번호</label>
           <input
+            id="bizNo"
+            name="bizNo"
             v-model="form.bizNo"
             placeholder="'-' 없이 숫자만"
             @blur="validateField('bizNo')"
@@ -40,8 +44,10 @@
         </div>
 
         <div class="form-group">
-          <label>대표 전화번호</label>
+          <label for="comTel">대표 전화번호</label>
           <input
+            id="comTel"
+            name="comTel"
             v-model="form.comTel"
             placeholder="연락 가능한 번호"
             @blur="validateField('comTel')"
@@ -55,8 +61,10 @@
         </div>
 
         <div class="form-group full-width">
-          <label>사업장 주소</label>
+          <label for="address">사업장 주소</label>
           <input
+            id="address"
+            name="address"
             v-model="form.address"
             placeholder="도로명 주소 입력"
             @blur="validateField('address')"
@@ -72,8 +80,10 @@
         <div class="divider"></div>
 
         <div class="form-group">
-          <label>관리자 성명</label>
+          <label for="adminName">관리자 성명</label>
           <input
+            id="adminName"
+            name="adminName"
             v-model="form.name"
             placeholder="담당자 이름"
             @blur="validateField('name')"
@@ -87,8 +97,10 @@
         </div>
 
         <div class="form-group">
-          <label>관리자 이메일</label>
+          <label for="adminEmail">관리자 이메일</label>
           <input
+            id="adminEmail"
+            name="adminEmail"
             v-model="form.email"
             type="email"
             placeholder="example@company.com"
@@ -103,8 +115,10 @@
         </div>
 
         <div class="form-group full-width">
-          <label>관리자 ID</label>
+          <label for="adminLoginId">관리자 ID</label>
           <input
+            id="adminLoginId"
+            name="adminLoginId"
             v-model="form.loginId"
             placeholder="로그인에 사용할 ID"
             @blur="validateField('loginId')"
