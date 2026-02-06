@@ -87,7 +87,7 @@ api.interceptors.response.use(
     // access token이 없는 상황도 그대로 throw
     if (!authStore.accessToken) {
       authStore.clearAuthState();
-      router.replace('/login');
+      router.replace('/gateway');
       return Promise.reject(error);
     }
 

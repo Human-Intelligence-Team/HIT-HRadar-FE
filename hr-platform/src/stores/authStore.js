@@ -8,7 +8,7 @@ import {
   refreshApi,
 } from '@/api/authApi';
 import { fetchEmployeeDetail } from '@/api/employeeApi';
-import { getMyPermissionsApi } from '@/api/roleApi';
+import { getMyPermissionsApi, getPermissionMappingsApi } from '@/api/roleApi';
 
 import router from '@/router';
 
@@ -33,6 +33,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   const user = ref(emptyUser())
   const permissions = ref([])
+  const permissionMappings = ref({}) // { '/route/path': 'PERM_KEY' } 형태의 동적 매핑 데이터
   const loading = ref(false);
 
   /* ----------------------------
@@ -41,6 +42,7 @@ export const useAuthStore = defineStore('auth', () => {
   const isLoggedIn = computed(() => !!accessToken.value && !!user.value?.userId);
   const isAdmin = computed(() => (user.value?.role || '').toUpperCase() === 'ADMIN');
   const hasPermission = (permKey) => {
+    if (isAdmin.value) return true; // ADMIN은 모든 권한 허용
     return permissions.value.includes(permKey);
   };
 
@@ -76,21 +78,63 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
 
+  // 토큰 유효성 검증 함수
+  const isTokenExpired = (token) => {
+    if (!token) return true;
+    try {
+      const payload = jwtDecode(token);
+      const currentTime = Math.floor(Date.now() / 1000);
+      // exp가 없거나 만료되었으면 true 반환
+      return !payload.exp || payload.exp < currentTime;
+    } catch {
+      return true; // 디코딩 실패 = 유효하지 않은 토큰
+    }
+  };
+
   const loadFromStorage = () => {
     const token = localStorage.getItem('accessToken');
     const userStr = localStorage.getItem('user');
 
-    if (token) accessToken.value = token;
-    if (userStr) {
-      user.value = JSON.parse(userStr);
-      // ✅ 추가: 로컬 스토리지에 상세 정보(부서 등)가 없으면 백그라운드에서 갱신
-      if (user.value.employeeId && !user.value.department) {
-        fetchDetailInBackground(user.value.employeeId);
+    // 🔒 토큰 유효성 검증 추가
+    if (token && !isTokenExpired(token)) {
+      accessToken.value = token;
+      if (userStr) {
+        user.value = JSON.parse(userStr);
+        // ✅ 로컬 스토리지에 상세 정보(부서 등)가 없으면 백그라운드에서 갱신
+        if (user.value.employeeId && !user.value.department) {
+          fetchDetailInBackground(user.value.employeeId);
+        }
+      }
+
+      const permsStr = localStorage.getItem('permissions');
+      if (permsStr) permissions.value = JSON.parse(permsStr);
+
+      const mappingsStr = localStorage.getItem('permissionMappings');
+      if (mappingsStr) {
+        permissionMappings.value = JSON.parse(mappingsStr);
+      }
+
+      // ✅ [Fix] DB 데이터가 변경되었을 수 있으므로 항상 최신 매핑을 가져오도록 갱신
+      // 백그라운드에서 실행 (UI 차단 없음)
+      fetchPermissionMappings().then(() => {
+        console.log('[AuthStore] Permission mappings refreshed from DB');
+      });
+
+      // ✅ [Fix] 만약 매핑이 비어있으면 즉시 재시도 (최초 로드 실패 대비)
+      if (!permissionMappings.value || Object.keys(permissionMappings.value).length === 0) {
+        console.warn('[AuthStore] Empty mappings detected, fetching immediately...');
+        fetchPermissionMappings();
+      }
+    } else {
+      // 토큰이 없거나 만료되었으면 localStorage 클리어
+      if (token) {
+        console.log('Token expired, clearing auth state');
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('user');
+        localStorage.removeItem('permissions');
+        localStorage.removeItem('permissionMappings');
       }
     }
-
-    const permsStr = localStorage.getItem('permissions');
-    if (permsStr) permissions.value = JSON.parse(permsStr);
   };
 
   const fetchDetailInBackground = async (empId) => {
@@ -115,7 +159,7 @@ export const useAuthStore = defineStore('auth', () => {
   const clearAuthState = () => {
     setAccessToken(null);
     resetUser();
-    router.push('/login');
+    router.push('/gateway');
   };
 
 
@@ -135,7 +179,8 @@ export const useAuthStore = defineStore('auth', () => {
       setAccessToken(data.accessToken);
       setUserFromToken(data.accessToken);
 
-      await fetchPermissions(); // 로그인 후 권한 목록 가져오기
+      await fetchPermissions(); // 내 권한 목록 (키값)
+      await fetchPermissionMappings(); // 전체 권한-경로 매핑 정보 (DB 실시간 데이터)
 
       // ✅ 추가: 사원 상세 정보 조회 (departmentId, name, departmentName 등)
       if (user.value.employeeId) {
@@ -253,13 +298,35 @@ export const useAuthStore = defineStore('auth', () => {
     }
   };
 
+  const fetchPermissionMappings = async () => {
+    try {
+      const res = await getPermissionMappingsApi();
+      if (res.data.success) {
+        console.log('[AuthStore] Raw Mapping Data from DB:', res.data.data);
+        // [ { routePath: '/a', permKey: 'K' }, ... ] -> { '/a': 'K' } 변환
+        const list = res.data.data;
+        const map = {};
+        list.forEach(item => {
+          if (item.routePath && item.permKey) {
+            map[item.routePath] = item.permKey;
+          }
+        });
+        console.log('[AuthStore] Converted Map:', map);
+        permissionMappings.value = map;
+        localStorage.setItem('permissionMappings', JSON.stringify(map));
+      } else {
+        console.error('[AuthStore] API returned success=false');
+      }
+    } catch (e) {
+      console.error('Failed to fetch permission mappings from DB', e);
+    }
+  };
+
   const firstAccessiblePath = () => {
-    if (!user.value) return '/login'
+    if (!user.value) return '/gateway'
     if (user.value.role === 'ADMIN') return '/admin/company-applications'
 
-    // Check permission for the default landing page
-    if (hasPermission('NOTICE_READ')) return '/notice'
-
+    // Default to My Profile as requested
     return '/my-profile'
   }
 
@@ -284,6 +351,7 @@ export const useAuthStore = defineStore('auth', () => {
     accessToken,
     user,
     permissions,
+    permissionMappings,
     loading,
 
     isLoggedIn,
@@ -298,6 +366,7 @@ export const useAuthStore = defineStore('auth', () => {
 
     login,
     fetchPermissions,
+    fetchPermissionMappings,
     refreshTokens,
     // register,
     logout,

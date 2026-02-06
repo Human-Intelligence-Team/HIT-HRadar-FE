@@ -98,7 +98,10 @@ const routes = [
 
   {
     path: '/register-company',
-    component: CompanyRegisterView,
+    component: AuthLayout,
+    children: [
+      { path: '', component: CompanyRegisterView }
+    ],
   },
 
   {
@@ -123,7 +126,7 @@ const routes = [
     children: [
       { path: 'company-applications', component: AdminComAppList },
       { path: 'user-accounts', component: AdminUserAccountList },
-      { path: 'approval-document-types', component: ApprovalDocumentTypeManagementView, meta: { requiresAdmin: true } },
+      { path: 'approval-document-types', component: ApprovalDocumentTypeManagementView },
       { path: 'permissions', component: () => import('@/views/admin/PermissionRegistryView.vue') },
     ]
   },
@@ -131,7 +134,7 @@ const routes = [
   {
     path: '/', component: AppLayout,
     children: [
-      { path: '', redirect: '/policy' },
+      { path: '', redirect: '/my-profile' },
       { path: 'policy', component: PolicyView },
       { path: 'notice', name: 'notice-list', component: NoticeListView, meta: { permission: 'NOTICE_READ' } },
       { path: 'notice/create', name: 'notice-create', component: NoticeCreateView, meta: { permission: 'NOTICE_MANAGE' } },
@@ -178,10 +181,9 @@ const routes = [
 
       //성과평가-목표관리
       { path: 'goal', component: GoalListView },
-      { path: 'hr/goals', component: HRGoalDashboard },
-      { path: 'goal/:goalId', component: GoalDetailView },
+      { path: 'goal/create', component: GoalCreateView },
+      { path: 'goal/:goalId(\\d+)', component: GoalDetailView },      { path: 'hr/goals', component: HRGoalDashboard },
       { path: 'to/goals', component: TeamOwnerGoalListView },
-      { path: '/goal/create', component: GoalCreateView },
       {
         path: 'report', component: CompetencyReportView,
         children: [
@@ -239,40 +241,40 @@ const routes = [
       },
       { path: 'hr/cycles', component: CycleAdminManageView },
       { path: 'hr/cycles/:cycleId', component: CycleAdminDetailPage },
-      { path: '/hr/cycles/:cycleId/edit', component: CycleAdminEditPage },
+      { path: 'hr/cycles/:cycleId/edit', component: CycleAdminEditPage },
 
       //등급
       { path: 'grade/setting', component: CompanyGradeSettingPage },
       { path: 'grading/list', component: DeptGradeStatusPage },
-      { path: '/hr/grading/list', component: AdminDeptGradeStatusPage },
-      { path: '/to/grading/list', component: IndividualGradePage },
-      { path: '/hr/grading/list/approve', component: IndividualGradeApprovePage },
-      { path: '/my/grading', component: MygradePage },
-      { path: '/to/grading/objection', component: AdminGradeObjectionPage },
-      { path: '/hr/objections/:objectionId', name: 'AdminGradeObjectionDetailPage', component: AdminGradeObjectionDetailPage },
+      { path: 'hr/grading/list', component: AdminDeptGradeStatusPage },
+      { path: 'to/grading/list', component: IndividualGradePage },
+      { path: 'hr/grading/list/approve', component: IndividualGradeApprovePage },
+      { path: 'my/grading', component: MygradePage },
+      { path: 'to/grading/objection', component: AdminGradeObjectionPage },
+      { path: 'hr/objections/:objectionId', name: 'AdminGradeObjectionDetailPage', component: AdminGradeObjectionDetailPage },
 
       //평가
-      { path: '/hr/evaluation/type/setting', component: EvaluationTypeSetupPage },
-      { path: '/hr/evaluation/question/form/setting', component: EvaluationFormBuilderPage },
-      { path: '/hr/evaluation/assignment', component: EvaluationAssignmentSetupPage },
-      { path: '/hr/evaluation/assignment/status', component: EvaluationAssignmentStatusPage },
-      { path: '/evaluation/assignment/response', component: EvaluationResponsePage },
-      { path: '/hr/evaluation/response/result', component: EvaluationResultPage },
-      { path: '/evaluation/response/my/result', component: EvaluationMyResultPage },
-      { path: '/to/grading/objection', component: AdminGradeObjectionPage },
-      { path: '/hr/objections/:objectionId', name: 'AdminGradeObjectionDetailPage', component: AdminGradeObjectionDetailPage },
-      { path: '/to/grading/objection', component: AdminGradeObjectionPage },
-      { path: '/hr/objections/:objectionId', name: 'AdminGradeObjectionDetailPage', component: AdminGradeObjectionDetailPage },
+      { path: 'hr/evaluation/type/setting', component: EvaluationTypeSetupPage },
+      { path: 'hr/evaluation/question/form/setting', component: EvaluationFormBuilderPage },
+      { path: 'hr/evaluation/assignment', component: EvaluationAssignmentSetupPage },
+      { path: 'hr/evaluation/assignment/status', component: EvaluationAssignmentStatusPage },
+      { path: 'evaluation/assignment/response', component: EvaluationResponsePage },
+      { path: 'hr/evaluation/response/result', component: EvaluationResultPage },
+      { path: 'evaluation/response/my/result', component: EvaluationMyResultPage },
+      { path: 'to/grading/objection', component: AdminGradeObjectionPage },
+      { path: 'hr/objections/:objectionId', name: 'AdminGradeObjectionDetailPage', component: AdminGradeObjectionDetailPage },
+      { path: 'to/grading/objection', component: AdminGradeObjectionPage },
+      { path: 'hr/objections/:objectionId', name: 'AdminGradeObjectionDetailPage', component: AdminGradeObjectionDetailPage },
 
 
       //대시보드
-      { path: '/my/dashboard', component: MyDashboard },
-      { path: '/hr/dashboard', component: EmpDashboard },
-
+      { path: 'my/dashboard', component: MyDashboard },
+      { path: 'hr/dashboard', component: EmpDashboard },
 
       {
         path: 'approval',
         children: [
+          { path: 'approval-document-types', component: ApprovalDocumentTypeManagementView },
           { path: 'create', component: () => import('@/views/approval/ApprovalCreateView.vue') },
           { path: 'my-documents', component: () => import('@/views/approval/ApprovalMyListView.vue') },
           { path: 'all-documents', component: () => import('@/views/approval/ApprovalAllListView.vue') },
@@ -322,10 +324,12 @@ router.beforeEach((to, from) => {
   const publicPaths = ['/home', '/register-company', '/gateway']
   const isPublic = publicPaths.includes(to.path)
 
-  // 1. Not logged in -> Redirect to gateway (unless public)
+  // 1. Not logged in -> Redirect appropriately (unless public)
+  // 참고: authStore.loadFromStorage()에서 이미 토큰 유효성 검증을 수행함
+  // 만료된 토큰은 자동으로 제거되므로 isLoggedIn은 유효한 토큰이 있을 때만 true
   if (!auth.isLoggedIn) {
     if (to.path === '/') {
-      return '/home'
+      return '/home'  // 첫 방문자 → /home (랜딩 페이지)
     }
     if (!isPublic) {
       return { path: '/gateway', query: { redirect: to.fullPath } }
@@ -335,16 +339,18 @@ router.beforeEach((to, from) => {
 
   // 2. Redirect away from public landing pages if already logged in
   if (isPublic) {
-    return auth.firstAccessiblePath() || '/policy'
+    return auth.firstAccessiblePath()
   }
 
-  // 3. Check Permissions (permissionConfig)
+  // 3. Dynamic Permission Check (from Backend DB)
   let requiredPerm = null
+
   // Check from specific to general (child to parent)
   for (let i = to.matched.length - 1; i >= 0; i--) {
     const path = to.matched[i].path
-    if (permissionConfig[path]) {
-      requiredPerm = permissionConfig[path]
+    // 동적 매핑: auth.permissionMappings = { '/notice': 'NOTICE_READ', ... }
+    if (auth.permissionMappings[path]) {
+      requiredPerm = auth.permissionMappings[path]
       break
     }
   }
@@ -352,7 +358,7 @@ router.beforeEach((to, from) => {
   if (requiredPerm && !auth.hasPermission(requiredPerm)) {
     alert('해당 메뉴에 대한 접근 권한이 없습니다.')
     // If direct load (!from.matched.length), redirect. Otherwise stay (cancel).
-    return from.matched.length > 0 ? false : (auth.firstAccessiblePath() || '/policy')
+    return from.matched.length > 0 ? false : auth.firstAccessiblePath()
   }
 })
 

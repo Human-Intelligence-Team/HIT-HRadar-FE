@@ -158,6 +158,12 @@
           <button class="btn-delete" @click="openDeleteModal">
             삭제
           </button>
+          <div v-if="canSubmit" class="goal-actions">
+            <button class="btn-submit" @click="submitGoalAction">
+              제출
+            </button>
+          </div>
+
         </div>
         <!-- ===== 승인 / 반려 액션 영역 ===== -->
         <div v-if="canDecide" class="decision-footer">
@@ -177,7 +183,7 @@
           {{ goal.type === 'KPI' ? 'KPI 상세' : 'OKR 상세' }}
 
           <button
-            v-if="selectedItem && goal.approveStatus === 'APPROVED' "
+            v-if="selectedItem && goal.approveStatus === 'APPROVED' && isOwner"
             class="btn-record"
             @click="openModal"
           >
@@ -518,12 +524,9 @@ const isFromTeamOwner = computed(() => route.query.from === 'teamOwner')
 const canDecide = computed(() => isFromTeamOwner.value && goal.value.approveStatus === 'SUBMITTED')
 
 const goBack = () => {
-  if (window.history.length > 1) {
-    router.back()
-  } else {
-    router.push('/goal')
-  }
+  router.push('/goal')
 }
+
 const goal = ref({})
 const items = ref([])
 const selectedItem = ref(null)
@@ -564,13 +567,41 @@ import { createKeyResult } from '@/api/okrApi'
 const submitCreate = async () => {
   const goalId = route.params.goalId
 
+  // 공통 검증
+  if (!createForm.value.metricName?.trim()) {
+    showToast('지표명을 입력하세요')
+    return
+  }
+
+  // KPI 검증
   if (goal.value.type === 'KPI') {
+    if (
+      createForm.value.startValue === null ||
+      createForm.value.targetValue === null
+    ) {
+      showToast('시작값과 목표값을 입력하세요')
+      return
+    }
+
     await createKpi(goalId, {
       metricName: createForm.value.metricName,
       startValue: createForm.value.startValue,
       targetValue: createForm.value.targetValue,
     })
-  } else {
+  }
+
+  // OKR 검증
+  else {
+    if (!createForm.value.content?.trim()) {
+      showToast('KR 내용을 입력하세요')
+      return
+    }
+
+    if (createForm.value.targetValue === null) {
+      showToast('목표값을 입력하세요')
+      return
+    }
+
     await createKeyResult(goalId, {
       content: createForm.value.content,
       metricName: createForm.value.metricName,
@@ -581,6 +612,7 @@ const submitCreate = async () => {
   await reloadAll()
   closeCreateModal()
 }
+
 
 /* KPI 선택 */
 const selectKpi = async (kpi) => {
@@ -793,8 +825,21 @@ const deleteGoalAction = async () => {
   router.push('/goal')
 }
 
+import { submitGoal as submitGoalApi } from '@/api/goalApi'
 
+const canSubmit = computed(() => {
+  return (
+    isOwner.value &&
+    (goal.value.approveStatus === 'DRAFT' ||
+      goal.value.approveStatus === 'REJECTED')
+  )
+})
 
+const submitGoalAction = async () => {
+  await submitGoalApi(route.params.goalId)
+  showToast('목표가 제출되었습니다')
+  await reloadAll()
+}
 
 </script>
 
@@ -1437,5 +1482,19 @@ svg .progress {
   cursor: pointer;
 }
 
+.btn-submit {
+  margin-top: 10px;
+  padding: 4px 12px;
+  font-size: 12px;
+  border-radius: 999px;
+  border: 1px solid #16a34a;
+  background: #ecfdf5;
+  color: #047857;
+  cursor: pointer;
+}
+
+.btn-submit:hover {
+  background: #d1fae5;
+}
 
 </style>

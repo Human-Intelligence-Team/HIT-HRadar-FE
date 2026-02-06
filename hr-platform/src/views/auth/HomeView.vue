@@ -8,8 +8,8 @@
     <header class="nav" :class="{ scrolled: isScrolled }">
       <div class="container nav-inner">
         <div class="brand">
-          <div class="logo-mark" />
-          <span class="logo-text">HIT : SIGNAL</span>
+          <BrandLogo size="32" class="logo-mark" />
+          <span class="logo-text">HRADAR</span>
         </div>
         <nav class="nav-links">
           <a href="#problems" @click.prevent="scrollTo('#problems')">Why</a>
@@ -41,63 +41,70 @@
           <p class="hero-note">⚠️ AI는 결정을 내리지 않습니다. 최종 판단은 HR이 합니다.</p>
         </div>
         <div class="hero-visual" data-aos>
-          <!-- Abstract UI Representation -->
-          <div class="glass-card main-card">
-            <div class="card-header">
-              <div class="avatar-group">
-                <span class="avatar"></span>
-                <div class="user-info">
-                  <div class="name-bar"></div>
-                  <div class="role-bar"></div>
+          <!-- Dashboard Mockup -->
+          <div class="app-mockup">
+            <div class="mock-sidebar">
+              <div class="side-item active"></div>
+              <div class="side-item"></div>
+              <div class="side-item"></div>
+            </div>
+            <div class="mock-main">
+              <div class="mock-top-bar"></div>
+              <div class="mock-content-grid">
+                <div class="glass-card main-card">
+                  <div class="card-header">
+                    <div class="avatar-group">
+                      <span class="avatar"></span>
+                      <div class="user-info">
+                        <div class="name-bar"></div>
+                        <div class="role-bar"></div>
+                      </div>
+                    </div>
+                    <div class="status-badge warning">Burnout Risk</div>
+                  </div>
+                  <div class="radar-chart-mock">
+                    <svg viewBox="0 0 100 100" class="radar-svg">
+                      <polygon points="50,10 90,40 70,90 30,90 10,40" class="radar-grid" />
+                      <polygon points="50,25 75,43.75 62.5,75 37.5,75 25,43.75" class="radar-grid inner" />
+                      <polygon points="50,40 60,47.5 55,60 45,60 40,47.5" class="radar-grid inner" />
+                      <line x1="50" y1="50" x2="50" y2="10" class="radar-axis" />
+                      <line x1="50" y1="50" x2="90" y2="40" class="radar-axis" />
+                      <line x1="50" y1="50" x2="70" y2="90" class="radar-axis" />
+                      <line x1="50" y1="50" x2="30" y2="90" class="radar-axis" />
+                      <line x1="50" y1="50" x2="10" y2="40" class="radar-axis" />
+                      <polygon points="50,20 80,45 65,80 35,80 20,45" class="radar-val" />
+                      <circle cx="50" cy="20" r="1.5" class="radar-dot" />
+                      <circle cx="80" cy="45" r="1.5" class="radar-dot" />
+                      <circle cx="65" cy="80" r="1.5" class="radar-dot" />
+                      <circle cx="35" cy="80" r="1.5" class="radar-dot" />
+                      <circle cx="20" cy="45" r="1.5" class="radar-dot" />
+                    </svg>
+                  </div>
+                  <div class="insight-row">
+                    <div class="icon-box">⚡</div>
+                    <div class="text-box">
+                      <div class="l1">최근 야근 급증 + 협업 지수 하락</div>
+                      <div class="l2">면담이 필요한 시점입니다.</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="small-cards">
+                  <div class="glass-card stat-card">
+                    <div class="stat-val">82%</div>
+                    <div class="stat-lab">협업 만족도</div>
+                  </div>
+                  <div class="glass-card stat-card">
+                    <div class="stat-val">B+</div>
+                    <div class="stat-lab">성과 예측</div>
+                  </div>
                 </div>
               </div>
-              <div class="status-badge warning">Burnout Risk</div>
-            </div>
-            <div class="radar-chart-mock">
-              <svg viewBox="0 0 100 100" class="radar-svg">
-                <!-- Background Grid (Concentric Pentagons) -->
-                <polygon points="50,10 90,40 70,90 30,90 10,40" class="radar-grid" />
-                <polygon points="50,25 75,43.75 62.5,75 37.5,75 25,43.75" class="radar-grid inner" />
-                <polygon points="50,40 60,47.5 55,60 45,60 40,47.5" class="radar-grid inner" />
-
-                <!-- Axis Lines -->
-                <line x1="50" y1="50" x2="50" y2="10" class="radar-axis" />
-                <line x1="50" y1="50" x2="90" y2="40" class="radar-axis" />
-                <line x1="50" y1="50" x2="70" y2="90" class="radar-axis" />
-                <line x1="50" y1="50" x2="30" y2="90" class="radar-axis" />
-                <line x1="50" y1="50" x2="10" y2="40" class="radar-axis" />
-
-                <!-- Data Polygon -->
-                <defs>
-                  <linearGradient id="radarGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stop-color="#2563eb" stop-opacity="0.4"/>
-                    <stop offset="100%" stop-color="#2563eb" stop-opacity="0.1"/>
-                  </linearGradient>
-                </defs>
-                <polygon points="50,20 80,45 65,80 35,80 20,45" class="radar-val" />
-
-                <!-- Data Points (Dots) -->
-                <circle cx="50" cy="20" r="1.5" class="radar-dot" />
-                <circle cx="80" cy="45" r="1.5" class="radar-dot" />
-                <circle cx="65" cy="80" r="1.5" class="radar-dot" />
-                <circle cx="35" cy="80" r="1.5" class="radar-dot" />
-                <circle cx="20" cy="45" r="1.5" class="radar-dot" />
-              </svg>
-            </div>
-            <div class="insight-row">
-              <div class="icon-box">⚡</div>
-              <div class="text-box">
-                <div class="l1">최근 야근 급증 + 동료 평가 하락</div>
-                <div class="l2">면담이 필요한 시점입니다.</div>
-              </div>
             </div>
           </div>
+          <!-- Floating decorative cards -->
           <div class="glass-card float-card c1">
-            <div class="stat-num">82%</div>
-            <div class="stat-label">Action Guide Accuracy</div>
-          </div>
-          <div class="glass-card float-card c2">
-            <div class="stat-label">Explainable Data</div>
+            <div class="stat-num">94%</div>
+            <div class="stat-label">Data Accuracy</div>
           </div>
         </div>
       </div>
@@ -172,7 +179,7 @@
       <div class="container">
         <div class="section-header" data-aos>
           <span class="section-tag">CORE FUNCTIONS</span>
-          <h2>데이터가 흐름이 되는<br />HIT : SIGNAL 핵심 기능</h2>
+          <h2>데이터가 흐름이 되는<br />HRADAR 핵심 기능</h2>
         </div>
 
         <!-- Feature 1 -->
@@ -185,17 +192,29 @@
               평가 시즌, 면담 전, 인재 리뷰 시 가장 강력한 도구가 됩니다.
             </p>
             <ul class="f-list">
-              <li><strong>오각형 레이다 차트</strong>: 성과/근태/만족도/역량/다면평가 통합</li>
-              <li><strong>자동 세그먼트 분류</strong>: 번아웃 위험형, 성장 정체형 등 진단</li>
-              <li><strong>Action Guide</strong>: "상담 권장", "업무 조정" 등 구체적 행동 제안</li>
+              <li><strong>다면적 협업 지수</strong>: 동료 피드백 기반의 다각도 역량 시각화</li>
+              <li><strong>직무 만족도 분석</strong>: 업무 환경 및 성장 관점의 종합 진단</li>
+              <li><strong>AI 분석 가이드</strong>: "번아웃 위험", "성과 정체" 등 맞춤형 인사이트</li>
             </ul>
           </div>
           <div class="f-visual">
-            <div class="screen-mockup">
-              <div class="mock-header">개인 분석 리포트</div>
-              <div class="mock-body">
-                <div class="chart-area">Radar Chart Visualization</div>
-                <div class="segment-tag">🔴 이탈 위험 감지</div>
+            <div class="app-mockup mini">
+              <div class="mock-sidebar slim"></div>
+              <div class="mock-main">
+                <div class="mock-top-bar small"></div>
+                <div class="mock-body">
+                  <div class="profile-summary">
+                    <div class="avatar-circle"></div>
+                    <div class="text-lines">
+                      <div class="line w60"></div>
+                      <div class="line w40"></div>
+                    </div>
+                  </div>
+                  <div class="chart-area-mock">
+                    <div class="radar-svg-small"></div>
+                  </div>
+                  <div class="segment-tag">🔴 이탈 위험 감지 (Burnout)</div>
+                </div>
               </div>
             </div>
           </div>
@@ -217,13 +236,19 @@
             </ul>
           </div>
           <div class="f-visual">
-            <div class="screen-mockup">
-              <div class="mock-header">통계 대시보드</div>
-              <div class="control-panel">
-                <div class="slider"></div>
-                <div class="slider"></div>
+            <div class="app-mockup mini">
+              <div class="mock-sidebar slim"></div>
+              <div class="mock-main">
+                <div class="mock-top-bar small"></div>
+                <div class="admin-dashboard-mock">
+                  <div class="grid-2x2">
+                    <div class="mini-card"><div class="bar-chart-lines"></div></div>
+                    <div class="mini-card"><div class="gauge-half"></div></div>
+                    <div class="mini-card"><div class="line-graph"></div></div>
+                    <div class="mini-card"><div class="stack-bars"></div></div>
+                  </div>
+                </div>
               </div>
-              <div class="graph-area"></div>
             </div>
           </div>
         </div>
@@ -271,7 +296,7 @@
             <tr>
               <th class="th-criterion">구분</th>
               <th class="th-common">기존 HR 시스템</th>
-              <th class="th-signal">HIT : SIGNAL</th>
+              <th class="th-hradar">HRADAR</th>
             </tr>
             </thead>
             <tbody>
@@ -298,7 +323,7 @@
             <tr>
               <td>최종 결과</td>
               <td>등급(S/A/B) 산출</td>
-              <td><strong>행동 가이드 + 성장 로드맵</strong></td>
+              <td><strong>맞춤 인사이트 + 관리 가이드</strong></td>
             </tr>
             </tbody>
           </table>
@@ -325,7 +350,7 @@
             <div class="step-num">02</div>
             <div class="step-icon">🧠</div>
             <h3>AI 분석 & 감지</h3>
-            <p>HIT 모델이 데이터를 분석하여 이탈 위험, 번아웃 신호, 성장 가능성을 포착합니다.</p>
+            <p>HRADAR 모델이 데이터를 분석하여 이탈 위험, 번아웃 신호, 성장 가능성을 포착합니다.</p>
           </div>
           <div class="step-arrow">→</div>
           <div class="step-card" data-aos>
@@ -370,7 +395,7 @@
     <section class="cta-section">
       <div class="container cta-container">
         <h2 class="cta-title">HR의 판단을 더 확신있게.</h2>
-        <p class="cta-sub">HIT : SIGNAL과 함께 데이터 기반의 인재 관리를 시작하세요.</p>
+        <p class="cta-sub">HRADAR와 함께 데이터 기반의 인재 관리를 시작하세요.</p>
         <div class="cta-buttons">
           <button class="btn-lg-primary" @click="goToGateway">로그인 하러 가기</button>
           <button class="btn-lg-white" @click="switchToApply">서비스 도입 신청</button>
@@ -381,8 +406,8 @@
     <!-- Footer -->
     <footer class="footer">
       <div class="container">
-        <div class="f-logo">HIT : SIGNAL</div>
-        <p class="copyright">© 2025 HIT : SIGNAL. All rights reserved.</p>
+        <BrandLogo size="40" class="f-logo" />
+        <p class="copyright">© 2025 HRADAR. All rights reserved.</p>
         <p class="f-slogan">AI assists. HR decides.</p>
       </div>
     </footer>
@@ -393,6 +418,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
+import BrandLogo from '@/components/common/BrandLogo.vue'
 
 const router = useRouter()
 const isScrolled = ref(false)
@@ -537,10 +563,7 @@ p { font-size: 1.125rem; line-height: 1.7; color: #475569; }
   letter-spacing: -0.02em;
 }
 .logo-mark {
-  width: 24px;
-  height: 24px;
-  background: linear-gradient(135deg, #2563eb, #1e40af);
-  border-radius: 6px;
+  cursor: pointer;
 }
 .nav-links {
   display: flex;
@@ -655,13 +678,9 @@ p { font-size: 1.125rem; line-height: 1.7; color: #475569; }
   perspective: 1000px;
 }
 .glass-card {
-  background: rgba(255, 255, 255, 0.75);
-  backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.6);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
-  box-shadow:
-    0 20px 40px rgba(0, 0, 0, 0.08),
-    0 1px 0 rgba(255,255,255,0.5) inset;
+  background: white;
+  border: 1px solid #f1f5f9;
+  box-shadow: 0 12px 30px rgba(74,108,247,0.08);
   border-radius: 28px;
   position: absolute;
   transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.4s;
@@ -722,13 +741,13 @@ p { font-size: 1.125rem; line-height: 1.7; color: #475569; }
 .radar-grid.inner { stroke: #cbd5e1; stroke-dasharray: 2 2; }
 .radar-axis { stroke: #cbd5e1; stroke-width: 0.5; }
 .radar-val {
-  fill: url(#radarGradient);
-  stroke: #2563eb;
+  fill: rgba(99, 102, 241, 0.25);
+  stroke: #6366f1;
   stroke-width: 2;
-  filter: drop-shadow(0 4px 6px rgba(37, 99, 235, 0.3));
+  filter: drop-shadow(0 4px 6px rgba(99, 102, 241, 0.3));
   animation: radarPulse 4s ease-in-out infinite;
 }
-.radar-dot { fill: white; stroke: #2563eb; stroke-width: 1.5; }
+.radar-dot { fill: white; stroke: #6366f1; stroke-width: 1.5; }
 
 @keyframes radarPulse {
   0%, 100% { fill-opacity: 0.7; transform: scale(1); transform-origin: center; }
@@ -742,6 +761,121 @@ p { font-size: 1.125rem; line-height: 1.7; color: #475569; }
 
 .stat-num { font-size: 1.8rem; font-weight: 800; color: #2563eb; }
 .stat-label { font-size: 0.85rem; font-weight: 600; color: #64748b; }
+
+/* --- App Mockup Styling --- */
+.app-mockup {
+  width: 100%;
+  height: 480px;
+  background: white;
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 40px 80px rgba(0,0,0,0.12);
+  display: flex;
+  border: 1px solid #e2e8f0;
+}
+.mock-sidebar {
+  width: 60px;
+  background: white;
+  border-right: 1px solid #f1f5f9;
+  display: flex;
+  flex-direction: column;
+  padding: 20px 12px;
+  gap: 16px;
+}
+.side-item { width: 100%; height: 36px; background: #f1f5f9; border-radius: 8px; }
+.side-item.active { background: #eff6ff; border: 1px solid #bfdbfe; }
+
+.mock-main { flex: 1; display: flex; flex-direction: column; background: #f8fafc; }
+.mock-top-bar { height: 48px; background: white; border-bottom: 1px solid #f1f5f9; }
+
+.mock-content-grid {
+  flex: 1;
+  padding: 24px;
+  display: grid;
+  grid-template-columns: 1fr 140px;
+  gap: 20px;
+}
+.small-cards { display: flex; flex-direction: column; gap: 20px; }
+.stat-card {
+  position: relative;
+  width: 100%;
+  height: calc(50% - 10px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+.stat-val { font-size: 1.5rem; font-weight: 800; color: #0f172a; margin-bottom: 4px; }
+.stat-lab { font-size: 0.75rem; color: #64748b; font-weight: 600; }
+
+.app-mockup.mini { height: 320px; box-shadow: 0 20px 40px rgba(0,0,0,0.08); border-radius: 16px; }
+.mock-sidebar.slim { width: 40px; }
+.mock-top-bar.small { height: 32px; }
+
+/* Feature Mockups */
+.profile-summary { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+.avatar-circle { width: 36px; height: 36px; background: #e2e8f0; border-radius: 50%; }
+.text-lines { flex: 1; }
+.line { height: 6px; background: #cbd5e1; border-radius: 4px; margin-bottom: 6px; }
+.line.w60 { width: 60%; }
+.line.w40 { width: 40%; }
+
+.chart-area-mock {
+  flex: 1;
+  background: white;
+  border: 1px solid #f1f5f9;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+}
+.radar-svg-small {
+  width: 100px;
+  height: 100px;
+  border: 2px dashed #e2e8f0;
+  border-radius: 50%;
+  position: relative;
+}
+.radar-svg-small::before {
+  content: '';
+  position: absolute;
+  inset: 15%;
+  background: rgba(37, 99, 235, 0.1);
+  clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%);
+  border: 1px solid #2563eb;
+}
+
+.admin-dashboard-mock { padding: 12px; height: 100%; }
+.grid-2x2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 12px;
+  height: 100%;
+}
+.mini-card { background: white; border: 1px solid #f1f5f9; border-radius: 8px; padding: 10px; }
+
+.bar-chart-lines {
+  height: 100%; width: 100%;
+  background: linear-gradient(90deg, #eff6ff 0%, #eff6ff 40%, transparent 40%, transparent 50%, #eff6ff 50%, #eff6ff 80%, transparent 80%);
+}
+.gauge-half {
+  width: 40px; height: 20px; border-radius: 40px 40px 0 0;
+  border: 4px solid #e2e8f0; border-bottom: none; position: relative;
+}
+.gauge-half::after {
+  content: ''; position: absolute; bottom: 0; left: 50%;
+  width: 2px; height: 16px; background: #2563eb; transform: rotate(-30deg); transform-origin: bottom;
+}
+.line-graph {
+  height: 100%; width: 100%;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 40'%3E%3Cpath d='M0,35 Q20,10 40,25 T80,5 T200,30' fill='none' stroke='%232563eb' stroke-width='2'/%3E%3C/svg%3E");
+}
+.stack-bars {
+  height: 100%; width: 100%;
+  display: flex; gap: 4px; align-items: flex-end;
+}
+.stack-bars::before { content: ''; height: 60%; width: 4px; background: #cbd5e1; }
+.stack-bars::after { content: ''; height: 80%; width: 4px; background: #2563eb; }
 
 /* --- Section Commons --- */
 .section { padding: 100px 0; }
@@ -909,7 +1043,7 @@ p { font-size: 1.125rem; line-height: 1.7; color: #475569; }
 .diff-table td { padding: 24px 20px; border-bottom: 1px solid #f1f5f9; font-size: 1.05rem; }
 .th-criterion { width: 20%; }
 .th-common { width: 40%; color: #94a3b8; }
-.th-signal { width: 40%; color: #2563eb; }
+.th-hradar { width: 40%; color: #2563eb; }
 .diff-table tr:last-child td { border-bottom: none; }
 .diff-table td:nth-child(2) { color: #94a3b8; }
 .diff-table td:nth-child(3) { color: #1e293b; font-weight: 500; }
@@ -933,7 +1067,7 @@ p { font-size: 1.125rem; line-height: 1.7; color: #475569; }
 
 /* --- Footer --- */
 .footer { background: white; border-top: 1px solid #f1f5f9; padding: 60px 0; text-align: center; }
-.f-logo { font-weight: 900; font-size: 1.5rem; color: #0f172a; margin-bottom: 12px; }
+.f-logo { margin-bottom: 20px; justify-content: center; }
 .copyright { color: #94a3b8; font-size: 0.9rem; margin-bottom: 6px; }
 .f-slogan { color: #cbd5e1; font-weight: 600; font-size: 0.85rem; letter-spacing: 0.1em; }
 

@@ -3,8 +3,8 @@
     <!-- Global Navigation (Logo & Back) -->
     <header class="global-nav">
       <div class="global-logo" @click="goHome">
-        <div class="logo-mark sm"></div>
-        <span class="logo-text sm">HIT : SIGNAL</span>
+        <BrandLogo size="34" class="logo-mark sm" />
+        <span class="logo-text sm">HRADAR</span>
       </div>
       <button class="back-btn" @click="goBack">
         <span class="icon">←</span> Back
@@ -23,14 +23,14 @@
           :class="{ 'fade-out': isRegisterMode, 'fade-in': !isRegisterMode }"
         >
           <div class="brand-content">
-            <div class="logo-wrap">
-              <div class="logo-mark dark"></div>
-              <span class="logo-text dark">HIT : SIGNAL</span>
+            <div class="logo-wrap clickable" @click="goHome">
+              <BrandLogo size="42" class="logo-mark dark" />
+              <span class="logo-text dark">HRADAR</span>
             </div>
             <h1>New Here?</h1>
             <p>
               데이터 기반의 인재 관리 솔루션,<br />
-              HIT : SIGNAL을 처음 방문하셨나요?
+              HRADAR를 처음 방문하셨나요?
             </p>
             <button class="ghost-btn dark-btn" @click="toggleMode">
               About Us
@@ -44,13 +44,13 @@
           :class="{ 'fade-out': !isRegisterMode, 'fade-in': isRegisterMode }"
         >
           <div class="brand-content">
-            <div class="logo-wrap">
-              <div class="logo-mark dark"></div>
-              <span class="logo-text dark">HIT : SIGNAL</span>
+            <div class="logo-wrap clickable" @click="goHome">
+              <BrandLogo size="42" class="logo-mark dark" />
+              <span class="logo-text dark">HRADAR</span>
             </div>
             <h1>One of Us?</h1>
             <p>
-              이미 HIT : SIGNAL의 파트너이신가요?<br />
+              이미 HRADAR의 파트너이신가요?<br />
               로그인하여 인사이트를 확인하세요.
             </p>
             <button class="ghost-btn dark-btn" @click="toggleMode">
@@ -95,11 +95,11 @@
     <!-- Footer for "Completeness" -->
     <footer class="gateway-footer">
       <div class="footer-links">
-        <span>© 2025 HIT : SIGNAL</span>
+        <span>© 2025 HRADAR</span>
         <span class="divider">|</span>
-        <a href="#">Privacy Policy</a>
+        <RouterLink to="/privacy-policy">개인정보처리방침</RouterLink>
         <span class="divider">|</span>
-        <a href="#">Terms of Service</a>
+        <RouterLink to="/terms-of-service">이용약관</RouterLink>
       </div>
       <p class="footer-desc">Data-driven HR Intelligence Solution</p>
     </footer>
@@ -111,6 +111,7 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
 import LoginForm from '@/components/auth/LoginForm.vue'
+import BrandLogo from '@/components/common/BrandLogo.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -124,7 +125,7 @@ const toggleMode = () => {
 
 const onLoginSuccess = () => {
   const next = authStore.firstAccessiblePath()
-  router.push(next || '/policy')
+  router.push(next || '/my-profile')
 }
 
 const goToDocs = () => {
@@ -149,16 +150,19 @@ const goBack = () => {
 
 .gateway-body {
   font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  min-height: 100vh;
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
   background: #f8fafc;
   position: relative;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   user-select: none;
   cursor: default;
+  padding: 80px 0; /* Vertical space for nav and footer */
 }
 
 /* Background Design Elements */
@@ -232,15 +236,13 @@ const goBack = () => {
 .gateway-footer {
   position: absolute;
   bottom: 24px;
-  text-align: center;
+  left: 0;
   width: 100%;
-  z-index: 1;
+  text-align: center;
+  z-index: 50;
   color: #94a3b8;
   font-size: 0.8rem;
-  animation: fadeUp 1s ease-out 0.5s forwards;
-  opacity: 0;
 }
-@keyframes fadeUp { to { opacity: 1; transform: translateY(0); } from { opacity: 0; transform: translateY(10px); } }
 
 .footer-links {
   display: flex;
@@ -276,7 +278,9 @@ const goBack = () => {
   transition: opacity 0.2s;
 }
 .global-logo:hover { opacity: 1; }
-.logo-mark.sm { width: 20px; height: 20px; background: #2563eb; border-radius: 5px; }
+.logo-mark.sm { 
+  margin-right: 4px;
+}
 .logo-text.sm { font-size: 1.1rem; font-weight: 700; color: #1e293b; letter-spacing: -0.02em; }
 
 .back-btn {
@@ -364,10 +368,15 @@ const goBack = () => {
   gap: 10px;
   margin-bottom: 24px;
 }
+.logo-wrap.clickable {
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+.logo-wrap.clickable:hover {
+  opacity: 0.8;
+}
 .logo-mark.dark {
-  width: 24px; height: 24px;
-  background: #2563eb;
-  border-radius: 6px;
+  margin-right: 6px;
 }
 .logo-text.dark {
   font-size: 1.25rem;

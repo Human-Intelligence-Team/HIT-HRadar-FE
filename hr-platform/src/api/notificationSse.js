@@ -5,7 +5,13 @@ let eventSource = null
 export function connectSSE(onMessage) {
   if (eventSource) return
 
-  const token = localStorage.getItem('accessToken') // 또는 store
+  const token = localStorage.getItem('accessToken')
+
+  // ✅ 토큰이 없으면 SSE 연결하지 않음
+  if (!token) {
+    console.warn('No access token - skipping SSE connection')
+    return
+  }
 
   eventSource = new EventSourcePolyfill(
     `${import.meta.env.VITE_API_BASE_URL}/api/notifications/subscribe`,
@@ -13,7 +19,7 @@ export function connectSSE(onMessage) {
       headers: {
         Authorization: `Bearer ${token}`
       },
-      withCredentials: true, // 필요 시
+      withCredentials: true,
       heartbeatTimeout: 60_000
     }
   )
@@ -23,15 +29,20 @@ export function connectSSE(onMessage) {
     onMessage(data)
   })
 
-
   eventSource.onerror = (err) => {
     console.warn('SSE disconnected', err)
     eventSource.close()
     eventSource = null
 
-    setTimeout(() => {
-      connectSSE(onMessage)
-    }, 5000)
+    // ✅ 재연결 전 토큰 확인 - 토큰이 없으면 재연결하지 않음
+    const currentToken = localStorage.getItem('accessToken')
+    if (currentToken) {
+      setTimeout(() => {
+        connectSSE(onMessage)
+      }, 5000)
+    } else {
+      console.warn('No token available - not reconnecting SSE')
+    }
   }
 }
 

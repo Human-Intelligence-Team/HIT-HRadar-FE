@@ -20,8 +20,5 @@ useUiStore(pinia).initTheme()
 
 const auth = useAuthStore()
 auth.loadFromStorage()
-if (auth.isLoggedIn) {
-    auth.fetchPermissions()
-}
 
 app.mount('#app')

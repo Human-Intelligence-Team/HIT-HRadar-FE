@@ -3,10 +3,10 @@
     <!-- Header -->
     <header class="admin-header">
       <div class="header-left">
-        <div class="brand">
-          <span class="logo" />
+        <div class="brand" @click="goHome">
+          <BrandLogo size="36" class="logo" />
           <div class="brand-text">
-            <div class="brand-title">HRadar Admin</div>
+            <div class="brand-title">HRADAR Admin</div>
             <div class="brand-sub">통합 관리자 시스템</div>
           </div>
         </div>
@@ -54,9 +54,12 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
 import ChatbotButton from '@/components/chatbot/ChatbotButton.vue'
 import ChatbotModal from '@/components/chatbot/ChatbotModal.vue'
+import BrandLogo from '@/components/common/BrandLogo.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
+
+const goHome = () => router.push('/home')
 
 const logout = async () => {
   if (confirm('로그아웃 하시겠습니까?')) {
@@ -94,10 +97,9 @@ input, textarea {
 }
 
 .header-left { display: flex; align-items: center; }
-.brand { display: flex; align-items: center; gap: 10px; }
+.brand { display: flex; align-items: center; gap: 10px; cursor: pointer; }
 .logo {
-  width: 28px; height: 28px; border-radius: 6px;
-  background: linear-gradient(135deg, #1f4fd8, #3b82f6);
+  cursor: pointer;
 }
 .brand-text { display: flex; flex-direction: column; line-height: 1.1; }
 .brand-title { font-size: 15px; font-weight: 700; color: #1f2937; }

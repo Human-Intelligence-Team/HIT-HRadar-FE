@@ -4,8 +4,8 @@
     <div class="brand-section">
       <div class="brand-content">
         <div class="brand-logo" @click="goHome">
-          <div class="logo-mark"></div>
-          <span class="logo-text">HIT : SIGNAL</span>
+          <BrandLogo size="34" class="logo-mark" />
+          <span class="logo-text">HRADAR</span>
         </div>
         <h1 class="brand-slogan">
           Data-driven<br />
@@ -18,7 +18,7 @@
         </p>
       </div>
       <div class="brand-footer">
-        © 2025 HIT : SIGNAL Inc.
+        © 2025 HRADAR Inc.
       </div>
     </div>
 
@@ -37,6 +37,7 @@
 <script setup>
 import { useRouter } from 'vue-router'
 import CompanyApplyForm from '@/components/auth/CompanyApplyForm.vue'
+import BrandLogo from '@/components/common/BrandLogo.vue'
 
 const router = useRouter()
 
@@ -139,10 +140,7 @@ const goHome = () => {
 .brand-logo:hover { opacity: 0.8; }
 
 .logo-mark {
-  width: 24px;
-  height: 24px;
-  background: #3b82f6;
-  border-radius: 6px;
+  margin-right: 8px;
 }
 .logo-text {
   font-size: 1.25rem;
