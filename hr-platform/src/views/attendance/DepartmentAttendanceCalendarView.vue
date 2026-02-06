@@ -81,7 +81,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue';
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import { useAuthStore } from '@/stores/authStore';
 import FullCalendar from '@fullcalendar/vue3';
 import dayGridPlugin from '@fullcalendar/daygrid';
@@ -90,6 +90,7 @@ import bootstrap5Plugin from '@fullcalendar/bootstrap5';
 import { fetchAttendanceCalendar } from '@/api/attendanceApi';
 import AttendanceDetailModal from '@/components/attendance/AttendanceDetailModal.vue';
 import { getAllDepartmentsByCompany, getDepartmentMembers } from '@/api/departmentApi';
+import { connectSSE, disconnectSSE } from '@/api/notificationSse';
 
 // const auth = useAuthStore(); // Unused top-level assignment
 
@@ -283,8 +284,9 @@ const fetchCalendarEvents = async (startDate, endDate) => {
         let title = record.empName; 
         if (status === '퇴근') {
             title += ` (퇴근)`;
-        } else if (record.workType && record.workType !== '내근' && record.workType !== 'WORK') {
-            title += ` (${mapWorkType(record.workType)})`;
+        } else if (status !== '미출근' && status !== '휴가') {
+            const typeLabel = (record.workType === 'WORK' || !record.workType || record.workType === '내근') ? '내근' : mapWorkType(record.workType);
+            title += ` (${typeLabel})`;
         }
         events.push({
           id: `dept-${record.empId}-${date}`,
@@ -313,8 +315,21 @@ const fetchCalendarEvents = async (startDate, endDate) => {
   }
 };
 
+// Real-time update via SSE
+const onNotification = (data) => {
+  if (data.type === 'ATTENDANCE_CHANGED') {
+    console.log('Real-time attendance update received:', data);
+    handleSearch(); // Refresh calendar data
+  }
+};
+
 onMounted(() => {
   fetchDepartments();
+  connectSSE(onNotification);
+});
+
+onUnmounted(() => {
+  disconnectSSE(onNotification);
 });
 
 watch(selectedDepartmentId, (newId) => {
@@ -333,7 +348,7 @@ watch(selectedDepartmentId, (newId) => {
 });
 
 const mapWorkType = (type) => {
-    if (!type || type === '-') return '-';
+    if (!type || type === '-' || type === 'WORK') return '내근';
     const mapper = {
         'WORK': '내근',
         'REMOTE': '재택',

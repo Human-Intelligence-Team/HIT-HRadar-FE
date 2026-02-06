@@ -136,7 +136,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue';
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import { useAuthStore } from '@/stores/authStore';
 import FullCalendar from '@fullcalendar/vue3';
 import dayGridPlugin from '@fullcalendar/daygrid';
@@ -148,6 +148,7 @@ import {
   fetchMyTodayAttendance,
   fetchAttendanceCalendar
 } from '@/api/attendanceApi';
+import { connectSSE, disconnectSSE } from '@/api/notificationSse';
 
 /* =====================
    기본 상태 & Auth
@@ -228,7 +229,7 @@ const extractTime = (v) => {
 };
 
 const mapWorkType = (type) => {
-    if (!type || type === '-') return '-';
+    if (!type || type === '-' || type === 'WORK') return '내근';
     const mapper = {
         'WORK': '내근',
         'REMOTE': '재택',
@@ -250,6 +251,12 @@ const mapLocation = (loc) => {
     };
     return mapper[loc] || loc;
 };
+
+/* =====================
+   FullCalendar 옵션
+===================== */
+const currentFromDate = ref(null);
+const currentToDate = ref(null);
 
 /* =====================
    FullCalendar 옵션
@@ -278,8 +285,12 @@ const calendarOptions = ref({
     isModalOpen.value = true;
   },
   datesSet: async (dateInfo) => {
+    // Store Date Range for manual refresh
+    currentFromDate.value = dateInfo.startStr.substring(0, 10);
+    currentToDate.value = dateInfo.endStr.substring(0, 10);
+
     if (departmentId.value) {
-       await fetchCalendarData(dateInfo.startStr.substring(0, 10), dateInfo.endStr.substring(0, 10));
+       await fetchCalendarData(currentFromDate.value, currentToDate.value);
     }
   }
 });
@@ -451,8 +462,10 @@ const fetchCalendarData = async (startDate, endDate) => {
         
         if (status === '퇴근') {
             title += ` (퇴근)`;
-        } else if (record.workType && record.workType !== '내근' && record.workType !== 'WORK') { 
-             title += ` (${mapWorkType(record.workType)})`;
+        } else if (status !== '미출근' && status !== '휴가') {
+            // 출근 중인 경우 (재택, 외근 외 일반 출근은 내근으로 표시)
+            const typeLabel = (record.workType === 'WORK' || !record.workType || record.workType === '내근') ? '내근' : mapWorkType(record.workType);
+            title += ` (${typeLabel})`;
         }
     
         // Calculate duration if available
@@ -494,37 +507,21 @@ const fetchCalendarData = async (startDate, endDate) => {
    출퇴근 액션
 ===================== */
 const handleClockIn = async () => {
-  if (clockInInfo.value) return; // 이미 출근 상태면 무시
+  if (clockInInfo.value) return; 
   await clockInOut();
 };
 
 const handleClockOut = async () => {
-    if (!clockInInfo.value) return; // 출근 상태 아니면 무시
-    await clockInOut();
+  if (!clockInInfo.value) return; 
+  await clockInOut();
 };
 
-const clockInOut = async () => {
-  loading.value.myStatus = true;
-  try {
-    const response = await processAttendance();
-    const data = response.data?.data || response.data;
 
-    // Refresh Status
-    if (data.attendanceStatusType === 'CHECK_IN') {
-       // Just checked in
-       // Fetch again to ensure sync or update locally
-       await fetchMyStatus(false);
-    } else {
-       // Checked out
-       await fetchMyStatus(false);
+const refreshCalendar = async () => {
+    if (departmentId.value && currentFromDate.value && currentToDate.value) {
+        await fetchCalendarData(currentFromDate.value, currentToDate.value);
     }
-  } catch (e) {
-    alert(e.response?.data?.message || '처리 중 오류가 발생했습니다.');
-  } finally {
-    loading.value.myStatus = false;
-  }
 };
-
 
 /* =====================
    라이프사이클
@@ -532,12 +529,51 @@ const clockInOut = async () => {
 watch([employeeId, departmentId], ([newEmp, newDept]) => {
   if (newEmp && newDept) {
     fetchMyStatus(true);
+    // [FIX] Trigger calendar refresh as soon as we have IDs
+    refreshCalendar();
   }
 }, { immediate: true });
 
+// Real-time update via SSE
+const onNotification = (data) => {
+  if (data.type === 'ATTENDANCE_CHANGED') {
+    console.log('Real-time attendance update received:', data);
+    
+    // Refresh current user's status
+    fetchMyStatus(false);
+    
+    // Refresh calendar
+    refreshCalendar();
+  }
+};
+
 onMounted(() => {
-  /* No special timer needed unless we want real-time clock updating visible */
+  connectSSE(onNotification);
 });
+
+onUnmounted(() => {
+  disconnectSSE(onNotification);
+});
+
+// [FIX] Call refetchEvents after clock-in/out
+const clockInOut = async () => {
+  loading.value.myStatus = true;
+  try {
+    const response = await processAttendance();
+    const data = response.data?.data || response.data;
+
+    // Refresh Status
+    await fetchMyStatus(false);
+    
+    // [FIX] Refresh calendar immediately after action
+    await refreshCalendar();
+
+  } catch (e) {
+    alert(e.response?.data?.message || '처리 중 오류가 발생했습니다.');
+  } finally {
+    loading.value.myStatus = false;
+  }
+};
 </script>
 
 

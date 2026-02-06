@@ -31,9 +31,11 @@ watch(
       // 로그인 상태로 변경되었을 때만 실행
       try {
         await notificationStore.load()
-        connectSSE((data) => {
+
+        const onMessage = (data) => {
           notificationStore.push(data)
-        })
+        }
+        connectSSE(onMessage)
       } catch (error) {
         console.error('Failed to setup notifications:', error)
       }
