@@ -1,22 +1,124 @@
 <script setup>
 import { useRouter } from 'vue-router'
 import TagModalView from '@/views/contents/tag/TagModalView.vue'
-import { ref } from 'vue'
+import { onMounted, reactive, ref } from 'vue'
+import { fetchCustomCodes } from '@/api/contentsCustomCodeApi.js'
+import { fetchContents } from '@/api/contentApi.js'
+const submitting = ref(false)
+const errorMessage = ref('')
+const isTagModalOpen = ref(false)
+const router = useRouter()
 
-const isTagModalOpen = ref(false);
-const router = useRouter();
+const levels = ref([])
+const types = ref([])
+const contents = ref([])
+const searchData = reactive({
+  title: '',
+  type: '',
+  level: '',
+  learningTime: '',
+  tag: '',
+  isDeleted: 'N',
+})
+
+// 콘텐츠 등록
 const goCreatePage = () => {
-  router.push({ path:'/all/contents/create'});
+  router.push({
+    path: '/all/contents/create',
+    query: {
+      type: 'edit',
+    }
+  })
 }
 
+// 상세 페이지
 const goDetailPage = (contentId) => {
-  router.push(`/all/contents/detail/${contentId}`);
+  router.push(`/all/contents/detail/${contentId}`)
 }
 
+// 태그 관리 모달
 const isModalOpen = () => {
-  isTagModalOpen.value = !isTagModalOpen.value;
+  isTagModalOpen.value = !isTagModalOpen.value
 }
 
+// 유형 난이도 관리
+const goCustomCodePage = () => {
+  router.push({ path: '/all/contents/customCode' })
+}
+
+// 유형/ 난이도 list 가져오기
+const getCustomCodeList = async () => {
+  // validation
+  submitting.value = true
+
+  try {
+    let result = await fetchCustomCodes()
+    let data = result.data
+
+    if (data.success) {
+      console.log("dddddd --" )
+      types.value = data.data.typeCodes
+      levels.value = data.data.levelCodes
+    }
+  } catch (e) {
+    console.log(e)
+    errorMessage.value = e.message || '태그 조회 중 오류가 발생했습니다.'
+    alert(errorMessage.value)
+  } finally {
+    submitting.value = false
+  }
+}
+
+// 초기화
+function resetSearch() {
+  searchData.title = ''
+  searchData.type = ''
+  searchData.level = ''
+  searchData.learningTime = ''
+  searchData.isDeleted = ''
+  searchData.tag = ''
+}
+
+// 검색
+const searchContent = async (params) => {
+  submitting.value = true
+
+  try {
+    const result = await fetchContents(params)
+    const data = result.data
+
+    console.log("contents: " +data.data.contents)
+    if (data.success) {
+      // 저장
+      contents.value = data.data.contents
+    }
+  } catch (e) {
+    errorMessage.value = e.message || '컨텐츠 조회 중 오류 발생'
+    alert(errorMessage.value)
+  } finally {
+    submitting.value = false
+  }
+}
+
+// 검색
+function searchBtn() {
+  let payload = {
+    title: searchData.title,
+    type: searchData.type,
+    level: searchData.level,
+    learningTime: searchData.learningTime,
+    isDeleted: searchData.isDeleted,
+    tag: searchData.tag,
+  }
+
+  // 검색
+ searchContent(payload)
+}
+
+onMounted(() => {
+  getCustomCodeList()
+  searchBtn()
+})
 </script>
 
 <template>
@@ -27,47 +129,49 @@ const isModalOpen = () => {
       <div class="card-head">
         <div class="search-section">
           <span class="label">컨텐츠 명</span>
-          <input class="input"/>
+          <input class="input" type="text" placeholder="컨텐츠 명" v-model="searchData.title" />
         </div>
 
         <div class="search-section">
           <div class="label">유형</div>
-          <select class="select">
+          <select class="select" v-model="searchData.type">
             <option value="">전체</option>
+            <option v-for="type in types" :key="type.customCodeId" :value="type.customCodeId">
+              {{ type.customName }}
+            </option>
           </select>
         </div>
 
         <div class="search-section">
           <div class="label">난이도</div>
-          <select class="select">
+          <select class="select" v-model="searchData.level">
             <option value="">전체</option>
+            <option v-for="level in levels" :key="level.customCodeId" :value="level.customCodeId">
+              {{ level.customName }}
+            </option>
           </select>
         </div>
 
         <div class="search-btn">
-          <button class="btn reset">초기화</button>
-          <button class="btn primary search">검색</button>
+          <button class="btn reset" @click="resetSearch()">초기화</button>
+          <button class="btn primary search" @click="searchBtn">검색</button>
         </div>
-
       </div>
       <div class="card-head">
         <div class="search-section">
           <div class="label">학습시간</div>
-          <select class="select">
+          <select class="select" v-model="searchData.learningTime">
             <option value="">전체</option>
+            <option value="30">30분</option>
+            <option value="60">60분</option>
+            <option value="90">90분</option>
+            <option value="120">120분</option>
           </select>
         </div>
 
         <div class="search-section">
           <div class="label">태그</div>
-          <input class="input" type="text"/>
-        </div>
-
-        <div class="search-section">
-          <div class="label">사용여부</div>
-          <select class="select">
-            <option value="">전체</option>
-          </select>
+          <input class="input" type="text" v-model="searchData.tag" />
         </div>
 
       </div>
@@ -75,41 +179,50 @@ const isModalOpen = () => {
   </div>
 
   <div class="grid">
-      <div class="card">
+    <div class="card">
+      <div class="section-tag">
+        <button class="btn primary" type="button" @click="goCustomCodePage">
+          유형/난이도 관리
+        </button>
+        <button class="btn primary" type="button" @click="isModalOpen">태그 관리</button>
+      </div>
 
-        <div class="section-tag">
-          <button class="btn primary" type="button" @click="isModalOpen">태그 관리</button>
-        </div>
-
-        <div class="card-bd">
+      <div class="card-bd">
         <table class="table">
           <thead class="tbl-hd">
-          <tr>
-            <th style="width:30%;">콘텐츠 명</th>
-            <th style="width:10%;">유형</th>
-            <th style ="width:10%;">난이도</th>
-            <th style="width:10%;">학습시간</th>
-            <th style="width:30%;">태그</th>
-            <th style="width:10%;">사용여부</th>
-          </tr>
+            <tr>
+              <th style="width: 30%">콘텐츠 명</th>
+              <th style="width: 30%">유형</th>
+              <th style="width: 10%">난이도</th>
+              <th style="width: 10%">학습시간</th>
+              <th style="width: 30%">태그</th>
+            </tr>
           </thead>
-          <tbody class="tbl-bd">
-          <tr @click="goDetailPage(1)">
-            <td >영업을 위한 학습 컨텐츠</td>
-            <td>도서</td>
-            <td>하</td>
-            <td>3시간</td>
-            <td>#영업, #신입 </td>
-            <td>Y</td>
-          </tr>
-          <tr @click="goDetailPage(1)">
-            <td>영업을 위한 학습 컨텐츠</td>
-            <td>도서</td>
-            <td>하</td>
-            <td>3시간</td>
-            <td>#영업, #신입 </td>
-            <td>Y</td>
-          </tr>
+          <tbody
+            class="tbl-bd"
+            v-for="item in contents"
+            :key="item.contentId"
+            :value="item.contentId"
+          >
+            <tr>
+              <td  @click="goDetailPage(item.contentId)">
+                {{ item.title }}
+              </td>
+              <td>{{ item.typeName }}</td>
+              <td>{{ item.levelName }}</td>
+              <td>{{ item.learningTime }}</td>
+              <td>
+                <div class="tag-container">
+                  <span
+                    v-for="tag in item.tags"
+                    :key="tag.tagId || tag.id"
+                    class="tag-item"
+                  >
+                    #{{ tag.tagName }}
+                  </span>
+                </div>
+              </td>
+            </tr>
           </tbody>
         </table>
       </div>
@@ -120,14 +233,11 @@ const isModalOpen = () => {
     <button class="btn primary" @click="goCreatePage()" type="button">등록</button>
   </div>
 
-  <TagModalView
-    v-if="isTagModalOpen"
-    @close="isModalOpen"
-  />
+  <TagModalView v-if="isTagModalOpen" @close="isModalOpen" />
 </template>
 
 <style scoped>
-@import "@/assets/styles/searchBox.css";
+@import '@/assets/styles/searchBox.css';
 
 .section-btn {
   display: flex;
@@ -139,7 +249,6 @@ const isModalOpen = () => {
   display: flex;
   justify-content: flex-end;
   padding: 15px;
-
+  gap: 10px;
 }
-
 </style>
