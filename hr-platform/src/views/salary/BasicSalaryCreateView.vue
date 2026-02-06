@@ -4,8 +4,16 @@ import { useRoute, useRouter } from 'vue-router'
 import EmployeeSelectModal from '@/views/salary/basicSalary/modal/EmployeeSelectModal.vue'
 import { getToday, getYear, BASIC_OPTIONS, COMPENSATION_OPTIONS } from '@/views/salary/js/common.js'
 import { createSalaryApprover } from '@/api/salaryApi.js'
+import { useAuthStore } from '@/stores/authStore.js'
+import { storeToRefs } from 'pinia'
 const router = useRouter()
 const route = useRoute()
+
+const authStore = useAuthStore();
+const { user} = storeToRefs(authStore);
+
+
+
 // 화면
 const pageName = ref('')
 const type = route.query.type // 화면 타입 basic/compensation
@@ -31,9 +39,9 @@ const basicData = reactive({
 })
 
 const employeeData = reactive({
-  name : ''
-  , deptName : ''
-  , positionName : ''
+  name : user.value.name
+  , deptName :user.value.department
+  , positionName : user.value.jobTitle
 })
 
 // 태그 관리 모달
@@ -329,15 +337,15 @@ onMounted(() => {
       <table class="table">
         <tr>
           <th>이름</th>
-          <td></td>
+          <td>{{employeeData.name}}</td>
           <th>결재일</th>
           <td>{{ getToday() }}</td>
         </tr>
         <tr>
           <th>부서</th>
-          <td></td>
+          <td>{{employeeData.deptName}}</td>
           <th>직급</th>
-          <td></td>
+          <td>{{employeeData.positionName}}</td>
         </tr>
       </table>
     </div>
@@ -508,6 +516,7 @@ onMounted(() => {
 
 <style scoped>
 @import '@/views/contents/style/tableCss.css';
+@import '@/views/salary/style/badge.css';
 
 .card-section {
   padding-top: 20px;

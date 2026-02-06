@@ -286,8 +286,6 @@ onMounted(() => {
               </th>
               <th style="width: 30%">코드</th>
               <th style="width: 30%">코드명</th>
-              <th style="width: 10%">등록일</th>
-              <th style="width: 10%">수정일</th>
               <th style="width: 10%"></th>
             </tr>
           </thead>
@@ -326,18 +324,6 @@ onMounted(() => {
                   placeholder="코드명 입력"
                 />
                 <span v-else>{{ code.customName }}</span>
-              </td>
-
-              <!-- 등록일 -->
-              <td>
-                <span v-if="code.isNew"></span>
-                <span v-else>{{ code.createdAt }}</span>
-              </td>
-
-              <!-- 수정일 -->
-              <td>
-                <span v-if="code.isNew"></span>
-                <span v-else>{{ code.updatedAt }}</span>
               </td>
               <td>
                 <button v-if="code.isNew" class="btn" type="button" @click="codeValid(code)">

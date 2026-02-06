@@ -245,7 +245,7 @@ onMounted(() => {
           :key="item.docId"
           :value="item.docId"
         >
-          <td>{{item.employmentType}}</td>
+          <td>{{ getLabel(LEAVE_STATUS_OPTIONS, item.employmentType) }}</td>
           <td>{{item.deptName}}</td>
           <td @click="goDetailPage(item.empId)">{{item.positionName}}</td>
           <td>{{item.employeeNo}}</td>

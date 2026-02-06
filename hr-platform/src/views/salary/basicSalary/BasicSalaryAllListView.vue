@@ -6,7 +6,7 @@ import {
   APPROVAL_OPTIONS,
   BASIC_OPTIONS,
   formatComma,
-  getDateFormatter,
+  getDateFormatter, getLabel,
   getToday,
   getYear,
 } from '@/views/salary/js/common.js'
@@ -18,6 +18,7 @@ const submitting = ref(false)
 const errorMessage = ref('')
 const router = useRouter()
 
+const currentYear = getYear()
 const year = ref(getYear())
 const years = ref([])
 const basic = ref([])
@@ -166,7 +167,12 @@ onMounted(() => {
           <span class="sub-title">{{ dateData.startDate }} ~ {{ dateData.endDate }}</span>
         </div>
         <div>
-          <button class="btn primary" @click="goBasicCreate()">등록하기</button>
+          <button class="btn primary"
+                  @click="goBasicCreate()"
+                  v-if="currentYear === year"
+          >
+            등록하기
+          </button>
         </div>
       </div>
 
@@ -212,10 +218,8 @@ onMounted(() => {
               <td>{{ formatComma(item.totalSalary) }}</td>
               <td>{{ item.empCount }}</td>
               <td>
-                <span v-for="type in APPROVAL_OPTIONS" :key="type.value">
-                  <template v-if="type.value === item.approvalStatus">
-                    {{ type.label }}
-                  </template>
+                <span :class="['status-badge', item.approvalStatus]">
+                  {{ getLabel(APPROVAL_OPTIONS, item.approvalStatus) }}
                 </span>
               </td>
               <td>{{ item.approvedAt }}</td>
@@ -230,6 +234,7 @@ onMounted(() => {
 
 <style scoped>
 @import '@/views/salary/style/salary.css';
+@import '@/views/salary/style/badge.css';
 
 .card {
   margin-top: 10px;

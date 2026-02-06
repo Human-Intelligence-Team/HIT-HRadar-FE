@@ -4,8 +4,10 @@ import { onMounted, reactive, ref } from 'vue'
 import { fetchCompensationSalaries, fetchCompensationSalarySummary } from '@/api/salaryApi.js'
 import {
   APPROVAL_OPTIONS,
-  COMPENSATION_OPTIONS, formatComma,
+  COMPENSATION_OPTIONS,
+  formatComma,
   getDateFormatter,
+  getLabel,
   getToday,
 } from '@/views/salary/js/common.js'
 const submitting = ref(false)
@@ -107,8 +109,9 @@ const goDetailPage = (docId) => {
       <div class="dashboard-box-header">
         <div class="dashboard-box-title">
           <span class="title">2026년 변동보상 관리</span>
-          <span class="sub-title"
-            > formatComma({{ compensationSummary.startDate }} ~ {{ compensationSummary.endDate }}</span
+          <span class="sub-title">
+            formatComma({{ compensationSummary.startDate }} ~
+            {{ compensationSummary.endDate }}</span
           >
         </div>
         <div>
@@ -119,26 +122,37 @@ const goDetailPage = (docId) => {
       <div class="dashboard-box-body">
         <div class="amount-box">
           <span class="title">총 금액</span>
-          <span class="content-font">{{ formatComma(compensationSummary.totalBonus
-            + compensationSummary.totalIncentive + compensationSummary.totalPerformance
-          + compensationSummary.totalAllowance , '원')
-            }}</span>
+          <span class="content-font">{{
+            formatComma(
+              compensationSummary.totalBonus +
+                compensationSummary.totalIncentive +
+                compensationSummary.totalPerformance +
+                compensationSummary.totalAllowance,
+              '원',
+            )
+          }}</span>
         </div>
         <div class="compensation-box">
           <span class="title">총 상여금</span>
-          <span class="content-font">{{ formatComma(compensationSummary.totalBonus, '원')}}</span>
+          <span class="content-font">{{ formatComma(compensationSummary.totalBonus, '원') }}</span>
         </div>
         <div class="compensation-box">
           <span class="title">총 인센티브</span>
-          <span class="content-font">{{formatComma(compensationSummary.totalIncentive, '원')}}</span>
+          <span class="content-font">{{
+            formatComma(compensationSummary.totalIncentive, '원')
+          }}</span>
         </div>
         <div class="compensation-box">
           <span class="title">총 성과금</span>
-          <span class="content-font">{{formatComma(compensationSummary.totalPerformance, '원')}}</span>
+          <span class="content-font">{{
+            formatComma(compensationSummary.totalPerformance, '원')
+          }}</span>
         </div>
         <div class="compensation-box">
           <span class="title">기타수당</span>
-          <span class="content-font">{{formatComma(compensationSummary.totalAllowance, '원')}}</span>
+          <span class="content-font">{{
+            formatComma(compensationSummary.totalAllowance, '원')
+          }}</span>
         </div>
       </div>
     </div>
@@ -173,11 +187,9 @@ const goDetailPage = (docId) => {
             <td>{{ formatComma(item.totalSalary) }}</td>
             <td>{{ item.empCount }}</td>
             <td>
-              <span v-for="type in APPROVAL_OPTIONS" :key="type.value">
-                <template v-if="type.value === item.approvalStatus">
-                  {{ type.label }}
-                </template>
-              </span>
+                <span :class="['status-badge', item.approvalStatus]">
+                  {{ getLabel(APPROVAL_OPTIONS, item.approvalStatus) }}
+                </span>
             </td>
             <td>{{ item.remark }}</td>
             <td>{{ item.approvedAt }}</td>
@@ -191,7 +203,7 @@ const goDetailPage = (docId) => {
 
 <style scoped>
 @import '@/views/salary/style/salary.css';
-
+@import '@/views/salary/style/badge.css';
 .card {
   margin-top: 10px;
   padding: 20px;

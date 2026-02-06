@@ -232,7 +232,7 @@ onMounted(() => {
         </thead>
         <tbody class="tbl-bd">
           <tr v-for="item in salaries" :key="item.docId">
-            <td>{{ item.employmentType }}</td>
+            <td>{{ getLabel(LEAVE_STATUS_OPTIONS, item.employmentType) }}</td>
             <td>{{ item.deptName }}</td>
             <td>{{ item.positionName }}</td>
             <td>{{ item.employeeNo }}</td>

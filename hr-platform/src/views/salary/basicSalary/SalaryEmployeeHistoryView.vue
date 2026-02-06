@@ -239,7 +239,11 @@ onMounted(() => {
                 <td>{{ item.title }}</td>
                 <td>{{ getLabel(COMPENSATION_OPTIONS, item.type) }}</td>
                 <td>{{ item.remark }}</td>
-                <td>{{ getLabel(APPROVAL_OPTIONS, item.approvalStatus) }}</td>
+                <td>
+                  <span :class="['status-badge', item.approvalStatus]">
+                    {{ getLabel(APPROVAL_OPTIONS, item.approvalStatus) }}
+                  </span>
+                </td>
                 <td>{{ item.approvedAt }}</td>
                 <td>{{ formatComma(item.amount) }}</td>
                 <td>{{ item.rate ?? 0 }}</td>
@@ -255,7 +259,7 @@ onMounted(() => {
 <style scoped>
 @import '@/views/contents/style/tableCss.css';
 @import '@/views/salary/style/salaryTable.css';
-
+@import '@/views/salary/style/badge.css';
 .card {
   padding: 15px;
   margin-bottom: 15px;
