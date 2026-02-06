@@ -177,7 +177,7 @@
           {{ goal.type === 'KPI' ? 'KPI 상세' : 'OKR 상세' }}
 
           <button
-            v-if="selectedItem && goal.approveStatus === 'APPROVED' "
+            v-if="selectedItem && goal.approveStatus === 'APPROVED' && isOwner"
             class="btn-record"
             @click="openModal"
           >
@@ -518,11 +518,7 @@ const isFromTeamOwner = computed(() => route.query.from === 'teamOwner')
 const canDecide = computed(() => isFromTeamOwner.value && goal.value.approveStatus === 'SUBMITTED')
 
 const goBack = () => {
-  if (window.history.length > 1) {
-    router.back()
-  } else {
-    router.push('/goal')
-  }
+  router.push('/goal')
 }
 const goal = ref({})
 const items = ref([])

@@ -321,12 +321,12 @@ router.beforeEach((to, from) => {
   }
 
   // 2. Logged in as ADMIN -> Only Admin pages or landing
-  if (auth.isAdmin) {
+/*  if (auth.isAdmin) {
     const isAdminPath = to.path.startsWith('/admin')
     if (!isAdminPath && !isPublic) {
       return auth.firstAccessiblePath() || '/admin/company-applications'
     }
-  }
+  }*/
 
   // 3. Logged in as USER -> No Admin pages & Check Permissions
   if (!auth.isAdmin) {

@@ -84,11 +84,9 @@
             type="checkbox"
             :value="m.empId"
             v-model="evaluateeIds"
-            :disabled="
-              m.empId === evaluatorId ||
-              isAlreadyAssigned(m.empId)
-            "
+            :disabled="isAlreadyAssigned(m.empId)"
           />
+
           <span>
             {{ m.name }} ({{ m.positionName }})
             <small v-if="isAlreadyAssigned(m.empId)">
@@ -109,7 +107,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch, computed } from 'vue'
 import { useRouter } from 'vue-router'
 
 import { fetchCycles } from '@/api/cycleApi'
@@ -120,7 +118,7 @@ import {
 } from '@/api/departmentApi'
 import {
   createEvaluationAssignments,
-  fetchDeptEvaluationAssignmentDetails
+  fetchAssignmentsByCycleEvalType
 } from '@/api/evaluationAssignmentApi'
 
 // ================= router =================
@@ -154,7 +152,9 @@ onMounted(async () => {
 // ================= handlers =================
 const onCycleChange = async () => {
   selectedCycleEvalTypeId.value = ''
+  selectedDeptId.value = ''
   evalTypes.value = []
+  assignments.value = []
 
   if (!selectedCycleId.value) return
 
@@ -162,25 +162,59 @@ const onCycleChange = async () => {
     (await fetchCycleEvaluationTypes(selectedCycleId.value)).data.data
 }
 
-const loadDeptData = async () => {
+// ================= members =================
+const loadMembers = async () => {
   evaluatorId.value = null
   evaluateeIds.value = []
 
-  if (!selectedDeptId.value) return
+  if (!selectedDeptId.value) {
+    members.value = []
+    return
+  }
 
   members.value =
     (await getDepartmentMembers(selectedDeptId.value)).data.data.employees
-
-  assignments.value =
-    (await fetchDeptEvaluationAssignmentDetails(selectedDeptId.value)).data.data
 }
 
+// ================= assignments =================
+const loadAssignments = async () => {
+  if (!selectedCycleEvalTypeId.value) {
+    assignments.value = []
+    return
+  }
+
+  assignments.value =
+    (await fetchAssignmentsByCycleEvalType(
+      selectedCycleEvalTypeId.value
+    )).data.data
+}
+
+// 👉 평가유형 / 부서 바뀔 때마다 다시 조회
+watch(
+  [selectedCycleEvalTypeId, selectedDeptId],
+  async ([cycleEvalTypeId, deptId]) => {
+    if (!cycleEvalTypeId || !deptId) {
+      assignments.value = []
+      return
+    }
+
+    await loadMembers()
+    await loadAssignments()
+  }
+)
+
 // ================= utils =================
+
+// 현재 부서에 해당하는 배정만 필터
+const deptAssignments = computed(() =>
+  assignments.value.filter(
+    a => a.deptId === Number(selectedDeptId.value)
+  )
+)
+
 const isAlreadyAssigned = (empId) => {
-  return assignments.value.some(
-    a =>
-      a.evaluateeId === empId &&
-      a.cycleId === Number(selectedCycleId.value)
+  return deptAssignments.value.some(
+    a => a.evaluateeId === empId
   )
 }
 
@@ -196,6 +230,9 @@ const submitAssignments = async () => {
 
   alert('평가 배정 완료')
   evaluateeIds.value = []
+
+  // 저장 후 배정 다시 로드
+  await loadAssignments()
 }
 </script>
 
