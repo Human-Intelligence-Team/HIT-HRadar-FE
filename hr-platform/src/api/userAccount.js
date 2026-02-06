@@ -22,12 +22,16 @@ export function fetchAdminLoginId(accId) {
 
 // 비밀번호 변경
 export function changeMyPassword(data) {
-    return api.patch('/api/v1/users/me/password', data)
+  return api.patch('/api/v1/users/me/password', data)
 }
 
 // 사용자 정보 수정
 export function updateUserAccount(accId, data) {
-    return api.patch(`/api/v1/users/${accId}`, data)
+  return api.patch(`/api/v1/users/${accId}`, data)
 }
 
+// 비밀번호 초기화 (계정 ID 기반)
+export function resetUserPassword(accId) {
+  return api.patch(`/api/v1/users/${accId}/reset-password`)
+}
 

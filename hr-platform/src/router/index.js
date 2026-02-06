@@ -1,6 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
-import { permissionConfig } from '@/router/permissionConfig'
 import PolicyView from '@/views/policy/PolicyView.vue'
 import PolicyDetailView from '@/views/policy/PolicyDetailView.vue'
 import NoticeView from '@/views/notice/NoticeView.vue'
@@ -93,7 +92,10 @@ const routes = [
 
   {
     path: '/register-company',
-    component: CompanyRegisterView,
+    component: AuthLayout,
+    children: [
+      { path: '', component: CompanyRegisterView }
+    ],
   },
 
   {
@@ -118,7 +120,7 @@ const routes = [
     children: [
       { path: 'company-applications', component: AdminComAppList },
       { path: 'user-accounts', component: AdminUserAccountList },
-      { path: 'approval-document-types', component: ApprovalDocumentTypeManagementView, meta: { requiresAdmin: true } },
+      { path: 'approval-document-types', component: ApprovalDocumentTypeManagementView },
       { path: 'permissions', component: () => import('@/views/admin/PermissionRegistryView.vue') },
     ]
   },
@@ -126,7 +128,7 @@ const routes = [
   {
     path: '/', component: AppLayout,
     children: [
-      { path: '', redirect: '/policy' },
+      { path: '', redirect: '/my-profile' },
       { path: 'policy', component: PolicyView },
       { path: 'notice', name: 'notice-list', component: NoticeListView, meta: { permission: 'NOTICE_READ' } },
       { path: 'notice/create', name: 'notice-create', component: NoticeCreateView, meta: { permission: 'NOTICE_MANAGE' } },
@@ -263,10 +265,10 @@ const routes = [
       { path: '/my/dashboard', component: MyDashboard },
       { path: '/hr/dashboard', component: EmpDashboard },
 
-
       {
         path: 'approval',
         children: [
+          { path: 'approval-document-types', component: ApprovalDocumentTypeManagementView },
           { path: 'create', component: () => import('@/views/approval/ApprovalCreateView.vue') },
           { path: 'my-documents', component: () => import('@/views/approval/ApprovalMyListView.vue') },
           { path: 'all-documents', component: () => import('@/views/approval/ApprovalAllListView.vue') },
@@ -316,10 +318,12 @@ router.beforeEach((to, from) => {
   const publicPaths = ['/home', '/register-company', '/gateway']
   const isPublic = publicPaths.includes(to.path)
 
-  // 1. Not logged in -> Redirect to gateway (unless public)
+  // 1. Not logged in -> Redirect appropriately (unless public)
+  // 참고: authStore.loadFromStorage()에서 이미 토큰 유효성 검증을 수행함
+  // 만료된 토큰은 자동으로 제거되므로 isLoggedIn은 유효한 토큰이 있을 때만 true
   if (!auth.isLoggedIn) {
     if (to.path === '/') {
-      return '/home'
+      return '/home'  // 첫 방문자 → /home (랜딩 페이지)
     }
     if (!isPublic) {
       return { path: '/gateway', query: { redirect: to.fullPath } }
@@ -329,16 +333,18 @@ router.beforeEach((to, from) => {
 
   // 2. Redirect away from public landing pages if already logged in
   if (isPublic) {
-    return auth.firstAccessiblePath() || '/policy'
+    return auth.firstAccessiblePath()
   }
 
-  // 3. Check Permissions (permissionConfig)
+  // 3. Dynamic Permission Check (from Backend DB)
   let requiredPerm = null
+
   // Check from specific to general (child to parent)
   for (let i = to.matched.length - 1; i >= 0; i--) {
     const path = to.matched[i].path
-    if (permissionConfig[path]) {
-      requiredPerm = permissionConfig[path]
+    // 동적 매핑: auth.permissionMappings = { '/notice': 'NOTICE_READ', ... }
+    if (auth.permissionMappings[path]) {
+      requiredPerm = auth.permissionMappings[path]
       break
     }
   }
@@ -346,7 +352,7 @@ router.beforeEach((to, from) => {
   if (requiredPerm && !auth.hasPermission(requiredPerm)) {
     alert('해당 메뉴에 대한 접근 권한이 없습니다.')
     // If direct load (!from.matched.length), redirect. Otherwise stay (cancel).
-    return from.matched.length > 0 ? false : (auth.firstAccessiblePath() || '/policy')
+    return from.matched.length > 0 ? false : auth.firstAccessiblePath()
   }
 })
 

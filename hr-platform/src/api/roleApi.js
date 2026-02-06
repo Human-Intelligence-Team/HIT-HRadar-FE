@@ -20,7 +20,12 @@ export function deleteRole(roleId) {
     return axios.delete(`/api/v1/roles/${roleId}`);
 }
 
-// 현재 사용자의 권한 목록 조회
+// 현재 사용자의 권한 목록 조회 (키값 리스트)
 export function getMyPermissionsApi() {
     return axios.get('/api/v1/roles/my-permissions');
+}
+
+// 시스템 전체 권한 및 경로 매핑 정보 조회 (PermissionResponse 리스트)
+export function getPermissionMappingsApi() {
+    return axios.get('/api/v1/roles/permissions');
 }

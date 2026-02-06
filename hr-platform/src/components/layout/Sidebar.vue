@@ -3,7 +3,7 @@
   <aside class="sidebar" @mouseleave="hideFlyout" @mouseenter="cancelHide">
     <nav class="nav">
       <template v-for="(section, sIdx) in menuConfig" :key="sIdx">
-        <div class="section-title" v-if="!section.hidden">{{ section.title }}</div>
+        <div class="section-title" v-if="!section.hidden && section.items.length > 0">{{ section.title }}</div>
 
         <template v-for="(item, iIdx) in section.items" :key="iIdx">
           <!-- Item with Flyout -->
@@ -62,175 +62,230 @@ import { useAuthStore } from '@/stores/authStore'
 
 const auth = useAuthStore()
 
-// --- Menu Configuration ---
-const menuConfig = computed(() => [
-  {
-    title: '인사 관리',
-    items: [
-      {
-        text: '사원 · 부서 관리',
-        children: [
-          { text: '사원 관리 (목록)', to: '/employee' },
-          { text: '사원 목록 조회', to: '/personnel/employees/list' },
-          { text: '부서 관리 (목록)', to: '/organization' },
-          { text: '조직도', to: '/department/org-chart' },
-          { text: '부서 정책 관리', to: '/department/manage' },
-          { text: '직위 관리', to: '/personnel/positions' },
-          { text: '직위 목록 조회', to: '/personnel/positions/list' },
-          { text: '인사 발령 이력', to: '/personnel/history' },
-        ]
-      }
-    ]
-  },
-  {
-    title: '회사 관리',
-    items: [
-      {
-        text: '회사 정보 관리',
-        children: [
-          { text: '내 회사 정보', to: '/company/my' },
-          { text: '내 회사 관리', to: '/company/my-manage' },
-          { text: '역할/권한 관리', to: '/company/roles' },
-          ...(auth.isAdmin ? [{ text: '회사 정보 관리 (전체)', to: '/company/manage' }] : [])
-        ]
-      }
-    ]
-  },
-  {
-    title: '성과 평가',
-    items: [
-      {
-        text: '목표 관리',
-        children: [
-          { text: 'KPI/OKR', to: '/goal' },
-          { text: '목표 전체 조회', to: '/hr/goals' },
-          { text: '팀장 목표 전체 조회', to: '/to/goals' },
-        ]
-      },
-      {
-        text: '다면 평가',
-        children: [
-          { text: '회차 등록/조회', to: '/cycles' },
-          { text: '회차 등록/조회', to: '/hr/cycles' },
-          { text: '평가유형 생성/회차 포함', to: '/hr/evaluation/type/setting' },
-          { text: '문항지 생성', to: '/hr/evaluation/question/form/setting' },
-          { text: '평가 배정', to: '/hr/evaluation/assignment' },
-          { text: '다면 평가', to: '/evaluation/assignment/response' },
-          { text: '평가 응답 조회', to: '/hr/evaluation/response/result' },
-          { text: '평가 결과 조회', to: '/evaluation/response/my/result' },
-        ]
-      },
-      {
-        text: '등급관리',
-        children: [
-          { text: '등급 설정', to: '/grade/setting' },
-          { text: '부서 등급 부여 현황', to: '/grading/list' },
-          { text: '부서 등급 부여 현황(승인)', to: '/hr/grading/list' },
-          { text: '부서원 등급 부여', to: '/to/grading/list' },
-          { text: '부서원 등급 부여 및 승인', to: '/hr/grading/list/approve' },
-          { text: '부여된 등급 조회', to: '/my/grading' },
-          { text: '이의 제기 관리', to: '/to/grading/objection' },
-        ]
-      },
-      {
-        text: '대시보드/리포트',
-        children: [
-          { text: '대시보드', to: '/my/dashboard' },
-          { text: '사원 대시보드', to: '/hr/dashboard' },
-          { text: '리포트(인사팀)', to: '/all/competency/report' },
-          { text: '리포트(팀장)', to: '/dept/competency/report' },
-          { text: '리포트(개인)', to: '/me/competency/report' },
-          { text: '학습컨텐츠 관리', to: '/all/contents' },
-        ]
-      }
-    ]
-  },
-  {
-    title: '근태 관리',
-    items: [
-      {
-        text: '근태 관리',
-        children: [
-          { text: '나의 출퇴근 관리', to: '/attendance/commute' },
-          { text: 'IP 정책 관리', to: '/attendance/ip-policy' },
-          { text: '부서 출퇴근 관리', to: '/attendance/department' },
-          { text: '부서별 근태 캘린더', to: '/attendance/department-calendar' }
-        ]
-      }
-    ]
-  },
-  {
-    title: '휴가 관리',
-    items: [
-      {
-        text: '휴가 관리',
-        children: [
-          { text: '내 휴가 이력', to: '/leave/my-history' },
-          { text: '휴가 정책 관리', to: '/leave/policy' },
-          { text: '부서 휴가 이력', to: '/leave/admin/department-history' }
-        ]
-      }
-    ]
-  },
-  {
-    title: '결재 관리',
-    items: [
-      {
-        text: '결재 관리',
-        children: [
-          { text: '결재 문서 등록', to: '/approval/create' },
-          { text: '내 문서함', to: '/approval/my-documents' },
-          { text: '결재 관리', to: '/approval/admin' },
-        ]
-      }
-    ]
-  },
-  {
-    title: '연봉 관리',
-    items: [
-      {
-        text: '연봉관리',
-        children: [
-          { text: '기본급관리(인사팀)', to: '/all/salary/basic' },
-          { text: '기본급관리(본인)', to: '/me/salary/basic' },
-          { text: '변동보상관리', to: '/all/salary/compensation' },
-        ]
-      }
-    ]
-  },
-  { title: '챗봇 관리', items: [{ text: '제도 · 규정', to: '/policy' }] },
-  {
-    title: '기타',
-    items: [
-      { text: '공지 관리', to: '/notice' },
-      { text: '알림 관리', to: '/alert' }
-    ]
-  },
-  {
-    title: '마이페이지',
-    items: [
-      {
-        text: '내 정보 관리',
-        children: [
-          { text: '내 정보 조회/수정', to: '/my-profile' },
-          { text: '내 부서 조회', to: '/my-department' },
-        ]
-      }
-    ]
-  },
-  {
-    title: '시스템 관리',
-    hidden: !auth.isAdmin,
-    items: [
-      {
-        text: '권한/설정',
-        children: [
-          { text: '권한 레지스트리', to: '/admin/permissions' },
-        ]
-      }
-    ]
+// 권한 기반 필터링 헬퍼 함수
+const hasAccess = (path) => {
+  // 관리자는 모든 메뉴 접근 가능
+  if (auth.isAdmin) return true
+  
+  const mappings = auth.permissionMappings
+  
+  // 디버깅용 로그
+  // console.log(`[CHECK] ${path} in mappings?`, !!mappings?.[path])
+
+  // 권한 매핑이 로드되지 않았으면 보수적으로 차단 (또는 로딩 중 표시)
+  if (!mappings || Object.keys(mappings).length === 0) {
+    console.warn('[SIDEBAR] 권한 매핑이 로드되지 않음 (Empty Mappings)')
+    return false
   }
-])
+  
+  // permissionMappings에서 해당 경로의 필요 권한 확인
+  const requiredPerm = mappings[path]
+  
+  // 권한 매핑 없으면 차단
+  if (!requiredPerm) {
+    // 너무 많은 로그 방지를 위해 특정 경로만 로그
+    if (path === '/my-profile' || path === '/notice' || path === '/policy') {
+       console.log(`[SIDEBAR] ${path}: 권한 매핑 없음 (requiredPerm is undefined) → 차단`)
+    }
+    return false
+  }
+  
+  // 권한 체크
+  const hasPerm = auth.hasPermission(requiredPerm)
+  
+  // 주요 경로만 로그
+  if (path === '/my-profile' || path === '/notice' || path === '/policy') {
+    console.log(`[SIDEBAR] path=${path} key=${requiredPerm} hasPerm=${hasPerm}`)
+  }
+  return hasPerm
+}
+
+// 메뉴 아이템 필터링 함수
+const filterMenuItems = (items) => {
+  return items.filter(item => {
+    // 자식 메뉴가 있는 경우
+    if (item.children) {
+      item.children = filterMenuItems(item.children)
+      return item.children.length > 0
+    }
+    // 직접 링크
+    return hasAccess(item.to)
+  })
+}
+
+// --- Menu Configuration ---
+// permissionMappings가 변경되면 자동으로 재계산되도록 의존성 확인
+const menuConfig = computed(() => {
+  // 의존성 강제 주입 (Reactivity Trigger)
+  const _trigger = auth.permissionMappings
+  const _permissions = auth.permissions
+  
+  const rawMenu = [
+    {
+      title: '마이페이지',
+      items: [
+        {
+          text: '내 정보 관리',
+          children: [
+            { text: '내 정보 조회/수정', to: '/my-profile' },
+            { text: '내 부서 조회', to: '/my-department' },
+          ]
+        }
+      ]
+    },
+    // ... (기존 메뉴들) ...
+    {
+      title: '인사 관리',
+      items: [
+        {
+          text: '사원 · 부서 관리',
+          children: [
+            { text: '사원 관리 (목록)', to: '/employee' },
+            { text: '사원 목록 조회', to: '/personnel/employees/list' },
+            { text: '부서 관리 (목록)', to: '/organization' },
+            { text: '조직도', to: '/department/org-chart' },
+            { text: '부서 정책 관리', to: '/department/manage' },
+            { text: '직위 관리', to: '/personnel/positions' },
+            { text: '직위 목록 조회', to: '/personnel/positions/list' },
+            { text: '인사 발령 이력', to: '/personnel/history' },
+          ]
+        }
+      ]
+    },
+    {
+      title: '회사 관리',
+      items: [
+        {
+          text: '회사 정보 관리',
+          children: [
+            { text: '내 회사 정보', to: '/company/my' },
+            { text: '내 회사 관리', to: '/company/my-manage' },
+            { text: '역할/권한 관리', to: '/company/roles' },
+            ...(auth.isAdmin ? [{ text: '회사 정보 관리 (전체)', to: '/company/manage' }] : [])
+          ]
+        }
+      ]
+    },
+    {
+      title: '성과 평가',
+      items: [
+        {
+          text: '목표 관리',
+          children: [
+            { text: 'KPI/OKR', to: '/goal' },
+            { text: '목표 전체 조회', to: '/hr/goals' },
+            { text: '팀장 목표 전체 조회', to: '/to/goals' },
+          ]
+        },
+        {
+          text: '다면 평가',
+          children: [
+            { text: '회차 등록/조회', to: '/cycles' },
+            { text: '회차 등록/조회', to: '/hr/cycles' },
+            { text: '평가유형 생성/회차 포함', to: '/hr/evaluation/type/setting' },
+            { text: '문항지 생성', to: '/hr/evaluation/question/form/setting' },
+            { text: '평가 배정', to: '/hr/evaluation/assignment' },
+            { text: '다면 평가', to: '/evaluation/assignment/response' },
+            { text: '평가 응답 조회', to: '/hr/evaluation/response/result' },
+            { text: '평가 결과 조회', to: '/evaluation/response/my/result' },
+          ]
+        },
+        {
+          text: '등급관리',
+          children: [
+            { text: '등급 설정', to: '/grade/setting' },
+            { text: '부서 등급 부여 현황', to: '/grading/list' },
+            { text: '부서 등급 부여 현황(승인)', to: '/hr/grading/list' },
+            { text: '부서원 등급 부여', to: '/to/grading/list' },
+            { text: '부서원 등급 부여 및 승인', to: '/hr/grading/list/approve' },
+            { text: '부여된 등급 조회', to: '/my/grading' },
+            { text: '이의 제기 관리', to: '/to/grading/objection' },
+          ]
+        },
+        {
+          text: '대시보드/리포트',
+          children: [
+            { text: '대시보드', to: '/my/dashboard' },
+            { text: '사원 대시보드', to: '/hr/dashboard' },
+            { text: '리포트(인사팀)', to: '/all/competency/report' },
+            { text: '리포트(팀장)', to: '/dept/competency/report' },
+            { text: '리포트(개인)', to: '/me/competency/report' },
+            { text: '학습컨텐츠 관리', to: '/all/contents' },
+          ]
+        }
+      ]
+    },
+    {
+      title: '근태 관리',
+      items: [
+        {
+          text: '근태 관리',
+          children: [
+            { text: '나의 출퇴근 관리', to: '/attendance/commute' },
+            { text: 'IP 정책 관리', to: '/attendance/ip-policy' },
+            { text: '부서 출퇴근 관리', to: '/attendance/department' },
+            { text: '부서별 근태 캘린더', to: '/attendance/department-calendar' }
+          ]
+        }
+      ]
+    },
+    {
+      title: '휴가 관리',
+      items: [
+        {
+          text: '휴가 관리',
+          children: [
+            { text: '내 휴가 이력', to: '/leave/my-history' },
+            { text: '휴가 정책 관리', to: '/leave/policy' },
+            { text: '부서 휴가 이력', to: '/leave/admin/department-history' }
+          ]
+        }
+      ]
+    },
+    {
+      title: '결재 관리',
+      items: [
+        {
+          text: '결재 관리',
+          children: [
+            { text: '결재 문서 등록', to: '/approval/create' },
+            { text: '내 문서함', to: '/approval/my-documents' },
+            { text: '결재 관리', to: '/approval/admin' },
+          ]
+        }
+      ]
+    },
+    {
+      title: '연봉 관리',
+      items: [
+        {
+          text: '연봉관리',
+          children: [
+            { text: '기본급관리(인사팀)', to: '/all/salary/basic' },
+            { text: '기본급관리(본인)', to: '/me/salary/basic' },
+            { text: '변동보상관리', to: '/all/salary/compensation' },
+          ]
+        }
+      ]
+    },
+    { title: '챗봇 관리', items: [{ text: '제도 · 규정', to: '/policy' }] },
+    {
+      title: '기타',
+      items: [
+        { text: '공지 관리', to: '/notice', permission: 'NOTICE_READ' }
+      ]
+    },
+  ]
+  
+  // 변경된 로직: rawMenu를 복사(deep copy)해서 필터링
+  const filtered = JSON.parse(JSON.stringify(rawMenu)).map(section => ({
+    ...section,
+    items: filterMenuItems(section.items)
+  })).filter(section => section.items.length > 0)
+  
+  console.log(`[SIDEBAR] Filtered sections:`, filtered.map(s => `${s.title}(${s.items.length})`))
+  return filtered
+})
 
 // --- Logic ---
 const activeFlyout = ref(null)

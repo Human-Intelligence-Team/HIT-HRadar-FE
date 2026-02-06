@@ -2,11 +2,11 @@
   <header class="header">
     <!-- Left -->
     <div class="header-left">
-      <div class="brand">
-        <span class="logo" />
+      <div class="brand" @click="goToHome">
+        <BrandLogo size="38" class="logo" />
         <div class="brand-text">
-          <div class="brand-title">HRadar</div>
-          <div class="brand-sub">HIT 인사관리시스템</div>
+          <div class="brand-title">HRADAR</div>
+          <div class="brand-sub">인사관리시스템</div>
         </div>
       </div>
     </div>
@@ -27,8 +27,13 @@
 import ThemeToggle from '@/components/common/ThemeToggle.vue'
 import NotificationBell from '@/components/notification/NotificationBell.vue'
 import { useAuthStore } from '@/stores/authStore'
+import BrandLogo from '@/components/common/BrandLogo.vue'
+import { useRouter } from 'vue-router'
 
 const auth = useAuthStore()
+const router = useRouter()
+
+const goToHome = () => router.push('/home')
 
 const logout = async () => {
   const confirmed = confirm('로그아웃 하시겠습니까?')
@@ -60,13 +65,11 @@ const logout = async () => {
   display: flex;
   align-items: center;
   gap: 10px;
+  cursor: pointer;
 }
 
 .logo {
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
-  background: linear-gradient(135deg, #1f4fd8, #3b82f6);
+  cursor: pointer;
 }
 
 /* Brand text */

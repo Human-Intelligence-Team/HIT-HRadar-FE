@@ -40,6 +40,14 @@
                 <span class="label">역할(Role)</span>
                 <span class="value">{{ detail.role }}</span>
               </div>
+              <div class="info-row">
+                <span class="label">비밀번호</span>
+                <span class="value">
+                  <button @click="handleResetPassword" class="btn-reset-password" title="비밀번호를 1234로 초기화">
+                    <i class="pi pi-refresh"></i> 비밀번호 초기화
+                  </button>
+                </span>
+              </div>
             </div>
           </div>
 
@@ -71,7 +79,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { fetchUserAccountDetail, fetchAdminLoginId } from '@/api/userAccount'
+import { fetchUserAccountDetail, fetchAdminLoginId, resetUserPassword } from '@/api/userAccount'
 
 const props = defineProps({
   accId: { type: [Number, String], required: true }
@@ -100,6 +108,22 @@ const loadLoginId = async () => {
   } catch (e) {
     console.error(e)
     alert('로그인 ID 조회를 실패했습니다.')
+  }
+}
+
+const handleResetPassword = async () => {
+  if (!confirm(`${detail.value.name} 님의 비밀번호를 초기화하시겠습니까?\n초기화 비밀번호: 1234`)) {
+    return
+  }
+
+  try {
+    await resetUserPassword(props.accId)
+    alert('✅ 비밀번호가 "1234"로 초기화되었습니다.\n사용자에게 변경을 안내해주세요.')
+    emit('refresh')
+  } catch (e) {
+    console.error(e)
+    const errorMsg = e.response?.data?.message || '비밀번호 초기화에 실패했습니다.'
+    alert(`❌ ${errorMsg}`)
   }
 }
 
@@ -238,6 +262,33 @@ onMounted(() => {
   font-size: 11px; cursor: pointer; color: #666;
 }
 .btn-sm-text:hover { background: #f0f0f0; }
+
+.btn-reset-password {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  color: #dc2626;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-reset-password:hover {
+  background: #fee2e2;
+  border-color: #fca5a5;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(220, 38, 38, 0.1);
+}
+.btn-reset-password:active {
+  transform: translateY(0);
+}
+.btn-reset-password i {
+  font-size: 13px;
+}
 
 /* Status Pill - Matching List View */
 .status-pill {
