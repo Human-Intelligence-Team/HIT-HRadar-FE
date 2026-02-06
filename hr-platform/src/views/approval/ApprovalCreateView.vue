@@ -13,8 +13,29 @@
       </div>
 
       <div class="form-group">
-        <label for="content">본문</label>
-        <textarea id="content" v-model="form.content" class="input-field" rows="5" placeholder="내용을 입력하세요."></textarea>
+        <label>기간 및 초과근무 (선택 사항)</label>
+        <div class="date-range-group">
+            <input type="date" v-model="form.startDate" class="input-field date-input" />
+            <span class="tilde">~</span>
+            <input type="date" v-model="form.endDate" class="input-field date-input" :min="form.startDate" />
+            
+            <div class="overtime-group">
+                <input type="number" v-model="form.overtimeMinutes" class="input-field overtime-input" placeholder="0" />
+                <span class="unit-label">분 초과근무</span>
+            </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="content">본문 (선택 사항)</label>
+        <textarea 
+            id="content" 
+            v-model="form.content" 
+            class="input-field" 
+            rows="5" 
+            maxlength="2000"
+            placeholder="내용을 입력하세요. (최대 2000자)"
+        ></textarea>
       </div>
 
       <DepartmentEmployeeSelector label="결재자" v-model="form.approverIds" hint="결재자를 검색하여 추가하세요." :maxItems="5" />
@@ -50,6 +71,9 @@ const form = ref({
   docType: '',
   title: '',
   content: '',
+  startDate: '',
+  endDate: '',
+  overtimeMinutes: 0,
   approverIds: [],
   referenceIds: [],
 });
@@ -63,7 +87,17 @@ onMounted(async () => {
       if (detail) {
         form.value.docType = detail.docType;
         form.value.title = detail.title;
-        form.value.content = detail.content;
+        form.value.content = detail.content || '';
+        form.value.startDate = detail.startDate || '';
+        form.value.endDate = detail.endDate || '';
+        if (detail.payload) {
+            try {
+                const payload = JSON.parse(detail.payload);
+                form.value.overtimeMinutes = payload.overtimeMinutes || 0;
+            } catch {
+                console.warn('Failed to parse payload for overtimeMinutes');
+            }
+        }
         form.value.approverIds = detail.approverIds || [];
         form.value.referenceIds = detail.referenceIds || [];
       }
@@ -84,10 +118,8 @@ const validateForm = () => {
     alert('제목을 입력해주세요.');
     return false;
   }
-  if (!form.value.content.trim()) {
-    alert('본문을 입력해주세요.');
-    return false;
-  }
+  // Content check removed as requested
+  
   if (form.value.approverIds.length === 0) {
     alert('결재자를 1명 이상 지정해주세요.');
     return false;
@@ -104,8 +136,14 @@ const saveDraft = async () => {
     content: form.value.content,
     approverIds: form.value.approverIds,
     referenceIds: form.value.referenceIds,
-    payload: {}, // Try standard
-    Payload: {}  // Try exact field name
+    startDate: form.value.startDate || null,
+    endDate: form.value.endDate || null,
+    payload: {
+        startDate: form.value.startDate || null,
+        endDate: form.value.endDate || null,
+        overtimeMinutes: form.value.overtimeMinutes || 0
+    }, 
+    Payload: {}  
   };
 
   console.log('Sending Draft Request:', request);
@@ -132,7 +170,13 @@ const handleSubmitApproval = async () => {
         content: form.value.content,
         approverIds: form.value.approverIds,
         referenceIds: form.value.referenceIds,
-        payload: {},
+        startDate: form.value.startDate || null,
+        endDate: form.value.endDate || null,
+        payload: {
+            startDate: form.value.startDate || null,
+            endDate: form.value.endDate || null,
+            overtimeMinutes: form.value.overtimeMinutes || 0
+        },
         Payload: {}
       };
       
@@ -179,12 +223,6 @@ const handleSubmitApproval = async () => {
   color: #333;
 }
 
-.section-title .sub {
-  margin-top: 8px;
-  font-size: 14px;
-  color: #666;
-}
-
 .card {
   background: #ffffff;
   border-radius: 12px;
@@ -224,13 +262,6 @@ textarea.input-field {
   resize: vertical;
 }
 
-.hint {
-  font-size: 12px;
-  color: #888;
-  margin-top: 4px;
-  display: block;
-}
-
 .form-actions {
   display: flex;
   justify-content: flex-end;
@@ -264,5 +295,40 @@ textarea.input-field {
 
 .btn-secondary:hover {
   background-color: #5a6268;
+}
+
+.date-range-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.date-input {
+    max-width: 200px;
+}
+
+.tilde {
+    color: #666;
+    font-weight: bold;
+}
+
+.overtime-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: 16px;
+    padding-left: 16px;
+    border-left: 1px solid #e0e0e0;
+}
+
+.overtime-input {
+    width: 80px;
+    text-align: right;
+}
+
+.unit-label {
+    font-size: 14px;
+    color: #666;
+    white-space: nowrap;
 }
 </style>

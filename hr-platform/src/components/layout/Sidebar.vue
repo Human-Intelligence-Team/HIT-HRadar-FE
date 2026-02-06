@@ -1,5 +1,6 @@
+<!-- eslint-disable vue/multi-word-component-names -->
 <template>
-  <aside class="sidebar">
+  <aside class="sidebar" @mouseleave="hideFlyout" @mouseenter="cancelHide">
     <nav class="nav">
       <template v-for="(section, sIdx) in menuConfig" :key="sIdx">
         <div class="section-title" v-if="!section.hidden">{{ section.title }}</div>
@@ -19,7 +20,7 @@
 
           <!-- Direct Link -->
           <RouterLink
-            v-else-if="!item.perm || can(item.perm)"
+            v-else
             :to="item.to"
             class="nav-item link"
             active-class="active"
@@ -151,7 +152,6 @@ const menuConfig = computed(() => [
         text: '근태 관리',
         children: [
           { text: '나의 출퇴근 관리', to: '/attendance/commute' },
-          { text: '나의 근태 캘린더', to: '/attendance/my-calendar' },
           { text: 'IP 정책 관리', to: '/attendance/ip-policy' },
           { text: '부서 출퇴근 관리', to: '/attendance/department' },
           { text: '부서별 근태 캘린더', to: '/attendance/department-calendar' }
@@ -198,12 +198,13 @@ const menuConfig = computed(() => [
       }
     ]
   },
-  { title: '챗봇 관리', items: [{ text: '제도 · 규정', to: '/policy', perm: 'POLICY_READ' }] },
-  { 
-    title: '공지 관리', 
+  { title: '챗봇 관리', items: [{ text: '제도 · 규정', to: '/policy' }] },
+  {
+    title: '기타',
     items: [
-      { text: '공지 관리', to: '/notice', perm: 'NOTICE_READ' }
-    ] 
+      { text: '공지 관리', to: '/notice' },
+      { text: '알림 관리', to: '/alert' }
+    ]
   },
   {
     title: '마이페이지',
@@ -264,13 +265,6 @@ function closeAll() {
   activeFlyout.value = null
 }
 
-const can = (perm) => {
-  const permissions = {
-    USER: ['POLICY_READ', 'NOTICE_READ', 'ALERT_MANAGE'],
-    ADMIN: ['POLICY_READ', 'NOTICE_READ', 'ALERT_MANAGE'],
-  }
-  return permissions[auth.user.role]?.includes(perm) ?? false
-}
 </script>
 
 <style scoped>

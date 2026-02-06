@@ -2,7 +2,6 @@
   <div class="page">
     <div class="section-title">
       <h1>결재 문서 유형 관리</h1>
-      <div class="sub">인사팀에서 결재 문서 유형을 생성, 수정, 삭제합니다.</div>
     </div>
 
     <section class="card document-type-management">
@@ -16,6 +15,7 @@
             <th>ID</th>
             <th>유형 값 (Value)</th>
             <th>유형명 (Text)</th>
+            <th>시스템 연동 (Mapping)</th>
             <th>액션</th>
           </tr>
         </thead>
@@ -23,13 +23,18 @@
           <tr v-if="documentTypes.length === 0">
             <td colspan="4" class="no-data">등록된 문서 유형이 없습니다.</td>
           </tr>
-          <tr v-for="type in documentTypes" :key="type.docId">
-            <td>{{ type.docId }}</td>
+          <tr v-for="(type, index) in documentTypes" :key="type.typeId">
+            <td>{{ index + 1 }}</td>
             <td>{{ type.docType }}</td>
             <td>{{ type.name }}</td>
             <td>
+                <span :class="['category-badge', type.attendanceCategory.toLowerCase()]">
+                    {{ type.attendanceCategory }}
+                </span>
+            </td>
+            <td>
               <button class="btn btn-secondary btn-small" @click="openEditModal(type)">수정</button>
-              <button class="btn btn-danger btn-small" @click="deleteDocumentType(type.docId)">삭제</button>
+              <button class="btn btn-danger btn-small" @click="deleteDocumentType(type.typeId)">삭제</button>
             </td>
           </tr>
         </tbody>
@@ -47,6 +52,20 @@
         <div class="form-group">
           <label for="name">유형명</label>
           <input type="text" id="name" v-model="form.name" class="input-field" placeholder="예: 휴가 신청" />
+        </div>
+        <div class="form-group">
+            <label for="attendanceCategory">시스템 연동 설정 (System Mapping)</label>
+            <select id="attendanceCategory" v-model="form.attendanceCategory" class="input-field select-field">
+                <option value="NONE">없음 (NONE)</option>
+                <option value="WORK_OFFICE">내근 (Office)</option>
+                <option value="WORK_REMOTE">재택 (Remote)</option>
+                <option value="WORK_FIELD">외근 (Field)</option>
+                <option value="WORK_TRIP">출장 (Trip)</option>
+                <option value="OVERTIME">초과근무 (Overtime)</option>
+                <!-- Vacation is usually handled by Leave Policy, but option exists -->
+                <!-- <option value="VACATION">휴가 (Vacation)</option> -->
+            </select>
+            <p class="hint">결재 승인 시, 선택한 시스템 기능(근태/휴가 등)이 자동으로 수행됩니다.</p>
         </div>
         <div class="form-group">
           <label for="active">활성화</label>
@@ -68,7 +87,7 @@ import {
   createApprovalDocumentType,
   updateApprovalDocumentType,
   deleteApprovalDocumentType,
-  fetchApprovalDocumentTypeDetail, // Needed for editing
+  // fetchApprovalDocumentTypeDetail, // Unused import
 } from '@/api/approvalApi';
 
 const documentTypes = ref([]);
@@ -76,20 +95,22 @@ const showModal = ref(false);
 const isEditing = ref(false);
 const currentTypeId = ref(null);
 const form = ref({
-  docType: '', // Corresponds to backend's docType
-  name: '',    // Corresponds to backend's name
-  active: true, // New: Corresponds to backend's active status
+  docType: '', 
+  name: '',    
+  active: true, 
+  attendanceCategory: 'NONE'
 });
 
 const fetchDocumentTypes = async () => {
   try {
     const response = await fetchApprovalDocumentTypes();
-    // Backend returns ApprovalDocumentTypeResponse which has typeId, docType, name, isActive
+    console.log('Approval Types Raw Data:', response.data.data);
     documentTypes.value = response.data.data.map(type => ({
-      typeId: type.typeId, // Use typeId as primary key
+      typeId: type.docId, 
       docType: type.docType,
       name: type.name,
-      active: type.active // Also store active status
+      active: type.active,
+      attendanceCategory: type.attendanceCategory || 'NONE'
     }));
   } catch (error) {
     alert('문서 유형 목록을 불러오는 데 실패했습니다.');
@@ -102,7 +123,8 @@ const openCreateModal = () => {
   currentTypeId.value = null;
   form.value.docType = '';
   form.value.name = '';
-  form.value.active = true; // New: Default to active for new types
+  form.value.active = true; 
+  form.value.attendanceCategory = 'NONE';
   showModal.value = true;
 };
 
@@ -112,10 +134,12 @@ const openEditModal = async (type) => {
   form.value.docType = type.docType;
   form.value.name = type.name;
   form.value.active = type.active;
+  form.value.attendanceCategory = type.attendanceCategory || 'NONE';
+  showModal.value = true; // Added missing modal open
 };
 
 const saveDocumentType = async () => {
-  if (!form.value.docType.trim() || !form.value.name.trim()) { // Use docType and name
+  if (!form.value.docType.trim() || !form.value.name.trim()) { 
     alert('유형 값과 유형명을 모두 입력해주세요.');
     return;
   }
@@ -125,14 +149,16 @@ const saveDocumentType = async () => {
       await updateApprovalDocumentType(currentTypeId.value, {
         docType: form.value.docType,
         name: form.value.name,
-        active: form.value.active, // Pass active status
+        active: form.value.active, 
+        attendanceCategory: form.value.attendanceCategory
       });
       alert('문서 유형이 수정되었습니다.');
     } else {
       await createApprovalDocumentType({
         docType: form.value.docType,
         name: form.value.name,
-        active: form.value.active, // Pass active status
+        active: form.value.active, 
+        attendanceCategory: form.value.attendanceCategory
       });
       alert('새 문서 유형이 등록되었습니다.');
     }
@@ -176,12 +202,6 @@ onMounted(() => {
   font-size: 24px;
   font-weight: bold;
   color: #333;
-}
-
-.section-title .sub {
-  margin-top: 8px;
-  font-size: 14px;
-  color: #666;
 }
 
 .card {
@@ -338,9 +358,35 @@ onMounted(() => {
 }
 
 .modal-actions {
-  display: flex;
-  justify-content: flex-end;
   gap: 10px;
   margin-top: 30px;
 }
+
+.select-field {
+    background-color: white;
+}
+
+.hint {
+    font-size: 12px;
+    color: #666;
+    margin-top: 4px;
+}
+
+.category-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #555;
+    background-color: #eee;
+}
+
+.category-badge.work_office { background-color: #e3f2fd; color: #1565c0; }
+.category-badge.work_field { background-color: #e8f5e9; color: #2e7d32; }
+.category-badge.work_trip { background-color: #fff3e0; color: #ef6c00; }
+.category-badge.work_remote { background-color: #f3e5f5; color: #7b1fa2; }
+.category-badge.vacation { background-color: #ffebee; color: #c62828; }
+.category-badge.overtime { background-color: #fff8e1; color: #f57f17; }
+.category-badge.none { background-color: #f5f5f5; color: #757575; }
 </style>

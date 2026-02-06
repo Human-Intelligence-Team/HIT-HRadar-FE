@@ -13,12 +13,15 @@
             v-model="form.companyName"
             placeholder="상호명을 입력하세요"
             @blur="validateField('companyName')"
+            @input="validateField('companyName')"
             class="input-modern"
             :class="{ error: errors.companyName }"
             autocomplete="off"
             spellcheck="false"
           />
-          <span v-if="errors.companyName" class="error-msg">{{ errors.companyName }}</span>
+          <Transition name="error-slide">
+            <span v-if="errors.companyName" class="error-msg">{{ errors.companyName }}</span>
+          </Transition>
         </div>
 
         <div class="form-group">
@@ -27,10 +30,13 @@
             v-model="form.bizNo"
             placeholder="'-' 없이 숫자만"
             @blur="validateField('bizNo')"
+            @input="validateField('bizNo')"
             class="input-modern"
             :class="{ error: errors.bizNo }"
           />
-          <span v-if="errors.bizNo" class="error-msg">{{ errors.bizNo }}</span>
+          <Transition name="error-slide">
+            <span v-if="errors.bizNo" class="error-msg">{{ errors.bizNo }}</span>
+          </Transition>
         </div>
 
         <div class="form-group">
@@ -39,10 +45,13 @@
             v-model="form.comTel"
             placeholder="연락 가능한 번호"
             @blur="validateField('comTel')"
+            @input="validateField('comTel')"
             class="input-modern"
             :class="{ error: errors.comTel }"
           />
-          <span v-if="errors.comTel" class="error-msg">{{ errors.comTel }}</span>
+          <Transition name="error-slide">
+            <span v-if="errors.comTel" class="error-msg">{{ errors.comTel }}</span>
+          </Transition>
         </div>
 
         <div class="form-group full-width">
@@ -51,10 +60,13 @@
             v-model="form.address"
             placeholder="도로명 주소 입력"
             @blur="validateField('address')"
+            @input="validateField('address')"
             class="input-modern"
             :class="{ error: errors.address }"
           />
-          <span v-if="errors.address" class="error-msg">{{ errors.address }}</span>
+          <Transition name="error-slide">
+            <span v-if="errors.address" class="error-msg">{{ errors.address }}</span>
+          </Transition>
         </div>
 
         <div class="divider"></div>
@@ -65,10 +77,13 @@
             v-model="form.name"
             placeholder="담당자 이름"
             @blur="validateField('name')"
+            @input="validateField('name')"
             class="input-modern"
             :class="{ error: errors.name }"
           />
-          <span v-if="errors.name" class="error-msg">{{ errors.name }}</span>
+          <Transition name="error-slide">
+            <span v-if="errors.name" class="error-msg">{{ errors.name }}</span>
+          </Transition>
         </div>
 
         <div class="form-group">
@@ -78,10 +93,13 @@
             type="email"
             placeholder="example@company.com"
             @blur="validateField('email')"
+            @input="validateField('email')"
             class="input-modern"
             :class="{ error: errors.email }"
           />
-          <span v-if="errors.email" class="error-msg">{{ errors.email }}</span>
+          <Transition name="error-slide">
+            <span v-if="errors.email" class="error-msg">{{ errors.email }}</span>
+          </Transition>
         </div>
 
         <div class="form-group full-width">
@@ -90,10 +108,13 @@
             v-model="form.loginId"
             placeholder="로그인에 사용할 ID"
             @blur="validateField('loginId')"
+            @input="validateField('loginId')"
             class="input-modern"
             :class="{ error: errors.loginId }"
           />
-          <span v-if="errors.loginId" class="error-msg">{{ errors.loginId }}</span>
+          <Transition name="error-slide">
+            <span v-if="errors.loginId" class="error-msg">{{ errors.loginId }}</span>
+          </Transition>
         </div>
       </div>
 
@@ -236,6 +257,11 @@ label {
   transition: all 0.2s ease;
   user-select: text; /* Ensure text is selectable */
   -webkit-user-select: text;
+  cursor: text;
+}
+
+.input-modern::placeholder {
+  color: #94a3b8;
 }
 
 .input-modern:focus {
@@ -270,7 +296,7 @@ label {
 
 .btn-submit-modern {
   height: 52px;
-  background: #0f172a; /* Trendy black/dark slate */
+  background: #2563eb; /* Trust Blue */
   color: white;
   font-weight: 600;
   font-size: 1rem;
@@ -278,10 +304,12 @@ label {
   border-radius: 12px;
   cursor: pointer;
   transition: all 0.2s;
+  box-shadow: none;
 }
 .btn-submit-modern:hover:not(:disabled) {
-  background: #1e293b;
+  background: #1d4ed8;
   transform: translateY(-1px);
+  box-shadow: none;
 }
 .btn-submit-modern:disabled {
   background: #94a3b8;
@@ -308,5 +336,21 @@ label {
   .form-grid {
     grid-template-columns: 1fr;
   }
+}
+
+/* Error Transition */
+.error-slide-enter-active,
+.error-slide-leave-active {
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.5, 1);
+  max-height: 24px;
+  opacity: 1;
+  overflow: hidden;
+}
+.error-slide-enter-from,
+.error-slide-leave-to {
+  max-height: 0;
+  opacity: 0;
+  transform: translateY(-5px);
+  margin-top: 0;
 }
 </style>

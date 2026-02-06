@@ -120,7 +120,7 @@
 
 <script setup>
 import { ref, watch, computed } from 'vue'
-import { createEmployee, updateEmployeeProfile } from '@/api/employeeApi'
+import { createEmployee, updateEmployeeProfile, updateEmployeeAssignment } from '@/api/employeeApi'
 
 const props = defineProps({
   visible: Boolean,
@@ -202,12 +202,42 @@ const handleSubmit = async () => {
   loading.value = true
   try {
     if (isEditMode.value) {
-      // Update Logic
-      const res = await updateEmployeeProfile(props.targetEmp.empId, form.value)
-      if(res.data && res.data.success) {
-        alert('사원 정보가 수정되었습니다.')
+      // 1. 프로필 정보 수정 (기본 정보)
+      const profilePromise = updateEmployeeProfile(props.targetEmp.empId, form.value)
+      
+      // 2. 인사 정보 수정 (부서, 직위, 사번) - 변경된 경우만
+      let assignmentPromise = null
+      const t = props.targetEmp
+      const hasAssignmentChanges = 
+        form.value.deptId !== (t.deptId || null) ||
+        form.value.positionId !== (t.positionId || null) ||
+        form.value.employeeNo !== (t.employeeNo || t.empNo)
+
+      if (hasAssignmentChanges) {
+        const assignmentPayload = {
+          deptId: form.value.deptId,
+          positionId: form.value.positionId,
+          employeeNo: form.value.employeeNo,
+          eventReason: '사원 정보 수정', // 기본 사유
+          effectiveDate: new Date().toISOString().split('T')[0]
+        }
+        assignmentPromise = updateEmployeeAssignment(props.targetEmp.empId, assignmentPayload)
+      }
+
+      // 병렬 실행
+      const results = await Promise.all([
+        profilePromise,
+        ...(assignmentPromise ? [assignmentPromise] : [])
+      ])
+
+      const allSuccess = results.every(res => res.data && res.data.success)
+      
+      if (allSuccess) {
+        alert('사원 정보가 성공적으로 수정되었습니다.')
         emit('success')
         close()
+      } else {
+        alert('일부 정보 수정에 실패했습니다.')
       }
     } else {
       // Create Logic

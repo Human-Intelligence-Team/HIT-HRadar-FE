@@ -1,75 +1,88 @@
 <template>
   <section class="attendance-ip-policy-view">
-    <!-- 헤더 -->
-    <div class="section-header">
-      <div class="title-group">
-        <h1>IP 정책 관리</h1>
-      </div>
-      <div class="header-actions">
-        <button class="btn primary" @click="openPolicyModal()">+ IP 정책 추가</button>
-      </div>
-    </div>
+    <div class="split-layout">
+        <!-- Left Panel: Configuration -->
+        <div class="left-panel card">
+            <div class="panel-header">
+                <h3>출퇴근 허용범위 설정</h3>
+            </div>
+            
+            <div class="config-section">
+                <div class="section-title-row">
+                    <h4>WEB IP</h4>
+                    <span class="info-icon">ⓘ</span>
+                </div>
+                
+                <div class="input-group">
+                    <input 
+                        type="text" 
+                        v-model="formPolicy.description" 
+                        placeholder="WEB IP명을 입력하세요. (예: 판교 오피스)" 
+                        class="input-clean"
+                    />
+                </div>
+                
+                <div class="input-group-row">
+                    <input 
+                        type="text" 
+                        v-model="formPolicy.ipAddress" 
+                        placeholder="IP 대역을 입력하세요. (CIDR)" 
+                        class="input-clean flex-1"
+                    />
+                    <button class="btn-add" @click="savePolicy">
+                        {{ isEditMode ? '수정' : '+ 추가' }}
+                    </button>
+                </div>
+                
+                <div v-if="isEditMode" class="edit-cancel-row">
+                    <span class="editing-text">수정 중: {{ formPolicy.description || '이름 없음' }}</span>
+                    <button class="btn-text-cancel" @click="resetForm">취소</button>
+                </div>
+            </div>
+        </div>
 
-    <!-- IP 정책 목록 테이블 -->
-    <div class="policy-table-container">
-      <table class="policy-table">
-        <thead>
-          <tr>
-            <th>IP 주소/범위</th>
-            <th>설명</th>
-            <th>상태</th>
-            <th>관리</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-if="loading">
-            <td colspan="4" class="no-results">IP 정책을 불러오는 중...</td>
-          </tr>
-          <tr v-else-if="!loading && ipPolicies.length === 0">
-            <td colspan="4" class="no-results">등록된 IP 정책이 없습니다.</td>
-          </tr>
-          <template v-else>
-            <tr v-for="policy in ipPolicies" :key="policy.ipPolicyId">
-              <td>{{ policy.cidr }}</td>
-              <td>{{ policy.locationName }}</td>
-              <td>
-                <span :class="['status-badge', policy.isActive  ? 'active' : 'inactive']">
-                  {{ policy.isActive  ? '활성화' : '비활성화' }}
-                </span>
-              </td>
-              <td>
-                <button class="btn-sm secondary" @click="openPolicyModal(policy)">수정</button>
-                <button class="btn-sm danger" @click="deletePolicy(policy.ipId)">삭제</button>
-              </td>
-            </tr>
-          </template>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- IP 정책 추가/수정 모달 -->
-    <div v-if="isModalOpen" class="modal-overlay">
-      <div class="modal-content">
-        <h3>{{ isEditMode ? 'IP 정책 수정' : 'IP 정책 추가' }}</h3>
-        <form @submit.prevent="savePolicy">
-          <div class="form-group">
-            <label for="ipAddress">IP 주소/범위</label>
-            <input type="text" id="ipAddress" v-model="formPolicy.ipAddress" required />
-          </div>
-          <div class="form-group">
-            <label for="description">설명</label>
-            <textarea id="description" v-model="formPolicy.description"></textarea>
-          </div>
-          <div class="form-group">
-            <label for="enabled">상태</label>
-            <input type="checkbox" id="enabled" v-model="formPolicy.enabled" /> 활성화
-          </div>
-          <div class="modal-actions">
-            <button type="button" class="btn" @click="closePolicyModal">취소</button>
-            <button type="submit" class="btn primary">{{ isEditMode ? '저장' : '추가' }}</button>
-          </div>
-        </form>
-      </div>
+        <!-- Right Panel: List -->
+        <div class="right-panel card">
+            <div class="panel-header">
+                <h3>등록된 IP 정책</h3>
+                <span class="count-badge">{{ ipPolicies.length }}</span>
+            </div>
+            
+            <div class="policy-list-container">
+                <div v-if="loading" class="loading-state">
+                    로딩 중...
+                </div>
+                <div v-else-if="ipPolicies.length === 0" class="empty-state">
+                    등록된 정책이 없습니다.
+                </div>
+                <ul v-else class="policy-list">
+                    <li v-for="policy in ipPolicies" :key="policy.ipPolicyId" class="policy-item">
+                        <div class="policy-info">
+                            <span class="policy-name">[{{ policy.locationName }}]</span>
+                            <span class="policy-ip">{{ policy.cidr }}</span>
+                        </div>
+                        <div class="policy-actions-group">
+                            <!-- Activation Toggle -->
+                            <label class="switch sm" title="활성화/비활성화">
+                                <input type="checkbox" :checked="policy.isActive" @change="toggleStatus(policy)">
+                                <span class="slider round"></span>
+                            </label>
+                            
+                            <!-- Actions -->
+                            <div class="action-buttons">
+                                <button class="btn-icon" @click="editPolicy(policy)" title="수정">✎</button>
+                                <button 
+                                    class="btn-icon delete" 
+                                    @click="deletePolicy(policy.ipId)" 
+                                    :disabled="isEditMode"
+                                    :title="isEditMode ? '수정 중에는 삭제할 수 없습니다' : '삭제'"
+                                >✕</button>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
     </div>
   </section>
 </template>
@@ -81,38 +94,28 @@ import {
   fetchIpPolicies,
   createIpPolicy,
   updateIpPolicy,
-  deleteIpPolicy as apiDeletePolicy
+  deleteIpPolicy as apiDeletePolicy,
+  changeIpPolicyStatus
 } from '@/api/attendanceApi'
 
-/* =========================
-   기본 상태
-========================= */
 const auth = useAuthStore()
 const companyId = computed(() => auth.user?.companyId)
 
 const ipPolicies = ref([])
 const loading = ref(false)
 
-const isModalOpen = ref(false)
-const selectedPolicy = ref(null)
-
-/* ⭐ 핵심: id 반드시 포함 */
 const formPolicy = ref({
   id: null,
   ipAddress: '',
   description: '',
-  enabled: true,
+  enabled: true, // Default to true for new items
   ipPolicyType: 'ATTENDANCE'
 })
 
 const isEditMode = computed(() => !!formPolicy.value.id)
 
-/* =========================
-   목록 조회
-========================= */
 const loadPolicies = async () => {
   if (!companyId.value) return
-
   loading.value = true
   try {
     const res = await fetchIpPolicies(companyId.value)
@@ -122,14 +125,20 @@ const loadPolicies = async () => {
   }
 }
 
-onMounted(loadPolicies)
+const toggleStatus = async (policy) => {
+    const newValue = !policy.isActive;
+    try {
+        await changeIpPolicyStatus(policy.ipId, { enabled: newValue });
+        // Update local state immediately for responsiveness
+        policy.isActive = newValue;
+    } catch (error) {
+        console.error("Status change failed:", error);
+        // Revert on error
+        policy.isActive = !newValue;
+    }
+}
 
-/* =========================
-   모달 제어
-========================= */
-const openPolicyModal = (policy = null) => {
-  if (policy) {
-    selectedPolicy.value = { ...policy }
+const editPolicy = (policy) => {
     formPolicy.value = {
       id: policy.ipId,
       ipAddress: policy.cidr,
@@ -137,7 +146,9 @@ const openPolicyModal = (policy = null) => {
       enabled: policy.isActive,
       ipPolicyType: policy.ipPolicyType
     }
-  } else {
+}
+
+const resetForm = () => {
     formPolicy.value = {
       id: null,
       ipAddress: '',
@@ -145,19 +156,14 @@ const openPolicyModal = (policy = null) => {
       enabled: true,
       ipPolicyType: 'ATTENDANCE'
     }
-  }
-  isModalOpen.value = true
 }
 
-const closePolicyModal = () => {
-  isModalOpen.value = false
-  selectedPolicy.value = null
-}
-
-/* =========================
-   저장 (추가 / 수정)
-========================= */
 const savePolicy = async () => {
+  if (!formPolicy.value.ipAddress || !formPolicy.value.description) {
+      alert('IP 주소와 이름을 모두 입력해주세요.');
+      return;
+  }
+
   if (isEditMode.value) {
     await updateIpPolicy(formPolicy.value.id, {
       cidr: formPolicy.value.ipAddress,
@@ -172,210 +178,258 @@ const savePolicy = async () => {
       ipPolicyType: 'ATTENDANCE'
     })
   }
-
-  closePolicyModal()
-  console.log('before', ipPolicies.value)
+  
   await loadPolicies()
-  console.log('after', ipPolicies.value)
+  resetForm()
 }
 
-/* =========================
-   삭제
-========================= */
 const deletePolicy = async (ipId) => {
-  if (!confirm('정말 삭제하시겠습니까?')) return
-
-  await apiDeletePolicy(ipId)
-
-  // ⭐ 이 한 줄
-  ipPolicies.value = ipPolicies.value.filter(p => p.ipId !== ipId)
+    if (!confirm("삭제하시겠습니까?")) return;
+    await apiDeletePolicy(ipId);
+    ipPolicies.value = ipPolicies.value.filter(p => p.ipId !== ipId);
 }
+
+onMounted(loadPolicies)
 </script>
 
 <style scoped>
 .attendance-ip-policy-view {
-  padding: 16px;
+  padding: 24px;
   height: 100%;
-  display: flex;
-  flex-direction: column;
+  background-color: #f1f5f9;
 }
 
-.section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
+.split-layout {
+    display: flex;
+    gap: 24px;
+    height: 100%;
 }
 
-.title-group h1 {
-  font-size: 20px;
-  font-weight: 700;
-  margin: 0;
+.card {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
 
-.title-group .sub {
-  font-size: 14px;
-  color: #6b7280;
-  margin-top: 4px;
+.left-panel {
+    flex: 4; /* 40% */
 }
 
-.header-actions .btn.primary {
-  background-color: #2563eb;
-  color: #fff;
-  border-color: #2563eb;
+.right-panel {
+    flex: 6; /* 60% */
+    display: flex;
+    flex-direction: column;
 }
 
-.policy-table-container {
-  background-color: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 14px;
-  padding: 20px;
-  flex-grow: 1;
-  overflow: auto;
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
 }
 
-.policy-table {
-  width: 100%;
-  border-collapse: collapse;
+.panel-header h3 {
+    font-size: 16px;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0;
 }
 
-.policy-table th, .policy-table td {
-  padding: 12px 15px;
-  text-align: left;
-  border-bottom: 1px solid #f3f4f6;
-  font-size: 13px;
-  color: #374151;
+.panel-desc {
+    font-size: 13px;
+    color: #94a3b8;
+    margin-bottom: 24px;
 }
 
-.policy-table th {
-  background-color: #f9fafb;
-  font-weight: 600;
-  color: #4b5563;
+.config-section {
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 20px;
+    border-top: 2px solid #3b82f6; /* Accent */
 }
 
-.policy-table tbody tr:last-child td {
-  border-bottom: none;
+.section-title-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
 }
 
-.no-results {
-  text-align: center;
-  padding: 50px 20px;
-  font-size: 14px;
-  color: #9ca3af;
+.section-title-row h4 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #334155;
 }
 
-.status-badge {
-  padding: 4px 10px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 500;
-}
-.status-badge.active {
-  background-color: #d1fae5;
-  color: #065f46;
-}
-.status-badge.inactive {
-  background-color: #fee2e2;
-  color: #991b1b;
+.info-icon {
+    font-size: 12px;
+    color: #94a3b8;
+    cursor: help;
 }
 
-.btn-sm {
-  padding: 6px 12px;
-  font-size: 12px;
-  border-radius: 8px;
-  border: 1px solid #d1d5db;
-  background-color: #ffffff;
+.input-group {
+    margin-bottom: 12px;
+}
+
+.input-group-row {
+    display: flex;
+    gap: 8px;
+}
+
+.flex-1 { flex: 1; }
+
+.input-clean {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.input-clean:focus {
+    border-color: #3b82f6;
+}
+
+.btn-add {
+    padding: 0 20px;
+    background-color: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #475569;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.btn-add:hover {
+    background-color: #f8fafc;
+    color: #1e293b;
+}
+
+/* Switch */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 20px;
+}
+
+.switch input { opacity: 0; width: 0; height: 0; }
+
+.slider {
+  position: absolute;
   cursor: pointer;
-  margin-right: 8px;
-}
-.btn-sm.secondary {
-  background-color: #f3f4f6;
-}
-.btn-sm.danger {
-  background-color: #ef4444;
-  color: #fff;
-  border-color: #ef4444;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: #ccc;
+  transition: .4s;
 }
 
-/* Modal styles */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 16px;
+  width: 16px;
+  left: 2px;
+  bottom: 2px;
+  background-color: white;
+  transition: .4s;
 }
 
-.modal-content {
-  background-color: #ffffff;
-  padding: 30px;
-  border-radius: 14px;
-  width: 90%;
-  max-width: 500px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+input:checked + .slider { background-color: #10b981; } /* Green */
+input:checked + .slider:before { transform: translateX(20px); }
+.slider.round { border-radius: 20px; }
+.slider.round:before { border-radius: 50%; }
+
+.switch.sm { width: 34px; height: 18px; }
+.switch.sm .slider:before { height: 14px; width: 14px; }
+.switch.sm input:checked + .slider:before { transform: translateX(16px); }
+
+
+/* Right Panel List */
+.policy-list-container {
+    flex-grow: 1;
+    overflow-y: auto;
+    margin-top: 10px;
 }
 
-.modal-content h3 {
-  font-size: 18px;
-  font-weight: 700;
-  margin-top: 0;
-  margin-bottom: 20px;
-  color: #111827;
+.policy-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 }
 
-.form-group {
-  margin-bottom: 15px;
+.policy-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background-color: #f8fafc;
+    border: 1px solid #f1f5f9;
+    border-radius: 8px;
 }
 
-.form-group label {
-  display: block;
-  font-size: 13px;
-  font-weight: 500;
-  color: #374151;
-  margin-bottom: 8px;
+.policy-info {
+    display: flex;
+    gap: 8px;
+    font-size: 13px;
+    color: #334155;
 }
 
-.form-group input[type="text"],
-.form-group textarea {
-  width: 100%;
-  padding: 10px 12px;
-  font-size: 13px;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
+.policy-name { font-weight: 600; }
+.policy-ip { color: #64748b; }
+
+.policy-actions-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
 }
 
-.form-group textarea {
-  min-height: 80px;
-  resize: vertical;
+.action-buttons {
+    display: flex;
+    gap: 4px;
 }
 
-.form-group input[type="checkbox"] {
-  margin-right: 8px;
+.btn-icon {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    color: #94a3b8;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.btn-icon:hover { color: #3b82f6; }
+.btn-icon.delete:hover { color: #ef4444; }
+
+.btn-icon:disabled {
+    cursor: not-allowed;
+    opacity: 0.3;
+    pointer-events: none; /* simple blocking */
 }
 
-.modal-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-top: 25px;
+.edit-cancel-row {
+    margin-top: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
 }
-
-.btn {
-  padding: 8px 16px;
-  font-size: 13px;
-  border-radius: 10px;
-  border: 1px solid #d1d5db;
-  background-color: #ffffff;
-  cursor: pointer;
-}
-.btn.primary {
-  background-color: #2563eb;
-  color: #ffffff;
-  border-color: #2563eb;
+.btn-text-cancel {
+    background: none;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    text-decoration: underline;
 }
 </style>
