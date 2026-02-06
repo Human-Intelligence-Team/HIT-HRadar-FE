@@ -6,6 +6,7 @@ import {
   APPROVAL_OPTIONS,
   BASIC_OPTIONS,
   COMPENSATION_OPTIONS,
+  formatComma,
   getLabel,
   getYear,
 } from '@/views/salary/js/common.js'
@@ -175,10 +176,10 @@ onMounted(() => {
               <tr v-for="(item, index) in basic" :key="index">
                 <td>{{ item.year }}</td>
                 <td>{{ getLabel(BASIC_OPTIONS, item.salaryIncreaseType) }}</td>
-                <td>{{ item.prevSalary == null ? 0 : item.prevSalary }}</td>
-                <td>{{ item.currentSalary }}</td>
+                <td>{{ item.prevSalary == null ? 0 : formatComma(item.prevSalary) }}</td>
+                <td>{{ formatComma(item.currentSalary) }}</td>
                 <td>{{ item.increaseRate == null ? 0 : item.increaseRate }}</td>
-                <td>{{ item.currentSalary - item.prevSalary }}</td>
+                <td>{{ formatComma(item.currentSalary - item.prevSalary) }}</td>
               </tr>
             </table>
           </div>
@@ -224,7 +225,7 @@ onMounted(() => {
                   <td>{{ item.remark }}</td>
                   <td>{{ getLabel(APPROVAL_OPTIONS, item.approvalStatus) }}</td>
                   <td>{{ item.approvedAt }}</td>
-                  <td>{{ item.amount }}</td>
+                  <td>{{ formatComma(item.amount) }}</td>
                   <td>{{ item.rate ?? 0 }}</td>
                 </template>
               </tr>

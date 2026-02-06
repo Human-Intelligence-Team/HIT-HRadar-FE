@@ -8,6 +8,7 @@ import {
   APPROVAL_OPTIONS,
   BASIC_OPTIONS,
   COMPENSATION_OPTIONS,
+  formatComma,
   getLabel,
 } from '@/views/salary/js/common.js'
 
@@ -24,7 +25,7 @@ const basic = reactive({
   title: '',
   increaseRate: '',
   salaryIncreaseType: '',
-  year : ''
+  year: '',
 })
 const compensation = ref([])
 const employees = reactive({
@@ -194,12 +195,12 @@ onMounted(() => {
               <th style="width: 10%">인상금액</th>
             </tr>
             <tr>
-              <td>{{basic.year}}</td>
-              <td>{{basic.salaryIncreaseType}}</td>
-              <td>{{basic.prevSalary}}</td>
-              <td>{{basic.currentSalary}}</td>
-              <td>{{basic.increaseRate == null ? 0 : basic.increaseRate }}</td>
-              <td>{{basic.currentSalary - basic.prevSalary}}</td>
+              <td>{{ basic.year }}</td>
+              <td>{{ basic.salaryIncreaseType }}</td>
+              <td>{{ formatComma(basic.prevSalary)}}</td>
+              <td>{{ formatComma(basic.currentSalary) }}</td>
+              <td>{{ basic.increaseRate == null ? 0 : basic.increaseRate }}</td>
+              <td>{{ formatComma(basic.currentSalary - basic.prevSalary) }}</td>
             </tr>
           </table>
         </div>
@@ -240,7 +241,7 @@ onMounted(() => {
                 <td>{{ item.remark }}</td>
                 <td>{{ getLabel(APPROVAL_OPTIONS, item.approvalStatus) }}</td>
                 <td>{{ item.approvedAt }}</td>
-                <td>{{ item.amount }}</td>
+                <td>{{ formatComma(item.amount) }}</td>
                 <td>{{ item.rate ?? 0 }}</td>
               </template>
             </tr>

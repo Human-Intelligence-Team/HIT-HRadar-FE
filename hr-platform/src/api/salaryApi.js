@@ -28,8 +28,6 @@ export const fetchBasicSalariesById = (id,params) => {
 /*변동보상 사원별 목록 조회*/
 export const fetchCompensationSalariesById = (id, params) => {
 
-  console.log("####" + params.employmentType)
-
   return api.get(`/api/v1/compensation-salaries/${id}`, {
     params
   });

@@ -7,7 +7,7 @@ import {
   LEAVE_STATUS_OPTIONS,
 } from '@/views/report/script/common.js'
 import { fetchBasicSalariesById } from '@/api/salaryApi.js'
-import { BASIC_OPTIONS } from '@/views/salary/js/common.js'
+import { APPROVAL_OPTIONS, BASIC_OPTIONS, formatComma, getLabel } from '@/views/salary/js/common.js'
 
 const router = useRouter()
 const route = useRoute()
@@ -139,14 +139,33 @@ onMounted(() => {
 
   <div class="grid">
     <div class="card">
-      <div><span><strong>{{ salaryApproval.title}}</strong></span></div>
-      <div><span>{{ salaryApproval.salaryIncreaseType}}</span></div>
-      <div><span>{{ salaryApproval.remark}}</span></div>
-      <div><span>{{ salaryApproval.approvedAt}}</span></div>
-      <div><span>{{ salaryApproval.approvalStatus}}</span></div>
-      <div><span>{{ salaryApproval.writer}}</span></div>
-      <div><span>{{ salaryApproval.totalSalary}}</span></div>
-      <div><span>{{ salaryApproval.empCount}}</span></div>
+      <div class="approval-card">
+        <div class="approval-card-title">
+          <div>
+            <span><strong>{{ salaryApproval.title}}</strong></span>
+            <span class="sub">{{ salaryApproval.approvedAt}}</span>
+          </div>
+          <span :class="['status-badge', salaryApproval.approvalStatus]">
+            {{ getLabel(APPROVAL_OPTIONS, salaryApproval.approvalStatus) }}
+          </span>
+        </div>
+
+          <div class="approval-card-contents">
+            <div class="card-div">
+              <span class="card-item"> <strong>연봉 인상 유형 : </strong> {{
+                  getLabel(BASIC_OPTIONS, salaryApproval.salaryIncreaseType)
+                }}</span>
+              <span class="card-item"> <strong>담당자 : </strong>  {{ salaryApproval.writer }}</span>
+            </div>
+            <div class="card-div">
+              <span class="card-item"><strong>총 금액 : </strong> {{ formatComma(salaryApproval.totalSalary, '원') }}</span>
+              <span class="card-item"><strong>결재 대상 인원 : </strong>  {{ salaryApproval.empCount }}</span>
+            </div>
+            <div class="card-div">
+              <span class="card-item"> <strong>비고 : </strong>  {{ salaryApproval.remark}}</span>
+            </div>
+          </div>
+      </div>
     </div>
   </div>
 
@@ -247,11 +266,49 @@ onMounted(() => {
 
 <style scoped>
 @import '@/assets/styles/searchBox.css';
+@import '@/views/salary/style/badge.css';
 
 .section-btn {
   display: flex;
   justify-content: flex-end;
   padding-top: 10px;
   padding-right: 10px;
+}
+
+.approval-card {
+  padding: 20px;
+}
+
+.approval-card-title {
+  display: flex;
+  justify-content: space-between;
+
+}
+.approval-card-title > div {
+  display: flex;
+  flex-direction: column;
+}
+.approval-card-contents {
+  padding-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.card-div,
+.approval-card-contents > div {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+
+}
+
+.card-item {
+  flex: 1;
+  width: 50%;
+  font-size: 0.95rem;
+  color: #444;
+  display: flex;
+  align-items: center;
 }
 </style>

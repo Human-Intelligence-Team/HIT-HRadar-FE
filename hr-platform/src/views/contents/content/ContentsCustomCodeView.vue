@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref, watch } from 'vue'
+import { onMounted,  ref, watch } from 'vue'
 import {
   fetchGroupCodes,
   fetchCustomCodeByGroupCode,
@@ -14,7 +14,8 @@ const errorMessage = ref('')
 
 const groups = ref([]) // 상위 그룹
 const customCodes = ref([]) // 하위 코드
-const selectedGroupCode = ref('')
+
+const selectedGroupCode = ref([])
 const allChecked = ref(false) // 삭제할 때
 
 const normalizeCustomCode = (value) => {
@@ -39,8 +40,8 @@ const getGroupCodes = async () => {
 
       // 첫 번째 그룹 자동 선택
       if (groups.value.length > 0) {
-        console.log(groups.value[0].customCodeId)
-        selectedGroupCode.value = groups.value[0].customCodeId
+        console.log(groups.value[0].groupCode)
+        selectedGroupCode.value = groups.value[0].groupCode
       }
     }
   } catch (e) {
@@ -52,13 +53,18 @@ const getGroupCodes = async () => {
 }
 
 // 하위 코드 조회
-const getCustomCodeByGroupCode = async (customCodeId) => {
-  if (!customCodeId) return
+const getCustomCodeByGroupCode = async (groupCode) => {
+  if (!groupCode) return
 
-  console.log('getCustomCodeByGroupCode: ' + customCodeId)
+  let payload = {
+    groupCode : groupCode,
+    customCodeId : groups.value.find(item => item.groupCode === groupCode)?.customCodeId,
+  }
+
+  console.log('getCustomCodeByGroupCode: ' + groupCode)
   submitting.value = true
   try {
-    const result = await fetchCustomCodeByGroupCode({ customCodeId })
+    const result = await fetchCustomCodeByGroupCode( payload )
     const data = result.data
 
     if (data.success) {
@@ -113,12 +119,14 @@ const codeValid = async (code) => {
 const createCode = async (code) => {
 
  let payload = {
-    customCodeId: selectedGroupCode.value,
+    customCodeId : groups.value.find(item => item.groupCode === code.groupCode).customCodeId,
+    groupCode: selectedGroupCode.value,
     customCode: code.customCode,
     customName: code.customName,
     isDeleted: code.isDeleted,
   }
 
+  console.log('createCode', payload)
   submitting.value = true
 
   try {
@@ -226,9 +234,12 @@ function goListPage() {
 }
 
 // 그룹 변경 감지
-watch(selectedGroupCode, (newCodeId) => {
-  if (newCodeId) {
-    getCustomCodeByGroupCode(newCodeId)
+watch(selectedGroupCode, (groupCode) => {
+  if (groupCode) {
+    console.log("#####" + groupCode);
+    console.log("#####" + groups.value.find(item => item.groupCode === groupCode).customCodeId);
+
+    getCustomCodeByGroupCode(groupCode)
   }
 })
 
@@ -249,7 +260,7 @@ onMounted(() => {
     <div class="card">
       <div class="search-section">
         <select class="select" v-model="selectedGroupCode">
-          <option v-for="group in groups" :key="group.customCodeId" :value="group.customCodeId">
+          <option v-for="group in groups" :key="group.groupCode" :value="group.groupCode">
             {{ group.groupName }}
           </option>
         </select>
@@ -359,5 +370,29 @@ onMounted(() => {
   justify-content: flex-end;
   padding: 15px;
   gap: 10px;
+}
+
+/* 테이블 셀 공통 정렬 */
+.table th,
+.table td {
+  padding: 12px 8px;      /* 셀 내부 여백 조정 */
+  vertical-align: middle;  /* 수직 중앙 정렬 */
+  text-align: center;      /* 수평 중앙 정렬 */
+}
+
+.table td input[type="checkbox"],
+.table th input[type="checkbox"] {
+  cursor: pointer;
+  width: 16px;
+  height: 16px;
+  margin: 0;               /* 기본 마진 제거가 중요! */
+  vertical-align: middle;  /* 텍스트 라인과 맞춤 */
+  display: inline-block;
+}
+
+.table tr td:first-child,
+.table tr th:first-child {
+  display: table-cell;     /* Flex 방해 방지 */
+  text-align: center;
 }
 </style>

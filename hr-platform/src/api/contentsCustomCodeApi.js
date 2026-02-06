@@ -10,7 +10,7 @@ export const fetchCustomCodeByGroupCode = (params) => {
   return axios.get('/api/v1/contents/custom-code/customCodes', {
     params
   });
-}
+};
 
 /* 커스텀 코드 등록 */
 export const createCustomCode = (payload) => {

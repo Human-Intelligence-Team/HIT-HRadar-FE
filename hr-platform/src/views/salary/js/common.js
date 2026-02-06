@@ -33,6 +33,16 @@ export const getLabel = (options, val) => {
   return target ? target.label : val
 }
 
+// 콤마
+export const formatComma = (value, suffix = '') => {
+  if (value === null || value === undefined || value === '' || isNaN(value)) {
+    return `0${suffix}`;
+  }
+
+  const formatter = new Intl.NumberFormat('ko-KR');
+  return `${formatter.format(value)}${suffix}`;
+};
+
 // 기본급
 export const BASIC_OPTIONS = [
   { value: 'REGULAR', label: '정기 인상' },
