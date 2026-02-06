@@ -1,6 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
-import { permissionConfig } from '@/router/permissionConfig'
 
 import PolicyView from '@/views/policy/PolicyView.vue'
 import PolicyDetailView from '@/views/policy/PolicyDetailView.vue'
