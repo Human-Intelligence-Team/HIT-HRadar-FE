@@ -114,33 +114,34 @@ import JobSatisfactionGaugeChart from '@/components/dashboard/JobSatisfactionGau
 import dayjs from 'dayjs'
 import JobStabilityLineChart from '@/components/dashboard/JobStabilityLineChart.vue'
 import { fetchEmpJobStable } from '@/api/dashboardApi'
-
+import { onMounted } from 'vue'
 import {
   fetchEmpContribution,
   fetchEmpCollaboration,
   fetchEmpJobSatisfaction
 } from '@/api/dashboardApi'
 
-// ===== 더미 부서 / 사원 =====
-const departments = [
-  { id: 1, name: '개발팀' },
-  { id: 2, name: '기획팀' }
-]
+import {
+  getAllDepartmentsByCompany,
+  getDepartmentMembers
+} from '@/api/departmentApi'
 
-const deptEmployees = {
-  1: [
-    { id: 1001, name: '김성수' },
-    { id: 1002, name: '이서연' }
-  ],
-  2: [
-    { id: 2001, name: '박지훈' }
-  ]
-}
+// =====부서 / 사원 =====
+const departments = ref([])
+const employees = ref([])
+
 
 const selectedDeptId = ref('')
 const selectedEmpId = ref('')
-const employees = ref([])
 
+onMounted(async () => {
+  const res = await getAllDepartmentsByCompany()
+
+  departments.value = res.data.data.departments.map(d => ({
+    id: d.deptId,
+    name: d.deptName
+  }))
+})
 // ===== 대시보드 상태 =====
 const contribution = ref({ categories: [], values: [] })
 const collaboration = ref({ labels: [], values: [], max: 100 })
@@ -161,10 +162,20 @@ const endYm = dayjs().add(6, 'month').format('YYYY-MM')
 
 
 // ===== Watch =====
-watch(selectedDeptId, deptId => {
+watch(selectedDeptId, async deptId => {
   selectedEmpId.value = ''
-  employees.value = deptEmployees[deptId] ?? []
+  employees.value = []
+
+  if (!deptId) return
+
+  const res = await getDepartmentMembers(deptId)
+
+  employees.value = res.data.data.employees.map(e => ({
+    id: e.empId,
+    name: e.name
+  }))
 })
+
 
 watch(selectedEmpId, async empId => {
   if (!empId) return

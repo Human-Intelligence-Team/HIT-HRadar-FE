@@ -40,3 +40,6 @@ export const updateGoal = (goalId, data) =>
 //삭제
 export const deleteGoal = (goalId) =>
   axios.delete(`/api/v1/goals/${goalId}`)
+// 제출
+export const submitGoal = (goalId) =>
+  axios.post(`/api/v1/goals/${goalId}/submit`)

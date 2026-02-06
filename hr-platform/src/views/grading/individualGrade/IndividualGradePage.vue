@@ -434,10 +434,12 @@ const closeDetail = () => {
  * 10. 저장 / 제출 / 삭제
  * ========================= */
 const applySaved = async ({ empId, gradeId, gradeReason }) => {
-  if (selectedEmp.value?.individualGradeId) {
+  const emp = employees.value.find(e => e.empId === empId)
+
+  if (emp?.individualGradeId) {
     // 수정
     await updateIndividualGrade(
-      selectedEmp.value.individualGradeId,
+      emp.individualGradeId,
       { gradeId, gradeReason }
     )
   } else {
@@ -451,25 +453,45 @@ const applySaved = async ({ empId, gradeId, gradeReason }) => {
   }
 
   await loadEmployees()
+  closeAssign()
 }
+
 
 const applySubmitted = async ({ empId, gradeId, gradeReason }) => {
-  await assignIndividualGrade({
-    cycleId: currentCycle.value.cycleId,
-    empId,
-    gradeId,
-    gradeReason,
-  })
-
   const emp = employees.value.find(e => e.empId === empId)
-  if (!emp?.individualGradeId) return
 
-  const msg = violation(emp)
+  if (emp?.individualGradeId) {
+    // 기존 등급 → 수정
+    await updateIndividualGrade(emp.individualGradeId, {
+      gradeId,
+      gradeReason,
+    })
+  } else {
+    // 신규 등급
+    await assignIndividualGrade({
+      cycleId: currentCycle.value.cycleId,
+      empId,
+      gradeId,
+      gradeReason,
+    })
+  }
+
+  // 최신 데이터 다시 조회
+  await loadEmployees()
+
+  const updated = employees.value.find(e => e.empId === empId)
+  if (!updated?.individualGradeId) return
+
+  const msg = violation(updated)
   if (msg) return alert(msg)
 
-  await submitIndividualGrade(emp.individualGradeId)
+  await submitIndividualGrade(updated.individualGradeId)
   await loadEmployees()
+
+  closeAssign()
 }
+
+
 
 
 const submitRow = async (emp) => {
