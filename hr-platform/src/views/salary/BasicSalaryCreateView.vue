@@ -30,6 +30,12 @@ const basicData = reactive({
   references : []
 })
 
+const employeeData = reactive({
+  name : ''
+  , deptName : ''
+  , positionName : ''
+})
+
 // 태그 관리 모달
 const openEmployeeModal = (mode) => {
   modalMode.value = mode
@@ -70,7 +76,6 @@ const onEmployeeConfirm = (employees) => {
 
 // 목록 이동
 function goListPage() {
-  alert('저장되지 않았습니다. 목록으로 이동하겠습니까?')
   router.push({ path: `/all/salary/${type}` })
 
 }
@@ -261,6 +266,34 @@ function approvalValid() {
   draftApproval(payload);
   console.log("전송될 payload: ", payload);
 }
+/*
+
+const getMyEmployee = () => {
+  submitting.value = true
+
+  try {
+    const result = await
+    const data = result.data
+
+    if (data.success) {
+
+      if (payload.approvalSaveMode === 'SUBMIT') {
+        alert("결재되었습니다.")
+      } else if (payload.approvalSaveMode === 'DRAFT') {
+        alert("임시 저장되었습니다.");
+      }
+
+    }
+  } catch (e) {
+    errorMessage.value = e.message || '컨텐츠 조회 중 오류 발생'
+    alert(errorMessage.value)
+  } finally {
+    submitting.value = false
+    goListPage()
+  }
+}
+*/
+
 
 onMounted(() => {
   // 화면 구분
@@ -275,6 +308,8 @@ onMounted(() => {
     basicData.type = 'PERFORMANCE'
     salaryType.value = 'COMPENSATION_SALARY'
   }
+
+  // 사원정보
 
 })
 </script>

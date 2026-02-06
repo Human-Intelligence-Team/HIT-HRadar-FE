@@ -45,19 +45,9 @@ export function fetchEmployees(params) {
  * GET /employees/{empId}
  */
 export function fetchEmployeeDetail(empId) {
-    return api.get(`/api/v1/employees/${empId}`)
-import axios from './axios.js'
-
-/* 태그 목록 조회 */
-export const fetchEmployees = (params) => {
-  return axios.get('/api/v1/employees', {
-    params
-  });
+  return api.get(`/api/v1/employees/${empId}`)
 }
 
-export const fetchEmployeeById = (empId) => {
-  return axios.get(`/api/v1/employees/${empId}`);
-};
 /**
  * 사원 프로필 수정
  * PATCH /employees/{empId}/profile
@@ -65,6 +55,8 @@ export const fetchEmployeeById = (empId) => {
 export function updateEmployeeProfile(empId, data) {
     return api.patch(`/api/v1/employees/${empId}/profile`, data)
 }
+
+
 
 /**
  * 사원 삭제

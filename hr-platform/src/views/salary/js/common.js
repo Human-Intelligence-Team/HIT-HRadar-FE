@@ -9,6 +9,18 @@ export function getToday() {
   return `${year}-${month}-${day}`;
 }
 
+export function getDateFormatter(dateInput) {
+  const date = (typeof dateInput === 'string') ? new Date(dateInput) : dateInput;
+
+  if (!(date instanceof Date) || isNaN(date.getTime())) return '';
+
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+
+  return `${year}년 ${month}월 ${day}일`;
+}
+
 // 올해 년도
 export function getYear() {
   const today = new Date();
@@ -16,6 +28,10 @@ export function getYear() {
   return year
 }
 
+export const getLabel = (options, val) => {
+  const target = options.find((item) => item.value === val)
+  return target ? target.label : val
+}
 
 // 기본급
 export const BASIC_OPTIONS = [

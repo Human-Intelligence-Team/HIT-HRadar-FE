@@ -1,7 +1,15 @@
 <script setup>
 import { useRoute, useRouter } from 'vue-router'
-import { onMounted, reactive, ref } from 'vue'
-import { fetchBasicHistory, fetchBasicHistoryByMe } from '@/api/salaryApi.js'
+import { onMounted, reactive, ref, watch } from 'vue'
+import { fetchBasicHistoryByMe, fetchCompensationHistory } from '@/api/salaryApi.js'
+import { fetchEmployeeDetail } from '@/api/employeeApi.js'
+import { LEAVE_STATUS_OPTIONS } from '@/views/report/script/common.js'
+import {
+  APPROVAL_OPTIONS,
+  BASIC_OPTIONS,
+  COMPENSATION_OPTIONS,
+  getLabel,
+} from '@/views/salary/js/common.js'
 
 const router = useRouter()
 const route = useRoute()
@@ -9,27 +17,49 @@ const submitting = ref(false)
 const errorMessage = ref('')
 const empId = route.params.id
 const year = route.query.year
-const basic = ref([])
+
+const basic = reactive({
+  currentSalary: '',
+  prevSalary: '',
+  title: '',
+  increaseRate: '',
+  salaryIncreaseType: '',
+  year : ''
+})
+const compensation = ref([])
+const employees = reactive({
+  name: '',
+  employeeNo: '',
+  deptName: '',
+  positionName: '',
+  hireDate: '',
+  employmentType: '',
+})
+
+const searchData = reactive({
+  compensationType: '',
+  year: year,
+})
 
 const goListPage = () => {
   router.push({ path: '/me/salary/basic' })
 }
 
-// 기본급 히스토리
-const basicHistory = async () => {
+// 변동보상 히스토리
+const compensationHistory = async () => {
   submitting.value = true
 
   let payload = {
-    year: year,
+    year: searchData.year,
+    type: searchData.compensationType,
   }
 
   try {
-    const result = await fetchBasicHistoryByMe(payload)
+    const result = await fetchCompensationHistory(empId, payload)
     const data = result.data
 
     if (data.success) {
-      console.log('성공!!!!!')
-      basic.value = data.data.basicSalaryHistories
+      compensation.value = data.data.compensationSalaries
     }
   } catch (e) {
     errorMessage.value = e.message || '연봉 조회 중 오류 발생'
@@ -39,15 +69,79 @@ const basicHistory = async () => {
   }
 }
 
+// 기본급 히스토리
+const basicHistory = async () => {
+  console.log('시작??')
+  submitting.value = true
+
+  try {
+    const result = await fetchBasicHistoryByMe(year)
+    const data = result.data
+
+    if (data.success) {
+      console.log('성공!!!!!')
+      let history = data.data.salaryHistory
+      /*
+      * const basic = reactive({
+  currentSalary : '',
+  prevSalary : '',
+  title : '',
+  increaseRate : '',
+  salaryIncreaseType : '',
+})
+      *
+      * */
+      basic.title = history.title
+      basic.increaseRate = history.increaseRate
+      basic.currentSalary = history.currentSalary
+      basic.prevSalary = history.prevSalary
+      basic.salaryIncreaseType = getLabel(BASIC_OPTIONS, history.salaryIncreaseType)
+      basic.year = history.year
+    }
+  } catch (e) {
+    errorMessage.value = e.message || '연봉 조회 중 오류 발생'
+    alert(errorMessage.value)
+  } finally {
+    submitting.value = false
+  }
+}
+
+// 사원정보
+const getEmployee = async () => {
+  submitting.value = true
+
+  try {
+    const result = await fetchEmployeeDetail(empId)
+    const data = result.data
+
+    if (data.success) {
+      employees.name = data.data.name
+      employees.employeeNo = data.data.employeeNo
+      employees.deptName = data.data.deptName
+      employees.positionName = data.data.positionName
+      employees.hireDate = data.data.hireDate
+      employees.employmentType = data.data.employmentType
+    }
+  } catch (e) {
+    errorMessage.value = e.message || '연봉 조회 중 오류 발생'
+    alert(errorMessage.value)
+  } finally {
+    submitting.value = false
+  }
+}
+watch(
+  () => [searchData.year, searchData.compensationType],
+  () => {
+    compensationHistory()
+  },
+)
 onMounted(() => {
-  console.log('empId ' + empId)
-
   // 사원정보
-
+  getEmployee()
   // 기본급 히스토리
   basicHistory()
-
   // 변동사항 히스토리
+  compensationHistory()
 })
 </script>
 
@@ -66,21 +160,21 @@ onMounted(() => {
           <table class="table">
             <tr>
               <th>이름</th>
-              <td></td>
+              <td>{{ employees.name }}</td>
               <th>사번</th>
-              <td></td>
+              <td>{{ employees.employeeNo }}</td>
             </tr>
             <tr>
               <th>부서</th>
-              <td></td>
+              <td>{{ employees.deptName }}</td>
               <th>직급</th>
-              <td></td>
+              <td>{{ employees.positionName }}</td>
             </tr>
             <tr>
               <th>입사일</th>
-              <td></td>
+              <td>{{ employees.hireDate }}</td>
               <th>재직상태</th>
-              <td></td>
+              <td>{{ getLabel(LEAVE_STATUS_OPTIONS, employees.employmentType) }}</td>
             </tr>
           </table>
         </div>
@@ -96,16 +190,16 @@ onMounted(() => {
               <th style="width: 10%">인상사유</th>
               <th style="width: 10%">전 년도 연봉</th>
               <th style="width: 10%">변경 연봉</th>
-              <th style="width: 10%">인상률</th>
+              <th style="width: 10%">인상률(%)</th>
               <th style="width: 10%">인상금액</th>
             </tr>
             <tr>
-              <td>2025</td>
-              <td>영업</td>
-              <td>사원</td>
-              <td>사원</td>
-              <td>김사원</td>
-              <td>김사원</td>
+              <td>{{basic.year}}</td>
+              <td>{{basic.salaryIncreaseType}}</td>
+              <td>{{basic.prevSalary}}</td>
+              <td>{{basic.currentSalary}}</td>
+              <td>{{basic.increaseRate == null ? 0 : basic.increaseRate }}</td>
+              <td>{{basic.currentSalary - basic.prevSalary}}</td>
             </tr>
           </table>
         </div>
@@ -117,8 +211,11 @@ onMounted(() => {
         <div class="search-box">
           <div class="search">
             <div class="label">종류</div>
-            <select class="select">
+            <select class="select" v-model="searchData.compensationType">
               <option value="">전체</option>
+              <option v-for="item in COMPENSATION_OPTIONS" :key="item.value" :value="item.value">
+                {{ item.label }}
+              </option>
             </select>
           </div>
         </div>
@@ -126,16 +223,26 @@ onMounted(() => {
         <div class="card-history">
           <table class="table-card">
             <tr>
-              <th style="width: 10%">종류</th>
-              <th style="width: 10%">내용</th>
+              <th style="width: 10%">년도</th>
+              <th style="width: 10%">제목</th>
+              <th style="width: 10%">유형</th>
+              <th style="width: 10%">비고</th>
+              <th style="width: 10%">결재상태</th>
+              <th style="width: 10%">결재일</th>
               <th style="width: 10%">금액</th>
               <th style="width: 10%">퍼센트(%)</th>
             </tr>
-            <tr>
-              <td>2025</td>
-              <td>영업</td>
-              <td>400,000</td>
-              <td>0</td>
+            <tr v-for="(item, index) in compensation" :key="index">
+              <template v-if="item">
+                <td>{{ item.year }}</td>
+                <td>{{ item.title }}</td>
+                <td>{{ getLabel(COMPENSATION_OPTIONS, item.type) }}</td>
+                <td>{{ item.remark }}</td>
+                <td>{{ getLabel(APPROVAL_OPTIONS, item.approvalStatus) }}</td>
+                <td>{{ item.approvedAt }}</td>
+                <td>{{ item.amount }}</td>
+                <td>{{ item.rate ?? 0 }}</td>
+              </template>
             </tr>
           </table>
         </div>

@@ -1,13 +1,28 @@
 <script setup>
 import { useRouter } from 'vue-router'
-import { onMounted, ref } from 'vue'
-import { fetchCompensationSalaries } from '@/api/salaryApi.js'
-import { APPROVAL_OPTIONS, COMPENSATION_OPTIONS } from '@/views/salary/js/common.js'
+import { onMounted, reactive, ref } from 'vue'
+import { fetchCompensationSalaries, fetchCompensationSalarySummary } from '@/api/salaryApi.js'
+import {
+  APPROVAL_OPTIONS,
+  COMPENSATION_OPTIONS,
+  getDateFormatter,
+  getToday,
+} from '@/views/salary/js/common.js'
 const submitting = ref(false)
 const errorMessage = ref('')
 const router = useRouter()
 
 const compensation = ref([])
+const compensationSummary = reactive({
+  totalBonus: '',
+  totalIncentive: '',
+  totalPerformance: '',
+  totalAllowance: '',
+  totalCompensation: '',
+  totalAmount: '',
+  startDate: '',
+  endDate: '',
+})
 const goCompensationCreate = () => {
   // router.push({ path:'/all/salary/compensation/create'})
 
@@ -39,8 +54,44 @@ const searchSalaries = async () => {
   }
 }
 
+// fetchCompensationSalarySummary
+// 변동 보상 요약
+const getCompensationSummary = async () => {
+  submitting.value = true
+
+  let payload = {
+    endDate: getToday(),
+  }
+
+  try {
+    const result = await fetchCompensationSalarySummary(payload)
+    const data = result.data
+
+    if (data.success) {
+      // 저장
+      let salary = data.data.compensationSalary
+      console.log(getDateFormatter(data.data.startDate))
+      console.log(salary.totalBonus)
+      compensationSummary.totalBonus = salary.totalBonus
+      compensationSummary.totalIncentive = salary.totalIncentive
+      compensationSummary.totalPerformance = salary.totalPerformance
+      compensationSummary.totalAllowance = salary.totalAllowance
+      compensationSummary.totalCompensation = salary.totalCompensation
+      compensationSummary.totalAmount = salary.totalAmount
+      compensationSummary.startDate = getDateFormatter(data.data.startDate)
+      compensationSummary.endDate = getDateFormatter(data.data.endDate)
+    }
+  } catch (e) {
+    errorMessage.value = e.message || '기본급 조회 중 오류 발생'
+    alert(errorMessage.value)
+  } finally {
+    submitting.value = false
+  }
+}
+
 onMounted(() => {
   searchSalaries()
+  getCompensationSummary()
 })
 
 const goDetailPage = (docId) => {
@@ -56,7 +107,9 @@ const goDetailPage = (docId) => {
       <div class="dashboard-box-header">
         <div class="dashboard-box-title">
           <span class="title">2026년 변동보상 관리</span>
-          <span class="sub-title">2026년 01월 01일 ~ 2026년 02월 01일</span>
+          <span class="sub-title"
+            >{{ compensationSummary.startDate }} ~ {{ compensationSummary.endDate }}</span
+          >
         </div>
         <div>
           <button class="btn primary" @click="goCompensationCreate()">등록하기</button>
@@ -66,23 +119,26 @@ const goDetailPage = (docId) => {
       <div class="dashboard-box-body">
         <div class="amount-box">
           <span class="title">총 금액</span>
-          <span class="content-font">85,000,000원</span>
+          <span class="content-font">{{compensationSummary.totalBonus
+            + compensationSummary.totalIncentive + compensationSummary.totalPerformance
+          + compensationSummary.totalAllowance
+            }}원</span>
         </div>
         <div class="compensation-box">
           <span class="title">총 상여금</span>
-          <span class="content-font">85,000,000원</span>
+          <span class="content-font">{{compensationSummary.totalBonus}}원</span>
         </div>
         <div class="compensation-box">
           <span class="title">총 인센티브</span>
-          <span class="content-font">85,000,000원</span>
+          <span class="content-font">{{compensationSummary.totalIncentive}}원</span>
         </div>
         <div class="compensation-box">
           <span class="title">총 성과금</span>
-          <span class="content-font">85,000,000원</span>
+          <span class="content-font">{{compensationSummary.totalPerformance}}원</span>
         </div>
         <div class="compensation-box">
           <span class="title">기타수당</span>
-          <span class="content-font">85,000,000원</span>
+          <span class="content-font">{{compensationSummary.totalAllowance}}원</span>
         </div>
       </div>
     </div>

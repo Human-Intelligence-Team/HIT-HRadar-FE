@@ -1,10 +1,8 @@
 import {fetchDepts} from "@/api/deptApii.js";
 import {fetchPositions} from "@/api/positionApii.js";
 
-export const submitting = ref(false)
-export const errorMessage = ref('')
 /* 이번 년도 기준 - 10년*/
-import {ref} from "vue";
+
 
 export const YEAR_OPTIONS = () => {
 

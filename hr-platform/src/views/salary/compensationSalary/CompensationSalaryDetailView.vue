@@ -36,6 +36,8 @@ const salaryApproval = reactive({
   , totalSalary : ''
   , empCount : ''
 })
+
+// 목록 이동
 const goListPage = () => {
   router.push({ path: '/all/salary/compensation' })
 }
@@ -61,17 +63,27 @@ const loadPositionOptions = async () => {
 }
 
 // 검색
-const searchReport = async (payload) => {
-  submitting.value = true
-  salaries.value = []
+const searchReport = async () => {
 
+  let payload = {
+    employmentType: searchData.employmentType,
+    deptId: searchData.deptId,
+    comPositionId: searchData.comPositionId,
+    employeeNo: searchData.employeeNo,
+    employeeName: searchData.employeeName
+    }
+    submitting.value = true;
   try {
     const result = await fetchCompensationSalariesById(docId, payload)
     const data = result.data
 
+
     if (data.success) {
+
+      console.log("성공")
       salaries.value = data.data.compensationSalaries
       let approval = data.data.salaryApproval
+
       salaryApproval.title = approval.title
       salaryApproval.compensationType = approval.compensationType
       salaryApproval.remark = approval.remark
@@ -81,8 +93,6 @@ const searchReport = async (payload) => {
       salaryApproval.totalSalary = approval.totalSalary
       salaryApproval.empCount = approval.empCount
 
-      console.log("#### " + salaryApproval.title)
-
     }
   } catch (e) {
     errorMessage.value = e.message || '연봉 조회 중 오류 발생'
@@ -90,19 +100,6 @@ const searchReport = async (payload) => {
   } finally {
     submitting.value = false
   }
-}
-
-function searchBtn() {
-  let payload = {
-    employmentType: searchData.employmentType,
-    deptId: searchData.deptId,
-    comPositionId: searchData.comPositionId,
-    employeeNo: searchData.employeeNo,
-    employeeName: searchData.employeeName,
-  }
-
-  // 검색
-  searchReport(payload)
 }
 
 // 초기화
@@ -115,7 +112,7 @@ const resetSearch = () => {
 onMounted(() => {
   loadDeptOptions()
   loadPositionOptions()
-  searchBtn()
+  searchReport()
 })
 </script>
 
@@ -128,14 +125,32 @@ onMounted(() => {
 
   <div class="grid">
     <div class="card">
-      <div><span><strong>{{ salaryApproval.title}}</strong></span></div>
-      <div><span>{{ salaryApproval.compensationType}}</span></div>
-      <div><span>{{ salaryApproval.remark}}</span></div>
-      <div><span>{{ salaryApproval.approvedAt}}</span></div>
-      <div><span>{{ salaryApproval.approvalStatus}}</span></div>
-      <div><span>{{ salaryApproval.writer}}</span></div>
-      <div><span>{{ salaryApproval.totalSalary}}</span></div>
-      <div><span>{{ salaryApproval.empCount}}</span></div>
+      <div>
+        <span
+          ><strong>{{ salaryApproval.title }}</strong></span
+        >
+      </div>
+      <div>
+        <span>{{ salaryApproval.compensationType }}</span>
+      </div>
+      <div>
+        <span>{{ salaryApproval.remark }}</span>
+      </div>
+      <div>
+        <span>{{ salaryApproval.approvedAt }}</span>
+      </div>
+      <div>
+        <span>{{ salaryApproval.approvalStatus }}</span>
+      </div>
+      <div>
+        <span>{{ salaryApproval.writer }}</span>
+      </div>
+      <div>
+        <span>{{ salaryApproval.totalSalary }}</span>
+      </div>
+      <div>
+        <span>{{ salaryApproval.empCount }}</span>
+      </div>
     </div>
   </div>
 
@@ -174,7 +189,7 @@ onMounted(() => {
 
         <div class="search-btn">
           <button class="btn reset" @click="resetSearch()">초기화</button>
-          <button class="btn primary search" @click="searchBtn">검색</button>
+          <button class="btn primary search" @click="searchReport">검색</button>
         </div>
       </div>
       <div class="card-head">
@@ -187,7 +202,6 @@ onMounted(() => {
           <div class="label">사원명</div>
           <input class="input" type="text" v-model="searchData.employeeName" placeholder="사원명" />
         </div>
-
       </div>
     </div>
   </div>

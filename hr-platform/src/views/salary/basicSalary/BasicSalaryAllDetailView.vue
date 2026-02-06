@@ -6,10 +6,11 @@ import {
   APPROVAL_OPTIONS,
   BASIC_OPTIONS,
   COMPENSATION_OPTIONS,
+  getLabel,
   getYear,
 } from '@/views/salary/js/common.js'
 import { LEAVE_STATUS_OPTIONS, YEAR_OPTIONS } from '@/views/report/script/common.js'
-import { fetchEmployeeById } from '@/api/employeeApi.js'
+import { fetchEmployeeDetail } from '@/api/employeeApi.js'
 
 const router = useRouter()
 const route = useRoute()
@@ -82,17 +83,12 @@ const compensationHistory = async () => {
   }
 }
 
-const getLabel = (options, val) => {
-  const target = options.find((item) => item.value === val)
-  return target ? target.label : val
-}
-
 // 사원정보
 const getEmployee = async () => {
   submitting.value = true
 
   try {
-    const result = await fetchEmployeeById(empId)
+    const result = await fetchEmployeeDetail(empId)
     const data = result.data
 
     if (data.success) {
@@ -173,7 +169,7 @@ onMounted(() => {
                 <th style="width: 10%">인상사유</th>
                 <th style="width: 10%">전 년도 연봉</th>
                 <th style="width: 10%">변경 연봉</th>
-                <th style="width: 10%">인상률</th>
+                <th style="width: 10%">인상률(%)</th>
                 <th style="width: 10%">인상금액</th>
               </tr>
               <tr v-for="(item, index) in basic" :key="index">
