@@ -77,6 +77,7 @@
 </template>
 
 <script setup>
+console.log('GoalListView setup 실행됨')
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import BaseCard from '@/components/common/BaseCard.vue'
@@ -116,7 +117,6 @@ const changeTab = async (tab) => {
   await loadGoals()
 }
 
-/* ===== 🔥 Tree 필터 핵심 로직 ===== */
 const filterGoalTree = (goal) => {
   /* 제목 검색 */
   const matchTitle =
@@ -159,7 +159,10 @@ const filteredGoals = computed(() =>
     .filter(Boolean)
 )
 
-onMounted(loadGoals)
+onMounted(() => {
+  console.log('GoalListView mounted')
+  loadGoals()
+})
 </script>
 
 <style scoped>

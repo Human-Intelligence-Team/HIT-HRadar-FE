@@ -175,10 +175,9 @@ const routes = [
 
       //성과평가-목표관리
       { path: 'goal', component: GoalListView },
-      { path: 'hr/goals', component: HRGoalDashboard },
-      { path: 'goal/:goalId', component: GoalDetailView },
+      { path: 'goal/create', component: GoalCreateView },
+      { path: 'goal/:goalId(\\d+)', component: GoalDetailView },      { path: 'hr/goals', component: HRGoalDashboard },
       { path: 'to/goals', component: TeamOwnerGoalListView },
-      { path: '/goal/create', component: GoalCreateView },
       {
         path: 'report', component: CompetencyReportView,
         children: [
@@ -235,35 +234,35 @@ const routes = [
       },
       { path: 'hr/cycles', component: CycleAdminManageView },
       { path: 'hr/cycles/:cycleId', component: CycleAdminDetailPage },
-      { path: '/hr/cycles/:cycleId/edit', component: CycleAdminEditPage },
+      { path: 'hr/cycles/:cycleId/edit', component: CycleAdminEditPage },
 
       //등급
       { path: 'grade/setting', component: CompanyGradeSettingPage },
       { path: 'grading/list', component: DeptGradeStatusPage },
-      { path: '/hr/grading/list', component: AdminDeptGradeStatusPage },
-      { path: '/to/grading/list', component: IndividualGradePage },
-      { path: '/hr/grading/list/approve', component: IndividualGradeApprovePage },
-      { path: '/my/grading', component: MygradePage },
-      { path: '/to/grading/objection', component: AdminGradeObjectionPage },
-      { path: '/hr/objections/:objectionId', name: 'AdminGradeObjectionDetailPage', component: AdminGradeObjectionDetailPage },
+      { path: 'hr/grading/list', component: AdminDeptGradeStatusPage },
+      { path: 'to/grading/list', component: IndividualGradePage },
+      { path: 'hr/grading/list/approve', component: IndividualGradeApprovePage },
+      { path: 'my/grading', component: MygradePage },
+      { path: 'to/grading/objection', component: AdminGradeObjectionPage },
+      { path: 'hr/objections/:objectionId', name: 'AdminGradeObjectionDetailPage', component: AdminGradeObjectionDetailPage },
 
       //평가
-      { path: '/hr/evaluation/type/setting', component: EvaluationTypeSetupPage },
-      { path: '/hr/evaluation/question/form/setting', component: EvaluationFormBuilderPage },
-      { path: '/hr/evaluation/assignment', component: EvaluationAssignmentSetupPage },
-      { path: '/hr/evaluation/assignment/status', component: EvaluationAssignmentStatusPage },
-      { path: '/evaluation/assignment/response', component: EvaluationResponsePage },
-      { path: '/hr/evaluation/response/result', component: EvaluationResultPage },
-      { path: '/evaluation/response/my/result', component: EvaluationMyResultPage },
-      { path: '/to/grading/objection', component: AdminGradeObjectionPage },
-      { path: '/hr/objections/:objectionId', name: 'AdminGradeObjectionDetailPage', component: AdminGradeObjectionDetailPage },
-      { path: '/to/grading/objection', component: AdminGradeObjectionPage },
-      { path: '/hr/objections/:objectionId', name: 'AdminGradeObjectionDetailPage', component: AdminGradeObjectionDetailPage },
+      { path: 'hr/evaluation/type/setting', component: EvaluationTypeSetupPage },
+      { path: 'hr/evaluation/question/form/setting', component: EvaluationFormBuilderPage },
+      { path: 'hr/evaluation/assignment', component: EvaluationAssignmentSetupPage },
+      { path: 'hr/evaluation/assignment/status', component: EvaluationAssignmentStatusPage },
+      { path: 'evaluation/assignment/response', component: EvaluationResponsePage },
+      { path: 'hr/evaluation/response/result', component: EvaluationResultPage },
+      { path: 'evaluation/response/my/result', component: EvaluationMyResultPage },
+      { path: 'to/grading/objection', component: AdminGradeObjectionPage },
+      { path: 'hr/objections/:objectionId', name: 'AdminGradeObjectionDetailPage', component: AdminGradeObjectionDetailPage },
+      { path: 'to/grading/objection', component: AdminGradeObjectionPage },
+      { path: 'hr/objections/:objectionId', name: 'AdminGradeObjectionDetailPage', component: AdminGradeObjectionDetailPage },
 
 
       //대시보드
-      { path: '/my/dashboard', component: MyDashboard },
-      { path: '/hr/dashboard', component: EmpDashboard },
+      { path: 'my/dashboard', component: MyDashboard },
+      { path: 'hr/dashboard', component: EmpDashboard },
 
       {
         path: 'approval',

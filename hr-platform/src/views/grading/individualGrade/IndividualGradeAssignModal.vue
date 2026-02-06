@@ -5,7 +5,7 @@
       <div class="modal-header">
         <div>
           <h3 class="modal-title">
-            {{ isEdit ? '이의제기 승인 · 등급 수정' : '이의제기 승인 · 등급 부여' }}
+            {{ isEdit ? '이의제기 승인 · 등급 수정' : ' 등급 부여' }}
           </h3>
           <p class="subtitle">
             {{ employee?.name }} (EMP#{{ employee?.empId }})
@@ -49,7 +49,7 @@
 
         <!-- Hint -->
         <div class="hint">
-          이의제기 승인 시 등급과 사유는 필수이며,<br />
+           등급과 사유는 필수이며,<br />
           등급 배분 규칙을 초과할 수 없습니다.
         </div>
       </div>
@@ -58,10 +58,15 @@
       <div class="modal-footer">
         <button class="btn ghost" @click="$emit('close')">취소</button>
 
+        <button class="btn ghost" @click="save">
+          저장
+        </button>
+
         <button class="btn primary" @click="submit">
-          승인 처리
+          제출
         </button>
       </div>
+
     </div>
   </div>
 </template>
@@ -77,7 +82,7 @@ const props = defineProps({
   employees: Array,   // 전체 사원 목록 (배분 규칙 검증용)
 })
 
-const emit = defineEmits(['close', 'submitted'])
+const emit = defineEmits(['close', 'saved', 'submitted'])
 
 /*  Edit 여부 (기존 등급 존재)*/
 const isEdit = computed(() => !!props.employee?.individualGradeId)
@@ -134,7 +139,7 @@ watch(
 )
 
 
-const submit = () => {
+const submit = async () => {
   if (!form.value.gradeId) {
     alert('등급을 선택하세요')
     return
@@ -152,13 +157,24 @@ const submit = () => {
     return
   }
 
-  emit('submitted', {
+  await emit('submitted', {
     empId: props.employee.empId,
     gradeId: form.value.gradeId,
     gradeReason: form.value.gradeReason,
   })
+}
 
-  emit('close')
+const save = () => {
+  if (!form.value.gradeId) {
+    alert('등급을 선택하세요')
+    return
+  }
+
+  emit('saved', {
+    empId: props.employee.empId,
+    gradeId: form.value.gradeId,
+    gradeReason: form.value.gradeReason,
+  })
 }
 </script>
 

@@ -4,14 +4,13 @@
     <div class="main">
       <Sidebar />
       <main class="content">
-        <router-view v-slot="{ Component }">
-          <transition name="fade" mode="out-in">
-            <component :is="Component" />
+        <router-view v-slot="{ Component, route }">          <transition name="fade" >
+          <component :is="Component" :key="route.fullPath" />
           </transition>
         </router-view>
       </main>
     </div>
-    
+
     <!-- Chatbot Components -->
     <ChatbotButton />
     <ChatbotModal />
