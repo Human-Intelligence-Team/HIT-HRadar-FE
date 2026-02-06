@@ -185,17 +185,6 @@ const contentValid = () => {
     }),
 
   }
-
-  console.log('$$$$$$$$$  ' + payload.title)
-  console.log('$$$$$$$$$  ' + payload.type)
-  console.log('$$$$$$$$$  ' + payload.level)
-  console.log('$$$$$$$$$  ' + payload.learningTime)
-  console.log('$$$$$$$$$  ' + payload.isDeleted)
-  console.log('$$$$$$$$$  ' + payload.notes)
-  console.log('$$$$$$$$$  ' + payload.resourcePath)
-  console.log('$$$$$$$$$  ' + payload.tags)
-
-
   if (page.value === 'update') {
     contentUpdate(payload)
   } else {

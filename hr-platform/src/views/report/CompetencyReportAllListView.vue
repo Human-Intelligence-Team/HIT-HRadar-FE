@@ -17,8 +17,6 @@ const isCreateModalOpen = ref(false)
 
 // 모달 오픈
 const isModalOpen = () => {
-  // router.push({ path:'/all/competency/report/create'});
-  // alert("생성하기");
   isCreateModalOpen.value = !isCreateModalOpen.value
 }
 

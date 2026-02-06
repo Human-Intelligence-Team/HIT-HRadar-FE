@@ -1,6 +1,6 @@
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
-import { createTag, fetchTags } from '@/api/tagApi.js'
+import {fetchTags } from '@/api/tagApi.js'
 const submitting = ref(false)
 const errorMessage = ref('')
 const tags = ref([])
