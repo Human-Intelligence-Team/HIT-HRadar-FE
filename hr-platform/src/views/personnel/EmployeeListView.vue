@@ -141,8 +141,17 @@ const onCsvSuccess = () => {
     loadEmployees()
 }
 
-const handleRoleSuccess = () => {
+import { useAuthStore } from '@/stores/authStore'
+
+const authStore = useAuthStore()
+
+// ...
+
+const handleRoleSuccess = async () => {
     loadEmployees()
+    // [Fix] 역할이 변경되었으므로 내 권한도 갱신 시도 (만약 본인일 경우 즉시 반영)
+    await authStore.fetchPermissionMappings()
+    await authStore.fetchPermissions() // 필요한 경우 권한 목록도 갱신
 }
 // ...
 
