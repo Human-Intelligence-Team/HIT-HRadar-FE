@@ -48,6 +48,11 @@
                     </label>
                 </div>
             </div>
+
+            <!-- 4. Search Button -->
+            <button class="btn-search-primary" @click="handleSearch">
+                조회
+            </button>
           </div>
         </div>
       </div>
@@ -84,9 +89,9 @@ import interactionPlugin from '@fullcalendar/interaction';
 import bootstrap5Plugin from '@fullcalendar/bootstrap5';
 import { fetchAttendanceCalendar } from '@/api/attendanceApi';
 import AttendanceDetailModal from '@/components/attendance/AttendanceDetailModal.vue';
-import { getAllDepartmentsByCompany } from '@/api/departmentApi';
+import { getAllDepartmentsByCompany, getDepartmentMembers } from '@/api/departmentApi';
 
-const auth = useAuthStore();
+// const auth = useAuthStore(); // Unused top-level assignment
 
 // Data
 const departmentOptions = ref([]);
@@ -100,6 +105,7 @@ const fullCalendar = ref(null);
 // Filters
 const selectedEmployeeId = ref(''); // New Dropdown selection
 const selectedFilters = ref(['OFFICE', 'REMOTE', 'TRIP', 'FIELD', 'VACATION']);
+const employeeOptions = ref([]);
 
 const workTypes = [
     { key: 'OFFICE', label: '내근/출근', color: '#3b82f6' },
@@ -109,23 +115,26 @@ const workTypes = [
     { key: 'VACATION', label: '휴가', color: '#ef4444' }
 ];
 
-// Computed: Unique Employees from raw data
-const employeeOptions = computed(() => {
-    const map = new Map();
-    rawEvents.value.forEach(e => {
-        const props = e.extendedProps;
-        if (props.employeeId && props.employeeName) {
-            if (!map.has(props.employeeId)) {
-                map.set(props.employeeId, props.employeeName);
-            }
-        }
-    });
+// Fetch employees when department changes
+const fetchEmployees = async (deptId) => {
+    if (!deptId) {
+        employeeOptions.value = [];
+        return;
+    }
     
-    // Convert to array and Sort by name
-    return Array.from(map.entries())
-        .map(([id, name]) => ({ id, name }))
-        .sort((a, b) => a.name.localeCompare(b.name));
-});
+    try {
+        const response = await getDepartmentMembers(deptId);
+        if (response.data && response.data.success) {
+            employeeOptions.value = response.data.data.map(m => ({
+                id: m.employeeId,
+                name: m.name
+            })).sort((a, b) => a.name.localeCompare(b.name));
+        }
+    } catch (error) {
+        console.error("Failed to fetch department members:", error);
+        employeeOptions.value = [];
+    }
+};
 
 // Computed Events for Display
 const filteredEvents = computed(() => {
@@ -172,11 +181,14 @@ const calendarOptions = ref({
   eventContent: function(arg) {
       // Custom event dot color
       const type = arg.event.extendedProps.workType;
+      const status = arg.event.extendedProps.status;
+      
       let color = '#3b82f6';
-      if (type?.includes('재택')) color = '#10b981';
-      if (type?.includes('외근')) color = '#f59e0b';
-      if (type?.includes('출장')) color = '#8b5cf6';
-      if (type?.includes('휴가')) color = '#ef4444';
+      if (status === '퇴근') color = '#94a3b8'; // Gray for Clocked out
+      else if (type?.includes('재택') || type === 'REMOTE') color = '#10b981';
+      else if (type?.includes('외근') || type === 'FIELD') color = '#f59e0b';
+      else if (type?.includes('출장') || type === 'TRIP') color = '#8b5cf6';
+      else if (type?.includes('휴가') || type === 'VACATION') color = '#ef4444';
       
       const dotStyle = `
         display: inline-block; 
@@ -210,6 +222,12 @@ const toggleAllFilters = () => {
         selectedFilters.value = [];
     } else {
         selectedFilters.value = workTypes.map(t => t.key);
+    }
+};
+
+const handleSearch = () => {
+    if (fullCalendar.value) {
+        fullCalendar.value.getApi().refetchEvents();
     }
 };
 
@@ -260,9 +278,14 @@ const fetchCalendarEvents = async (startDate, endDate) => {
     if (Array.isArray(data)) {
       data.forEach(record => {
         const date = record.workDate;
-        // Simple title: Name
-        let title = record.empName; 
+        const status = record.status || (record.totalWorkMinutes > 0 ? '퇴근' : '미출근');
         
+        let title = record.empName; 
+        if (status === '퇴근') {
+            title += ` (퇴근)`;
+        } else if (record.workType && record.workType !== '내근' && record.workType !== 'WORK') {
+            title += ` (${mapWorkType(record.workType)})`;
+        }
         events.push({
           id: `dept-${record.empId}-${date}`,
           title: title,
@@ -295,12 +318,31 @@ onMounted(() => {
 });
 
 watch(selectedDepartmentId, (newId) => {
-  if (fullCalendar.value && newId) {
-    const calendarApi = fullCalendar.value.getApi();
-    // refetchEvents triggers datesSet, which calls our fetch logic
-    calendarApi.refetchEvents(); 
+  if (newId) {
+    // Reset selected employee when dept changes
+    selectedEmployeeId.value = '';
+    fetchEmployees(newId);
+    
+    if (fullCalendar.value) {
+      const calendarApi = fullCalendar.value.getApi();
+      calendarApi.refetchEvents(); 
+    }
+  } else {
+    employeeOptions.value = [];
   }
 });
+
+const mapWorkType = (type) => {
+    if (!type || type === '-') return '-';
+    const mapper = {
+        'WORK': '내근',
+        'REMOTE': '재택',
+        'FIELD': '외근',
+        'TRIP': '출장',
+        'VACATION': '휴가'
+    };
+    return mapper[type] || type;
+};
 </script>
 
 <style scoped>
@@ -360,7 +402,7 @@ watch(selectedDepartmentId, (newId) => {
     margin-bottom: 8px;
 }
 
-.select-full, .input-full {
+.select-full {
     width: 100%;
     padding: 10px 12px;
     border: 1px solid #cbd5e1;
@@ -369,7 +411,7 @@ watch(selectedDepartmentId, (newId) => {
     outline: none;
     background-color: #fff;
 }
-.select-full:focus, .input-full:focus {
+.select-full:focus {
     border-color: #3b82f6;
     box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
 }
@@ -431,6 +473,23 @@ watch(selectedDepartmentId, (newId) => {
     border: solid white;
     border-width: 0 2px 2px 0;
     transform: rotate(45deg);
+}
+
+.btn-search-primary {
+    width: 100%;
+    padding: 12px;
+    background-color: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    margin-top: auto; /* Push to bottom if flex container allows */
+}
+.btn-search-primary:hover {
+    background-color: #2563eb;
 }
 
 /* Calendar Card */

@@ -35,6 +35,10 @@
                 <span class="label">회사명</span>
                 <span class="value">{{ detail.comName || detail.companyName }}</span>
               </div>
+              <div class="info-row" v-if="detail.comCode || detail.companyCode">
+                <span class="label">회사코드</span>
+                <span class="value text-primary fw-bold">{{ detail.comCode || detail.companyCode }}</span>
+              </div>
               <div class="info-row">
                 <span class="label">사업자번호</span>
                 <span class="value">{{ detail.bizNo || detail.businessNo }}</span>
@@ -282,6 +286,8 @@ const handleReject = async () => {
   word-break: break-all;
   max-width: 65%;
 }
+.text-primary { color: #3182f6; }
+.fw-bold { font-weight: 600; }
 
 .reason-box {
   background: #fff5f5;

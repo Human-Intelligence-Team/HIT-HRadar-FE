@@ -1,10 +1,12 @@
 <template>
   <section class="page">
-    <!-- ===== Page Title (평가 배정 페이지와 동일) ===== -->
+    <!-- ===== Back ===== -->
     <button class="back-btn" @click="goBack">
       <span class="icon">←</span>
       <span class="text">평가 배정 관리</span>
     </button>
+
+    <!-- ===== Title ===== -->
     <div class="section-title">
       <div>
         <h1>평가 배정 상태</h1>
@@ -15,7 +17,7 @@
     </div>
 
     <div class="layout">
-      <!-- ================= LEFT : Department ================= -->
+      <!-- ================= LEFT ================= -->
       <aside class="dept-panel">
         <div class="dept-title">부서</div>
 
@@ -23,12 +25,12 @@
           <li
             v-for="d in departments"
             :key="d.deptId"
-            :class="{ active: selectedDepartment === d.name }"
-            @click="selectedDepartment = d.name"
+            :class="{ active: selectedDepartmentId === d.deptId }"
+            @click="selectDepartment(d.deptId)"
           >
-            {{ d.name }}
+            {{ d.deptName }}
             <span class="count">
-              {{ departmentAssignments(d.name).length }}
+              {{ deptAssignmentsCount(d.deptId) }}
             </span>
           </li>
         </ul>
@@ -36,7 +38,7 @@
 
       <!-- ================= RIGHT ================= -->
       <section class="content-panel">
-        <div v-if="!selectedDepartment" class="empty-state">
+        <div v-if="!selectedDepartmentId" class="empty-state">
           <div class="emoji">📊</div>
           <div class="text">
             왼쪽에서 부서를 선택하면<br />
@@ -47,7 +49,7 @@
         <template v-else>
           <!-- ===== Header ===== -->
           <div class="content-header">
-            <h2>{{ selectedDepartment }} 평가 배정 현황</h2>
+            <h2>{{ selectedDeptName }} 평가 배정 현황</h2>
 
             <div class="summary">
               <span class="chip done">
@@ -59,41 +61,34 @@
             </div>
           </div>
 
-          <!-- ===== Assignment Cards ===== -->
+          <!-- ===== Cards ===== -->
           <div class="assignment-grid">
             <div
-              v-for="emp in departmentEmployees"
-              :key="emp.id"
+              v-for="emp in employees"
+              :key="emp.empId"
               class="assignment-card"
-              :class="{ unassigned: !hasAssignment(emp.id) }"
+              :class="{ unassigned: !hasAssignment(emp.empId) }"
             >
-              <!-- Employee -->
               <div class="employee">
                 <div class="name">{{ emp.name }}</div>
-                <div class="meta">{{ emp.position }}</div>
-
+                <div class="meta">{{ emp.positionName }}</div>
               </div>
 
-              <!-- Assignment Detail -->
-              <div v-if="hasAssignment(emp.id)" class="assignment-detail">
+              <div v-if="hasAssignment(emp.empId)" class="assignment-detail">
                 <div
-                  v-for="a in assignmentsByEvaluator(emp.id)"
+                  v-for="a in assignmentsByEvaluator(emp.empId)"
                   :key="`${a.evalTypeId}-${a.evaluateeId}`"
                   class="relation"
                 >
-                  <div class="type">
-                    {{ a.evalTypeName }}
-                  </div>
+                  <div class="type">{{ a.evalTypeName }}</div>
 
                   <div class="arrow">
                     {{ emp.name }}
                     <span>→</span>
                     {{ a.evaluateeName }}
                   </div>
-
                 </div>
               </div>
-
 
               <div v-else class="no-assignment">
                 이 평가자는 아직 배정된 평가가 없습니다.
@@ -106,111 +101,77 @@
   </section>
 </template>
 
-
 <script setup>
-import { ref, computed, watch } from 'vue'
-import { fetchDeptEvaluationAssignmentDetails } from '@/api/evaluationAssignmentApi'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 
+import {
+  getAllDepartmentsByCompany,
+  getDepartmentMembers,
+} from '@/api/departmentApi'
+import { fetchDeptEvaluationAssignmentDetails } from '@/api/evaluationAssignmentApi'
+
+/* ================= router ================= */
 const router = useRouter()
+const goBack = () => router.back()
 
-const goBack = () => {
-  router.back()
-}
-/* =========================
- * state
- * ========================= */
-
-const selectedDepartment = ref('')
+/* ================= state ================= */
+const departments = ref([])
+const employees = ref([])
 const assignments = ref([])
 
-/**
- * 임시 사원 데이터
- * (추후 사원 API로 교체 예정)
- */
-const employees = ref([
-  { id: 1001, name: '김성수', department: '개발팀', position: '대리', deptId: 1 },
-  { id: 1002, name: '이서연', department: '기획팀', position: '과장', deptId: 2 },
-  { id: 1003, name: '박민수', department: '인사팀', position: '사원', deptId: 3 },
-  { id: 1004, name: '정유진', department: '개발팀', position: '차장', deptId: 1 },
-])
+const selectedDepartmentId = ref(null)
 
-/**
- * 부서 목록 (임시)
- */
-const departments = [
-  { deptId: 1, name: '개발팀' },
-  { deptId: 2, name: '기획팀' },
-  { deptId: 3, name: '인사팀' },
-]
+/* ================= init ================= */
+const loadDepartments = async () => {
+  const res = await getAllDepartmentsByCompany()
+  departments.value = res.data.data.departments
+}
+loadDepartments()
 
-/* =========================
- * computed
- * ========================= */
+/* ================= handlers ================= */
+const selectDepartment = async (deptId) => {
+  selectedDepartmentId.value = deptId
+  employees.value = []
+  assignments.value = []
 
-//선택된 부서 객체
-const selectedDept = computed(() =>
-  departments.find(d => d.name === selectedDepartment.value)
-)
+  const [empRes, assignRes] = await Promise.all([
+    getDepartmentMembers(deptId),
+    fetchDeptEvaluationAssignmentDetails(deptId),
+  ])
 
-//선택된 부서 사원 목록
-const departmentEmployees = computed(() => {
-  if (!selectedDept.value) return []
-  return employees.value.filter(
-    e => e.deptId === selectedDept.value.deptId
-  )
-})
-
-//실제 배정된 평가
-const realAssignments = computed(() =>
-  assignments.value.filter(
-    a => a.evaluatorId && a.evaluateeId
-  )
-)
-
-//부서별 실제 배정 개수
-const departmentAssignments = (deptName) => {
-  const dept = departments.find(d => d.name === deptName)
-  if (!dept) return []
-  return realAssignments.value.filter(a => a.deptId === dept.deptId)
+  employees.value = empRes.data.data.employees
+  assignments.value = assignRes.data.data ?? []
 }
 
+/* ================= computed ================= */
+const selectedDeptName = computed(() => {
+  const d = departments.value.find(d => d.deptId === selectedDepartmentId.value)
+  return d?.deptName ?? ''
+})
+
+const realAssignments = computed(() =>
+  assignments.value.filter(a => a.evaluatorId && a.evaluateeId)
+)
 
 const hasAssignment = (empId) =>
   realAssignments.value.some(a => a.evaluatorId === empId)
 
-//평가자 기준 실제 배정 목록
 const assignmentsByEvaluator = (empId) =>
   realAssignments.value.filter(a => a.evaluatorId === empId)
 
-//통계
 const assignedCount = computed(() =>
-  departmentEmployees.value.filter(e => hasAssignment(e.id)).length
+  employees.value.filter(e => hasAssignment(e.empId)).length
 )
 
 const unassignedCount = computed(() =>
-  departmentEmployees.value.length - assignedCount.value
+  employees.value.length - assignedCount.value
 )
 
-/* =========================
- * watch
- * ========================= */
-
-//부서기준 평가 배정 조회
-watch(selectedDepartment, async (deptName) => {
-  assignments.value = []
-
-  const dept = departments.find(d => d.name === deptName)
-  if (!dept) return
-
-  try {
-    const res = await fetchDeptEvaluationAssignmentDetails(dept.deptId)
-    assignments.value = res.data?.data ?? []
-  } catch (e) {
-    assignments.value = []
-  }
-})
+const deptAssignmentsCount = (deptId) =>
+  realAssignments.value.filter(a => a.deptId === deptId).length
 </script>
+
 
 <style scoped>
 /* =========================

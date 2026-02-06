@@ -226,7 +226,18 @@ const canCreateForm = computed(() => {
   return selectedCycle.value?.status === 'DRAFT'
 })
 
+/*
 const cycleEvalTypeId = computed(() => selectedEvalTypeId.value)
+*/
+const selectedEvalType = computed(() => {
+  return evalTypes.value.find(
+    t => Number(t.evalTypeId) === Number(selectedEvalTypeId.value)
+  )
+})
+
+const cycleEvalTypeId = computed(() => {
+  return selectedEvalType.value?.cycleEvalTypeId ?? null
+})
 
 /* load */
 

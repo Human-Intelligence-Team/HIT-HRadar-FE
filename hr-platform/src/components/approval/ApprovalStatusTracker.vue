@@ -50,7 +50,7 @@ const resultLabel = computed(() => {
   if (props.status === 'APPROVED') return '승인';
   if (props.status === 'REJECTED') return '반려';
   if (props.status === 'WITHDRAWN') return '회수';
-  return '결과';
+  return '승인/반려';
 });
 
 const currentStep = computed(() => {
@@ -119,6 +119,7 @@ const getStepStatus = (stepIndex) => {
   font-size: 11px;
   color: #6b7280;
   font-weight: 500;
+  white-space: nowrap;
 }
 
 /* Active State */
@@ -152,6 +153,16 @@ const getStepStatus = (stepIndex) => {
 }
 .step-item.error .step-label {
   color: #ef4444;
+}
+
+/* Warning/Withdrawn State */
+.step-item.warning .step-circle {
+  background-color: #f59e0b; /* Amber/Orange */
+  border-color: #f59e0b;
+  color: #fff;
+}
+.step-item.warning .step-label {
+  color: #f59e0b;
 }
 
 /* Connector Line */

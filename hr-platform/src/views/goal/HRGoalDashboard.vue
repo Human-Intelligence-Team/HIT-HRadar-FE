@@ -104,12 +104,28 @@
 import { ref, onMounted, computed } from 'vue'
 import BaseCard from '@/components/common/BaseCard.vue'
 import GoalTree from '@/views/goal/GoalTree.vue'
+import { getAllDepartmentsByCompany } from '@/api/departmentApi.js'
 import {
   fetchOrganizationGoals,
   fetchMyGoals,
   fetchDepartmentGoals,
 } from '@/api/goalApi.js'
+/*==== 부서 =====*/
+const departments = ref([])
 
+const loadDepartments = async () => {
+  try {
+    const res = await getAllDepartmentsByCompany()
+    departments.value = res.data.data.departments
+      .filter(d => d.isDeleted === 'N') // 안전하게
+      .map(d => ({
+        id: d.deptId,
+        name: d.deptName,
+      }))
+  } catch (e) {
+    console.error('부서 조회 실패', e)
+  }
+}
 /* ===== 탭 상태 ===== */
 const activeTab = ref('myDept') // selected | myDept | me
 
@@ -122,12 +138,6 @@ const keyword = ref('')
 const statusFilter = ref('ALL') // ALL | APPROVED | SUBMITTED | REJECTED | DRAFT
 const typeFilter = ref('ALL')   // ALL | KPI | OKR
 
-/* 임시 조직 목록 */
-const departments = ref([
-  { id: 10, name: '개발팀' },
-  { id: 20, name: '기획팀' },
-  { id: 30, name: '영업팀' },
-])
 
 /* ===== 조회 ===== */
 const loadGoals = async () => {
@@ -164,7 +174,7 @@ const onDeptChange = async () => {
   await loadGoals()
 }
 
-/* ===== 🔥 Tree 필터 핵심 로직 ===== */
+/* =====  Tree 필터 핵심 로직 ===== */
 const filterGoalTree = (goal) => {
   const matchTitle =
     !keyword.value ||
@@ -202,7 +212,10 @@ const filteredGoals = computed(() =>
     .filter(Boolean)
 )
 
-onMounted(loadGoals)
+onMounted(async () => {
+  await loadDepartments()
+  await loadGoals()
+})
 
 import { useRouter } from 'vue-router'
 

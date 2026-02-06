@@ -13,11 +13,16 @@
       </div>
 
       <div class="form-group">
-        <label>기간 (선택 사항)</label>
+        <label>기간 및 초과근무 (선택 사항)</label>
         <div class="date-range-group">
             <input type="date" v-model="form.startDate" class="input-field date-input" />
             <span class="tilde">~</span>
             <input type="date" v-model="form.endDate" class="input-field date-input" :min="form.startDate" />
+            
+            <div class="overtime-group">
+                <input type="number" v-model="form.overtimeMinutes" class="input-field overtime-input" placeholder="0" />
+                <span class="unit-label">분 초과근무</span>
+            </div>
         </div>
       </div>
 
@@ -68,6 +73,7 @@ const form = ref({
   content: '',
   startDate: '',
   endDate: '',
+  overtimeMinutes: 0,
   approverIds: [],
   referenceIds: [],
 });
@@ -84,6 +90,14 @@ onMounted(async () => {
         form.value.content = detail.content || '';
         form.value.startDate = detail.startDate || '';
         form.value.endDate = detail.endDate || '';
+        if (detail.payload) {
+            try {
+                const payload = JSON.parse(detail.payload);
+                form.value.overtimeMinutes = payload.overtimeMinutes || 0;
+            } catch {
+                console.warn('Failed to parse payload for overtimeMinutes');
+            }
+        }
         form.value.approverIds = detail.approverIds || [];
         form.value.referenceIds = detail.referenceIds || [];
       }
@@ -126,7 +140,8 @@ const saveDraft = async () => {
     endDate: form.value.endDate || null,
     payload: {
         startDate: form.value.startDate || null,
-        endDate: form.value.endDate || null
+        endDate: form.value.endDate || null,
+        overtimeMinutes: form.value.overtimeMinutes || 0
     }, 
     Payload: {}  
   };
@@ -159,7 +174,8 @@ const handleSubmitApproval = async () => {
         endDate: form.value.endDate || null,
         payload: {
             startDate: form.value.startDate || null,
-            endDate: form.value.endDate || null
+            endDate: form.value.endDate || null,
+            overtimeMinutes: form.value.overtimeMinutes || 0
         },
         Payload: {}
       };
@@ -294,5 +310,25 @@ textarea.input-field {
 .tilde {
     color: #666;
     font-weight: bold;
+}
+
+.overtime-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: 16px;
+    padding-left: 16px;
+    border-left: 1px solid #e0e0e0;
+}
+
+.overtime-input {
+    width: 80px;
+    text-align: right;
+}
+
+.unit-label {
+    font-size: 14px;
+    color: #666;
+    white-space: nowrap;
 }
 </style>

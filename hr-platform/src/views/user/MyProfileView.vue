@@ -77,36 +77,36 @@
               <textarea v-else v-model="form.email" class="input auto-expand" placeholder="example@company.com" rows="1" @input="autoResize"></textarea>
             </div>
             <div class="field-item">
-              <div class="label">휴대전화</div>
+              <label for="phoneNo">휴대전화</label>
               <div v-if="!isEditMode" class="value">{{ employee.phoneNo || '-' }}</div>
-              <input v-else v-model="form.phoneNo" class="input" placeholder="010-0000-0000" />
+              <input v-else id="phoneNo" name="phoneNo" v-model="form.phoneNo" class="input" placeholder="010-0000-0000" />
             </div>
             <div class="field-item">
-              <div class="label">내선번호</div>
+              <label for="extNo">내선번호</label>
               <div v-if="!isEditMode" class="value">{{ employee.extNo || '-' }}</div>
-              <input v-else v-model="form.extNo" class="input" placeholder="내선번호 입력" />
+              <input v-else id="extNo" name="extNo" v-model="form.extNo" class="input" placeholder="내선번호 입력" />
             </div>
           </div>
 
           <div class="grid-section">
             <h3><i class="pi pi-user"></i> 개인 정보</h3>
             <div class="field-item">
-              <div class="label">생년월일</div>
+              <label for="birth">생년월일</label>
               <div v-if="!isEditMode" class="value">{{ employee.birth || '-' }}</div>
-              <input v-else v-model="form.birth" class="input" placeholder="YYYYMMDD" maxlength="8" />
+              <input v-else id="birth" name="birth" v-model="form.birth" class="input" placeholder="YYYYMMDD" maxlength="8" />
             </div>
             <div class="field-item">
-              <div class="label">성별</div>
+              <label for="gender">성별</label>
               <div v-if="!isEditMode" class="value">{{ genderMap[employee.gender] || employee.gender || '-' }}</div>
-              <select v-else v-model="form.gender" class="input">
+              <select v-else id="gender" name="gender" v-model="form.gender" class="input">
                 <option value="MALE">남성</option>
                 <option value="FEMALE">여성</option>
               </select>
             </div>
             <div class="field-item full-width">
-              <div class="label">비고</div>
+              <label for="note">비고</label>
               <div v-if="!isEditMode" class="value">{{ employee.note || '-' }}</div>
-              <textarea v-else v-model="form.note" class="input auto-expand" placeholder="비고 사항 입력" rows="3" @input="autoResize"></textarea>
+              <textarea v-else id="note" name="note" v-model="form.note" class="input auto-expand" placeholder="비고 사항 입력" rows="3" @input="autoResize"></textarea>
             </div>
           </div>
         </div>
@@ -120,16 +120,16 @@
         <div class="password-form">
           <div class="form-row">
             <div class="field-group">
-              <label>현재 비밀번호</label>
-              <input v-model="pwForm.currentPassword" class="input" type="password" placeholder="현재 비밀번호" />
+              <label for="currentPassword">현재 비밀번호</label>
+              <input id="currentPassword" name="currentPassword" v-model="pwForm.currentPassword" class="input" type="password" placeholder="현재 비밀번호" />
             </div>
             <div class="field-group">
-              <label>새 비밀번호</label>
-              <input v-model="pwForm.newPassword" class="input" type="password" placeholder="영문, 숫자, 특수문자 포함 8자 이상" />
+              <label for="newPassword">새 비밀번호</label>
+              <input id="newPassword" name="newPassword" v-model="pwForm.newPassword" class="input" type="password" placeholder="영문, 숫자, 특수문자 포함 8자 이상" />
             </div>
             <div class="field-group">
-              <label>새 비밀번호 확인</label>
-              <input v-model="pwForm.confirmPassword" class="input" type="password" placeholder="새 비밀번호 확인" />
+              <label for="confirmPassword">새 비밀번호 확인</label>
+              <input id="confirmPassword" name="confirmPassword" v-model="pwForm.confirmPassword" class="input" type="password" placeholder="새 비밀번호 확인" />
             </div>
           </div>
           <div class="form-actions">

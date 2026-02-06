@@ -40,12 +40,12 @@
 
             <div class="info-row">
               <span class="info-label">근무 장소</span>
-              <span class="info-value">{{ attendance?.workPlace || '-' }}</span>
+              <span class="info-value">{{ mapLocation(attendance?.workPlace || attendance?.workplace || attendance?.location) }}</span>
             </div>
 
             <div class="info-row">
               <span class="info-label">근무 유형</span>
-              <span class="info-value">{{ attendance?.workType || '-' }}</span>
+              <span class="info-value">{{ mapWorkType(attendance?.workType || attendance?.workingType) }}</span>
             </div>
             
             <div class="info-row" v-if="attendance?.totalWorkTime">
@@ -53,8 +53,13 @@
               <span class="info-value">{{ attendance.totalWorkTime }}</span>
             </div>
 
+            <div class="info-row" v-if="attendance?.overtimeMinutes > 0">
+              <span class="info-label">인정된 초과근무</span>
+              <span class="info-value highlight-red">{{ attendance.overtimeMinutes }}분</span>
+            </div>
+            
             <div class="info-row" v-if="attendance?.overtimeStatus">
-              <span class="info-label">초과근무</span>
+              <span class="info-label">초과근무 여부</span>
               <span class="info-value" :class="{'highlight-red': attendance.overtimeStatus === '발생'}">
                   {{ attendance.overtimeStatus }}
               </span>
@@ -74,7 +79,7 @@
 <script setup>
 import { defineProps, defineEmits } from 'vue';
 
-const props = defineProps({
+defineProps({
   isOpen: Boolean,
   attendance: Object
 });
@@ -96,6 +101,30 @@ const getStatusClass = (status) => {
   if (status.includes('병가')) return 'sick';
   if (status.includes('반차')) return 'half-leave';
   return 'default';
+};
+
+const mapWorkType = (type) => {
+    if (!type) return '-';
+    const mapper = {
+        'WORK': '내근',
+        'REMOTE': '재택',
+        'FIELD': '외근',
+        'TRIP': '출장',
+        'VACATION': '휴가'
+    };
+    return mapper[type] || type;
+};
+
+const mapLocation = (loc) => {
+    if (!loc) return '-';
+    const mapper = {
+        'OFFICE': '사무실',
+        'HOME': '재택(자택)',
+        'FIELD': '현장(외근)',
+        'TRIP': '출장지',
+        'NONE': '-'
+    };
+    return mapper[loc] || loc;
 };
 </script>
 
