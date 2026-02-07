@@ -7,7 +7,7 @@
 
     <div class="actions-bar">
       <button class="btn-primary" @click="openCreateModal">
-        <i class="pi pi-plus"></i> 새 권한 등록
+        새 권한 등록
       </button>
     </div>
 
@@ -15,62 +15,78 @@
       <table class="data-table">
         <thead>
           <tr>
-            <th>ID</th>
+            <th class="text-center" width="80">ID</th>
             <th>권한 키 (Key)</th>
             <th>권한 명 (Name)</th>
             <th>경로 (Route Path)</th>
             <th>설명</th>
-            <th>관리</th>
+            <th class="text-center" width="150">관리</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="perm in permissions" :key="perm.permId">
-            <td>{{ perm.permId }}</td>
-            <td class="code-font">{{ perm.permKey }}</td>
-            <td class="font-medium">{{ perm.name }}</td>
-            <td class="path-font">{{ perm.routePath || '-' }}</td>
-            <td>{{ perm.description || '-' }}</td>
-            <td>
-              <button class="btn-icon" @click="openEditModal(perm)" title="수정">
-                <i class="pi pi-pencil"></i>
-              </button>
-              <button class="btn-icon danger" @click="confirmDelete(perm)" title="삭제">
-                <i class="pi pi-trash"></i>
-              </button>
+          <tr v-if="loading && permissions.length === 0">
+            <td colspan="6">
+              <div class="loading-spinner"></div>
             </td>
           </tr>
-          <tr v-if="permissions.length === 0">
+          <tr v-else v-for="perm in permissions" :key="perm.permId" class="clickable-row" @click="openEditModal(perm)">
+            <td class="text-center">{{ perm.permId }}</td>
+            <td>{{ perm.permKey }}</td>
+            <td>{{ perm.name }}</td>
+            <td>{{ perm.routePath || '-' }}</td>
+            <td>{{ perm.description || '-' }}</td>
+            <td class="text-center">
+              <button class="btn-text edit" @click.stop="openEditModal(perm)">수정</button>
+              <button class="btn-text delete" @click.stop="confirmDelete(perm)">삭제</button>
+            </td>
+          </tr>
+          <tr v-if="!loading && permissions.length === 0">
             <td colspan="6" class="empty-message">등록된 권한이 없습니다.</td>
           </tr>
         </tbody>
       </table>
     </div>
 
-    <!-- Modal -->
+    <!-- Main Modal -->
     <div v-if="showModal" class="modal-backdrop" @click.self="closeModal">
       <div class="modal-content">
         <div class="modal-header">
           <h3>{{ isEditMode ? '권한 정보 수정' : '새 권한 등록' }}</h3>
-          <button class="btn-close" @click="closeModal"><i class="pi pi-times"></i></button>
+          <button class="btn-close" @click="closeModal">✕</button>
         </div>
         <div class="modal-body">
           <form @submit.prevent="submitForm">
             <div class="form-group" v-if="!isEditMode">
-              <label>권한 키 (Key) <span class="required">*</span></label>
-              <input type="text" v-model="form.permKey" placeholder="예: USER_READ" required />
+              <div class="label-row">
+                <label>권한 키 (Key) <span class="required">*</span></label>
+                <span class="char-count">{{ form.permKey.length }}/100</span>
+              </div>
+              <input type="text" v-model="form.permKey" maxlength="100" placeholder="예: USER_READ" required />
               <small>시스템에서 사용하는 고유 식별 키입니다. 저장 후 변경 불가능합니다.</small>
             </div>
+
             <div class="form-group">
-              <label>권한 명 (Name) <span class="required">*</span></label>
-              <input type="text" v-model="form.name" placeholder="예: 사용자 조회" required />
+              <div class="label-row">
+                <label>권한 명 (Name) <span class="required">*</span></label>
+                <span class="char-count">{{ form.name.length }}/255</span>
+              </div>
+              <input type="text" v-model="form.name" maxlength="255" placeholder="예: 사용자 조회" required />
             </div>
+
             <div class="form-group">
-              <label>경로 (Route Path)</label>
-              <input type="text" v-model="form.routePath" placeholder="예: /users" />
+              <div class="label-row">
+                <label>경로 (Route Path) <span class="required">*</span></label>
+                <span class="char-count">{{ form.routePath.length }}/255</span>
+              </div>
+              <input type="text" v-model="form.routePath" maxlength="255" placeholder="예: /users" required />
             </div>
+
             <div class="form-group">
-              <label>설명</label>
-              <textarea v-model="form.description" rows="3"></textarea>
+              <div class="label-row">
+                <label>설명</label>
+                <span class="char-count">{{ form.description.length }}/255</span>
+              </div>
+              <textarea v-model="form.description" maxlength="255" rows="3"></textarea>
             </div>
             
             <div class="modal-footer">
@@ -120,6 +136,7 @@ const openCreateModal = () => {
 }
 
 const openEditModal = (perm) => {
+    // alert('Open modal for: ' + perm.name) // 디버깅용
     isEditMode.value = true
     form.permId = perm.permId
     form.permKey = perm.permKey
@@ -213,14 +230,27 @@ onMounted(loadPermissions)
     font-size: 13px; font-weight: 600; color: #475569;
     border-bottom: 1px solid #e2e8f0;
 }
+
+.text-center { text-align: center !important; }
 .data-table td {
     padding: 14px 16px; border-bottom: 1px solid #f1f5f9;
     font-size: 14px; color: #334155;
     vertical-align: middle;
 }
-.code-font { font-family: monospace; color: #2563eb; background: #eff6ff; padding: 2px 6px; border-radius: 4px; font-size: 13px; }
-.path-font { font-family: monospace; color: #059669; }
-.font-medium { font-weight: 600; color: #0f172a; }
+.clickable-row:hover {
+    background: #f8fafc;
+}
+.clickable-row {
+    cursor: pointer;
+    position: relative;
+    z-index: 5;
+}
+@keyframes spin { 100% { transform: rotate(360deg); } }
+.loading-spinner {
+    width: 32px; height: 32px; margin: 40px auto;
+    border: 3px solid #e2e8f0; border-top-color: #3b82f6;
+    border-radius: 50%; animation: spin 0.8s linear infinite;
+}
 
 .btn-primary {
     background: #3b82f6; color: white; border: none; padding: 10px 20px;
@@ -236,19 +266,23 @@ onMounted(loadPermissions)
 }
 .btn-secondary:hover { background: #e2e8f0; }
 
-.btn-icon {
-    background: none; border: none; width: 32px; height: 32px; border-radius: 6px;
-    cursor: pointer; color: #64748b; transition: all 0.2s;
+.btn-text {
+    padding: 6px 12px; border-radius: 6px; border: 1px solid #e2e8f0;
+    background: white; cursor: pointer; font-size: 13px; font-weight: 500;
+    margin-right: 6px; color: #475569;
 }
-.btn-icon:hover { background: #f1f5f9; color: #3b82f6; }
-.btn-icon.danger:hover { background: #fef2f2; color: #ef4444; }
+.btn-text:hover { background: #f8fafc; border-color: #cbd5e1; }
+.btn-text.edit { color: #2563eb; border-color: #dbeafe; background: #eff6ff; }
+.btn-text.edit:hover { background: #dbeafe; }
+.btn-text.delete { color: #ef4444; border-color: #fee2e2; background: #fef2f2; }
+.btn-text.delete:hover { background: #fee2e2; }
 
 .empty-message { text-align: center; padding: 40px; color: #94a3b8; }
 
 /* Modal */
 .modal-backdrop {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.5); z-index: 9999;
+    background: rgba(0,0,0,0.5); z-index: 10000;
     display: flex; justify-content: center; align-items: center;
     backdrop-filter: blur(4px);
 }
@@ -263,13 +297,21 @@ onMounted(loadPermissions)
     background: #f8fafc;
 }
 .modal-header h3 { margin: 0; font-size: 18px; font-weight: 700; color: #1e293b; }
+.btn-close { background: none; border: none; font-size: 20px; color: #94a3b8; cursor: pointer; padding: 0; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; transition: background 0.2s; }
+.btn-close:hover { background: #e2e8f0; color: #475569; }
 
 .modal-body { padding: 24px; }
 .form-group { margin-bottom: 20px; }
-.form-group label { display: block; font-size: 14px; font-weight: 600; color: #475569; margin-bottom: 6px; }
+.label-row { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 6px; }
+.form-group label { display: block; font-size: 14px; font-weight: 600; color: #475569; margin: 0; }
+.char-count { font-size: 11px; color: #94a3b8; font-weight: 400; }
 .form-group input, .form-group textarea {
     width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px;
     font-size: 14px; transition: border-color 0.2s;
+}
+.form-group textarea {
+    resize: none;
+    min-height: 100px;
 }
 .form-group input:focus, .form-group textarea:focus { outline: none; border-color: #3b82f6; ring: 2px solid #eff6ff; }
 .form-group small { display: block; margin-top: 4px; color: #94a3b8; font-size: 12px; }

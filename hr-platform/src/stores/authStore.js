@@ -116,19 +116,15 @@ export const useAuthStore = defineStore('auth', () => {
 
       // ✅ [Fix] DB 데이터가 변경되었을 수 있으므로 항상 최신 매핑을 가져오도록 갱신
       // 백그라운드에서 실행 (UI 차단 없음)
-      fetchPermissionMappings().then(() => {
-        console.log('[AuthStore] Permission mappings refreshed from DB');
-      });
+      fetchPermissionMappings();
 
       // ✅ [Fix] 만약 매핑이 비어있으면 즉시 재시도 (최초 로드 실패 대비)
       if (!permissionMappings.value || Object.keys(permissionMappings.value).length === 0) {
-        console.warn('[AuthStore] Empty mappings detected, fetching immediately...');
         fetchPermissionMappings();
       }
     } else {
       // 토큰이 없거나 만료되었으면 localStorage 클리어
       if (token) {
-        console.log('Token expired, clearing auth state');
         localStorage.removeItem('accessToken');
         localStorage.removeItem('user');
         localStorage.removeItem('permissions');
@@ -302,7 +298,6 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       const res = await getPermissionMappingsApi();
       if (res.data.success) {
-        console.log('[AuthStore] Raw Mapping Data from DB:', res.data.data);
         // [ { routePath: '/a', permKey: 'K' }, ... ] -> { '/a': 'K' } 변환
         const list = res.data.data;
         const map = {};
@@ -311,7 +306,6 @@ export const useAuthStore = defineStore('auth', () => {
             map[item.routePath] = item.permKey;
           }
         });
-        console.log('[AuthStore] Converted Map:', map);
         permissionMappings.value = map;
         localStorage.setItem('permissionMappings', JSON.stringify(map));
       } else {

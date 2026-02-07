@@ -278,7 +278,13 @@ onMounted(loadData)
     padding: 4px; border: 1px solid #e2e8f0; border-radius: 8px;
     padding: 12px;
 }
-.perm-grid.disabled { opacity: 0.7; pointer-events: none; background: #f8fafc; }
+
+.perm-grid.disabled { 
+    opacity: 0.8; 
+    background: #f8fafc; 
+    /* pointer-events: none;  <-- Removed to allow scrolling */
+    cursor: default;
+}
 
 .perm-item {
     background: white; border: 1px solid #e2e8f0;
