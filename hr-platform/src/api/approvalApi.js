@@ -100,3 +100,6 @@ export const deleteApprovalDocumentType = (typeId) => {
 export const fetchApprovalDocumentTypeDetail = (typeId) => {
   return api.get(`/api/v1/approval-types/${typeId}`);
 };
+export const fetchApprovalAttendanceCategories = () => {
+  return api.get('/api/v1/approval-types/categories');
+}

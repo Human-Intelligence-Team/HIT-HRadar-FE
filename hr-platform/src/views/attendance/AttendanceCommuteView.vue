@@ -148,6 +148,7 @@ import {
   fetchMyTodayAttendance,
   fetchAttendanceCalendar
 } from '@/api/attendanceApi';
+import { getMyLeaves } from '@/api/leaveApi';
 import { connectSSE, disconnectSSE } from '@/api/notificationSse';
 
 /* =====================
@@ -223,9 +224,8 @@ const getWeekRangeString = () => {
 
 const extractTime = (v) => {
   if (!v) return null;
-  if (v.length === 8) return v.substring(0, 5); // HH:mm
-  if (v.includes('T')) return v.split('T')[1].slice(0, 5);
-  return null;
+  const timeMatch = String(v).match(/(\d{2}:\d{2})/);
+  return timeMatch ? timeMatch[1] : v;
 };
 
 const mapWorkType = (type) => {
@@ -443,32 +443,34 @@ const fetchCalendarData = async (startDate, endDate) => {
 
   loading.value.calendar = true;
   try {
-    const response = await fetchAttendanceCalendar({
-      targetDeptId: departmentId.value,
-      fromDate: startDate,
-      toDate: endDate
-    });
+    const [attResponse, leaveResponse] = await Promise.all([
+      fetchAttendanceCalendar({
+        targetDeptId: departmentId.value,
+        fromDate: startDate,
+        toDate: endDate
+      }),
+      getMyLeaves() // Fetch personal leaves
+    ]);
 
     let events = [];
-    const data = response.data?.data || response.data || [];
     
-    if (data) {
-      data.forEach(record => {
+    // 1. Process Attendance Data
+    const attData = attResponse.data?.data || attResponse.data || [];
+    if (Array.isArray(attData)) {
+      attData.forEach(record => {
         const date = record.workDate;
         const status = record.status || (record.totalWorkMinutes > 0 ? '퇴근' : '미출근');
         
         let title = record.empName;
-        if (title.length > 3) title = title.substring(0,3); 
+        if (title.length > 8) title = title.substring(0, 8); 
         
         if (status === '퇴근') {
             title += ` (퇴근)`;
         } else if (status !== '미출근' && status !== '휴가') {
-            // 출근 중인 경우 (재택, 외근 외 일반 출근은 내근으로 표시)
             const typeLabel = (record.workType === 'WORK' || !record.workType || record.workType === '내근') ? '내근' : mapWorkType(record.workType);
             title += ` (${typeLabel})`;
         }
     
-        // Calculate duration if available
         let durationStr = '';
         if (record.totalWorkMinutes > 0) {
            const h = Math.floor(record.totalWorkMinutes/60);
@@ -482,19 +484,56 @@ const fetchCalendarData = async (startDate, endDate) => {
           date: date,
           allDay: true,
           extendedProps: {
-            type: 'department-attendance',
+            type: 'attendance',
             employeeId: record.empId,
             employeeName: record.empName,
-            deptName: record.departmentName || 'HIT', // Fallback
+            deptName: record.departmentName || 'HIT',
             status: status,
             workType: record.workType,
             workPlace: record.location,
             overtimeStatus: record.overtimeStatus || '없음',
-            totalWorkTime: durationStr
+            totalWorkTime: durationStr,
+            checkInTime: record.checkInTime,
+            checkOutTime: record.checkOutTime
           }
         });
       });
     }
+
+    // 2. Process Leave Data
+    const leaveData = leaveResponse.data?.data || [];
+    if (Array.isArray(leaveData)) {
+      leaveData.filter(l => l.approvalStatus === 'APPROVED').forEach(leave => {
+        // Robust date iteration
+        let current = new Date(leave.startDate);
+        const end = new Date(leave.endDate);
+        
+        while (current <= end) {
+          const y = current.getFullYear();
+          const m = String(current.getMonth() + 1).padStart(2, '0');
+          const d = String(current.getDate()).padStart(2, '0');
+          const dateStr = `${y}-${m}-${d}`;
+          
+          events.push({
+            id: `leave-${leave.leaveId}-${dateStr}`,
+            title: `${userInfo.value?.name} (휴가)`,
+            date: dateStr,
+            allDay: true,
+            color: '#ef4444',
+            extendedProps: {
+              type: 'leave',
+              employeeName: userInfo.value?.name,
+              status: '휴가',
+              workType: 'VACATION',
+              leaveType: leave.leaveType,
+              reason: leave.reason
+            }
+          });
+          current.setDate(current.getDate() + 1);
+        }
+      });
+    }
+
     calendarEvents.value = events;
   } catch (e) {
     console.error('Calendar fetch error:', e);
@@ -560,7 +599,6 @@ const clockInOut = async () => {
   loading.value.myStatus = true;
   try {
     const response = await processAttendance();
-    const data = response.data?.data || response.data;
 
     // Refresh Status
     await fetchMyStatus(false);
@@ -951,10 +989,9 @@ const clockInOut = async () => {
   border: none;
   border-radius: 4px;
   font-size: 11px;
-  padding: 2px 4px;
   margin-bottom: 2px;
   cursor: pointer;
-  background-color: transparent !important; /* Make default BG transparent */
+  background-color: transparent !important;
   padding: 0;
 }
 

@@ -162,10 +162,10 @@ const fetchRecords = async () => {
 };
 
 const extractTime = (v) => {
-  if (!v) return '-';
-  if (v.length === 8) return v.substring(0, 5);
-  if (v.includes('T')) return v.split('T')[1].slice(0, 5);
-  return v;
+  if (!v || v === '-') return '-';
+  // Use regex to extract HH:mm from various formats (e.g., "09:00:00", "2026-02-07T09:00:00", "09:00")
+  const timeMatch = String(v).match(/(\d{2}:\d{2})/);
+  return timeMatch ? timeMatch[1] : v;
 };
 
 const filteredRecords = computed(() => {
