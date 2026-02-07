@@ -123,7 +123,9 @@
         <!-- 액션 -->
         <div class="actions">
           <button class="btn-secondary" @click="goBack">취소</button>
-          <button class="btn-primary" @click="submit">저장</button>
+          <button type="button" class="btn-primary" @click="submit">
+            저장
+          </button>
         </div>
       </div>
     </BaseCard>
@@ -343,6 +345,14 @@ const validateOkr = () => {
 }
 
 const submit = async () => {
+  alert('submit 호출됨')
+  console.log('submit 실행')
+  const requiredError = validateAllRequiredFields()
+  if (requiredError) {
+    showToast(requiredError)
+    return
+  }
+
   const goalError = validateGoal()
   if (goalError) {
     showToast(goalError)
@@ -379,11 +389,66 @@ const submit = async () => {
   if (goalType.value === 'KPI') {
     await createKpi(goalId, kpiForm.value)
   } else {
-    await createKeyResult(goalId, okrForm.value)
+    await createKeyResult(goalId, {
+      content: okrForm.value.content,
+      metricName: okrForm.value.metricName,
+      targetValue: Number(okrForm.value.targetValue),
+    })
   }
-
   router.push(`/goal/${goalId}`)
 }
+
+const validateAllRequiredFields = () => {
+  const {
+    title,
+    description,
+    startDate,
+    endDate,
+    departmentId,
+  } = goalForm.value
+
+  // goal 공통 필수값
+  if (
+    !title?.trim() ||
+    !description?.trim() ||
+    !startDate ||
+    !endDate ||
+    !departmentId
+  ) {
+    return '모든 필수 항목을 입력해주세요'
+  }
+
+  // KPI 필수값
+  if (goalType.value === 'KPI') {
+    if (
+      !kpiForm.value.metricName?.trim() ||
+      kpiForm.value.startValue === null ||
+      kpiForm.value.targetValue === null
+    ) {
+      return '모든 필수 항목을 입력해주세요'
+    }
+  }
+
+  // OKR 필수값
+  if (goalType.value === 'OKR') {
+    const value = okrForm.value.targetValue
+
+    if (
+      !okrForm.value.content ||
+      !okrForm.value.content.trim() ||
+      !okrForm.value.metricName ||
+      !okrForm.value.metricName.trim() ||
+      value === null ||
+      value === '' ||
+      Number.isNaN(Number(value))
+    ) {
+      return '모든 필수 항목을 입력해주세요'
+    }
+  }
+
+  return null
+}
+
 
 </script>
 

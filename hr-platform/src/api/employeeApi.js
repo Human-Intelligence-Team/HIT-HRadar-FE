@@ -45,7 +45,7 @@ export function fetchEmployees(params) {
  * GET /employees/{empId}
  */
 export function fetchEmployeeDetail(empId) {
-    return api.get(`/api/v1/employees/${empId}`)
+  return api.get(`/api/v1/employees/${empId}`)
 }
 
 /**
@@ -55,6 +55,8 @@ export function fetchEmployeeDetail(empId) {
 export function updateEmployeeProfile(empId, data) {
     return api.patch(`/api/v1/employees/${empId}/profile`, data)
 }
+
+
 
 /**
  * 사원 삭제

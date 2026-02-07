@@ -1,10 +1,13 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
+
 import PolicyView from '@/views/policy/PolicyView.vue'
 import PolicyDetailView from '@/views/policy/PolicyDetailView.vue'
 import NoticeView from '@/views/notice/NoticeView.vue'
+
 import AppLayout from '@/components/layout/AppLayout.vue'
 import AuthLayout from '@/components/layout/AuthLayout.vue'
+
 import TagView from '@/views/contents/tag/TagView.vue'
 import ContentsView from '@/views/contents/content/ContentsView.vue'
 import SalaryDashboardView from '@/views/salary/SalaryDashboardView.vue'
@@ -14,7 +17,7 @@ import ContentsCreateView from '@/views/contents/content/ContentsCreateView.vue'
 import ContentsListView from '@/views/contents/content/ContentsListView.vue'
 import ContentsDetailView from '@/views/contents/content/ContentsDetailView.vue'
 import BasicSalaryAllListView from "@/views/salary/basicSalary/BasicSalaryAllListView.vue";
-import BasicSalaryCreateView from "@/views/salary/basicSalary/BasicSalaryCreateView.vue";
+import BasicSalaryCreateView from "@/views/salary/BasicSalaryCreateView.vue";
 import CompensationSalaryCreateView from "@/views/salary/compensationSalary/CompensationSalaryCreateView.vue";
 import CompensationSalaryAllListView from "@/views/salary/compensationSalary/CompensationSalaryAllListView.vue";
 import BasicSalaryAllDetailView from "@/views/salary/basicSalary/BasicSalaryAllDetailView.vue";
@@ -83,6 +86,8 @@ import AttendanceEmployeeDetailView from '@/views/attendance/AttendanceEmployeeD
 import MyDashboard from '@/views/dashboard/MyDashboard.vue'
 import EmpDashboard from '@/views/dashboard/EmpDashboard.vue'
 
+import ContentsCustomCodeView
+  from '@/views/contents/content/ContentsCustomCodeView.vue'
 
 const routes = [
 
@@ -175,16 +180,15 @@ const routes = [
 
       //성과평가-목표관리
       { path: 'goal', component: GoalListView },
-      { path: 'hr/goals', component: HRGoalDashboard },
-      { path: 'goal/:goalId', component: GoalDetailView },
+      { path: 'goal/create', component: GoalCreateView },
+      { path: 'goal/:goalId(\\d+)', component: GoalDetailView },      { path: 'hr/goals', component: HRGoalDashboard },
       { path: 'to/goals', component: TeamOwnerGoalListView },
-      { path: '/goal/create', component: GoalCreateView },
       {
         path: 'report', component: CompetencyReportView,
         children: [
           { path: '/all/competency/report', component: CompetencyReportAllListView },
           { path: '/all/competency/report/create', component: CompetencyReportAllCreateView },
-          { path: '/all/competency/report/employee/:year', component: CompetencyReportEmployeeAllListView },
+          { path: '/all/competency/report/employee', component: CompetencyReportEmployeeAllListView },
           { path: '/dept/competency/report', component: CompetencyReportDeptListView },
           { path: '/me/competency/report', component: CompetencyReportMeListView },
         ]
@@ -194,11 +198,11 @@ const routes = [
         path: 'salary/basic', component: BasicSalaryView,
         children: [
           { path: '/all/salary/basic', component: BasicSalaryAllListView },
-          { path: '/all/salary/basic/employee/:year', component: BasicSalaryEmployeeListView },
+          { path: '/all/salary/basic/employee/:docId', component: BasicSalaryEmployeeListView },
           { path: '/me/salary/basic', component: BasicSalarMeListView },
-          { path: '/all/salary/basic/create', component: BasicSalaryCreateView },
-          { path: '/all/salary/basic/detail/:basicId', component: BasicSalaryAllDetailView },
-          { path: '/me/salary/history/:basicId', component: SalaryEmployeeHistoryView },
+          { path: '/all/salary/create', component: BasicSalaryCreateView },
+          { path: '/all/salary/basic/detail/:id', component: BasicSalaryAllDetailView },
+          { path: '/me/salary/history/:id', component: SalaryEmployeeHistoryView },
         ]
       },
       {
@@ -206,13 +210,14 @@ const routes = [
         children: [
           { path: '/all/salary/compensation', component: CompensationSalaryAllListView },
           { path: '/all/salary/compensation/create', component: CompensationSalaryCreateView },
-          { path: '/all/salary/compensation/detail/:compensationId', component: CompensationSalaryDetailView },
+          { path: '/all/salary/compensation/employee/:docId', component: CompensationSalaryDetailView },
         ]
       },
       {
         path: 'contents', component: ContentsView,
         children: [
           { path: '/all/contents', component: ContentsListView },
+          { path: '/all/contents/customCode', component: ContentsCustomCodeView },
           { path: '/all/contents/create', component: ContentsCreateView },
           { path: '/all/contents/update/:contentId', component: ContentsCreateView },
           { path: '/all/contents/detail/:contentId', component: ContentsDetailView, props: true }
@@ -235,35 +240,35 @@ const routes = [
       },
       { path: 'hr/cycles', component: CycleAdminManageView },
       { path: 'hr/cycles/:cycleId', component: CycleAdminDetailPage },
-      { path: '/hr/cycles/:cycleId/edit', component: CycleAdminEditPage },
+      { path: 'hr/cycles/:cycleId/edit', component: CycleAdminEditPage },
 
       //등급
       { path: 'grade/setting', component: CompanyGradeSettingPage },
       { path: 'grading/list', component: DeptGradeStatusPage },
-      { path: '/hr/grading/list', component: AdminDeptGradeStatusPage },
-      { path: '/to/grading/list', component: IndividualGradePage },
-      { path: '/hr/grading/list/approve', component: IndividualGradeApprovePage },
-      { path: '/my/grading', component: MygradePage },
-      { path: '/to/grading/objection', component: AdminGradeObjectionPage },
-      { path: '/hr/objections/:objectionId', name: 'AdminGradeObjectionDetailPage', component: AdminGradeObjectionDetailPage },
+      { path: 'hr/grading/list', component: AdminDeptGradeStatusPage },
+      { path: 'to/grading/list', component: IndividualGradePage },
+      { path: 'hr/grading/list/approve', component: IndividualGradeApprovePage },
+      { path: 'my/grading', component: MygradePage },
+      { path: 'to/grading/objection', component: AdminGradeObjectionPage },
+      { path: 'hr/objections/:objectionId', name: 'AdminGradeObjectionDetailPage', component: AdminGradeObjectionDetailPage },
 
       //평가
-      { path: '/hr/evaluation/type/setting', component: EvaluationTypeSetupPage },
-      { path: '/hr/evaluation/question/form/setting', component: EvaluationFormBuilderPage },
-      { path: '/hr/evaluation/assignment', component: EvaluationAssignmentSetupPage },
-      { path: '/hr/evaluation/assignment/status', component: EvaluationAssignmentStatusPage },
-      { path: '/evaluation/assignment/response', component: EvaluationResponsePage },
-      { path: '/hr/evaluation/response/result', component: EvaluationResultPage },
-      { path: '/evaluation/response/my/result', component: EvaluationMyResultPage },
-      { path: '/to/grading/objection', component: AdminGradeObjectionPage },
-      { path: '/hr/objections/:objectionId', name: 'AdminGradeObjectionDetailPage', component: AdminGradeObjectionDetailPage },
-      { path: '/to/grading/objection', component: AdminGradeObjectionPage },
-      { path: '/hr/objections/:objectionId', name: 'AdminGradeObjectionDetailPage', component: AdminGradeObjectionDetailPage },
+      { path: 'hr/evaluation/type/setting', component: EvaluationTypeSetupPage },
+      { path: 'hr/evaluation/question/form/setting', component: EvaluationFormBuilderPage },
+      { path: 'hr/evaluation/assignment', component: EvaluationAssignmentSetupPage },
+      { path: 'hr/evaluation/assignment/status', component: EvaluationAssignmentStatusPage },
+      { path: 'evaluation/assignment/response', component: EvaluationResponsePage },
+      { path: 'hr/evaluation/response/result', component: EvaluationResultPage },
+      { path: 'evaluation/response/my/result', component: EvaluationMyResultPage },
+      { path: 'to/grading/objection', component: AdminGradeObjectionPage },
+      { path: 'hr/objections/:objectionId', name: 'AdminGradeObjectionDetailPage', component: AdminGradeObjectionDetailPage },
+      { path: 'to/grading/objection', component: AdminGradeObjectionPage },
+      { path: 'hr/objections/:objectionId', name: 'AdminGradeObjectionDetailPage', component: AdminGradeObjectionDetailPage },
 
 
       //대시보드
-      { path: '/my/dashboard', component: MyDashboard },
-      { path: '/hr/dashboard', component: EmpDashboard },
+      { path: 'my/dashboard', component: MyDashboard },
+      { path: 'hr/dashboard', component: EmpDashboard },
 
       {
         path: 'approval',

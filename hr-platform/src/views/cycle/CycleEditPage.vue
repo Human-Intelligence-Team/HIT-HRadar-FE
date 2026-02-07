@@ -94,7 +94,7 @@ const showToast = (msg) => {
 const loadCycle = async () => {
   const { data } = await fetchCycleDetail(cycleId)
 
-  // 🔒 프론트 권한 체크
+
   if (
     data.status !== 'DRAFT' ||
     Number(data.empId) !== Number(authStore.user?.employeeId)
