@@ -65,7 +65,14 @@
                   <div class="spinner"></div>
                   <span>데이터 로딩 중...</span>
                </div>
-               <FullCalendar ref="fullCalendar" :options="calendarOptions" />
+               <FullCalendar ref="fullCalendar" :options="calendarOptions">
+                 <template #eventContent="arg">
+                   <div class="custom-event-content">
+                     <div class="dot" :style="{ backgroundColor: getWorkTypeColor(arg.event.extendedProps.workType, arg.event.extendedProps.status) }"></div>
+                     <div class="event-title">{{ arg.event.title }}</div>
+                   </div>
+                 </template>
+               </FullCalendar>
             </div>
         </div>
       </div>
@@ -81,7 +88,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue';
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import { useAuthStore } from '@/stores/authStore';
 import FullCalendar from '@fullcalendar/vue3';
 import dayGridPlugin from '@fullcalendar/daygrid';
@@ -90,6 +97,8 @@ import bootstrap5Plugin from '@fullcalendar/bootstrap5';
 import { fetchAttendanceCalendar } from '@/api/attendanceApi';
 import AttendanceDetailModal from '@/components/attendance/AttendanceDetailModal.vue';
 import { getAllDepartmentsByCompany, getDepartmentMembers } from '@/api/departmentApi';
+import { getDepartmentLeaves } from '@/api/leaveApi';
+import { connectSSE, disconnectSSE } from '@/api/notificationSse';
 
 // const auth = useAuthStore(); // Unused top-level assignment
 
@@ -162,6 +171,16 @@ const filteredEvents = computed(() => {
 
     return result;
 });
+const getWorkTypeColor = (type, status) => {
+  if (status === '퇴근') return '#94a3b8'; // Gray for Clocked out
+  if (!type) return '#94a3b8'; // Default Gray
+  if (type.includes('재택') || type === 'REMOTE') return '#10b981'; // Green
+  if (type.includes('내근') || type.includes('출근') || type === 'WORK') return '#3b82f6'; // Blue
+  if (type.includes('출장') || type === 'TRIP') return '#8b5cf6'; // Purple
+  if (type.includes('휴가') || type === 'VACATION') return '#ef4444'; // Red
+  if (type.includes('외근') || type === 'FIELD') return '#f59e0b'; // Orange
+  return '#3b82f6'; // Default Blue
+};
 
 const calendarOptions = ref({
   plugins: [dayGridPlugin, interactionPlugin, bootstrap5Plugin],
@@ -170,36 +189,13 @@ const calendarOptions = ref({
   headerToolbar: {
     left: 'title prev,next today',
     center: '',
-    right: 'dayGridMonth'
+    right: ''
   },
   locale: 'ko',
-  dayMaxEvents: true,
+  dayMaxEvents: 5,
   eventDidMount: function() {
      // Optional: Add specific class based on exact match if needed
      // Styling is largely handled by event content or default styles
-  },
-  eventContent: function(arg) {
-      // Custom event dot color
-      const type = arg.event.extendedProps.workType;
-      const status = arg.event.extendedProps.status;
-      
-      let color = '#3b82f6';
-      if (status === '퇴근') color = '#94a3b8'; // Gray for Clocked out
-      else if (type?.includes('재택') || type === 'REMOTE') color = '#10b981';
-      else if (type?.includes('외근') || type === 'FIELD') color = '#f59e0b';
-      else if (type?.includes('출장') || type === 'TRIP') color = '#8b5cf6';
-      else if (type?.includes('휴가') || type === 'VACATION') color = '#ef4444';
-      
-      const dotStyle = `
-        display: inline-block; 
-        width: 8px; 
-        height: 8px; 
-        border-radius: 50%; 
-        background-color: ${color}; 
-        margin-right: 4px;
-      `;
-      
-      return { html: `<div style="display: flex; align-items: center; overflow: hidden;"><span style="${dotStyle}"></span><span style="font-weight: 600; color: #374151; font-size: 11px;">${arg.event.title}</span></div>` };
   },
   eventClick: (info) => {
     selectedAttendance.value = {
@@ -227,7 +223,12 @@ const toggleAllFilters = () => {
 
 const handleSearch = () => {
     if (fullCalendar.value) {
-        fullCalendar.value.getApi().refetchEvents();
+        const calendarApi = fullCalendar.value.getApi();
+        // Triggering refetchEvents will cause datesSet to be called again if necessary,
+        // or we can manually call fetchCalendarEvents with current view dates.
+        const start = calendarApi.view.activeStart.toISOString().substring(0, 10);
+        const end = calendarApi.view.activeEnd.toISOString().substring(0, 10);
+        fetchCalendarEvents(start, end);
     }
 };
 
@@ -266,32 +267,38 @@ const fetchCalendarEvents = async (startDate, endDate) => {
 
   loading.value = true;
   try {
-    const response = await fetchAttendanceCalendar({
+    const [attResponse, leaveResponse] = await Promise.all([
+      fetchAttendanceCalendar({
         targetDeptId: selectedDepartmentId.value,
         fromDate: startDate,
         toDate: endDate
-      });
+      }),
+      getDepartmentLeaves()
+    ]);
 
     let events = [];
-    const data = response.data?.data || response.data || [];
     
-    if (Array.isArray(data)) {
-      data.forEach(record => {
+    // 1. Process Attendance Data
+    const attData = attResponse.data?.data || attResponse.data || [];
+    if (Array.isArray(attData)) {
+      attData.forEach(record => {
         const date = record.workDate;
         const status = record.status || (record.totalWorkMinutes > 0 ? '퇴근' : '미출근');
         
         let title = record.empName; 
         if (status === '퇴근') {
             title += ` (퇴근)`;
-        } else if (record.workType && record.workType !== '내근' && record.workType !== 'WORK') {
-            title += ` (${mapWorkType(record.workType)})`;
+        } else if (status !== '미출근' && status !== '휴가') {
+            const typeLabel = (record.workType === 'WORK' || !record.workType || record.workType === '내근') ? '내근' : mapWorkType(record.workType);
+            title += ` (${typeLabel})`;
         }
         events.push({
-          id: `dept-${record.empId}-${date}`,
+          id: `dept-att-${record.empId}-${date}`,
           title: title,
           date: date,
           allDay: true,
           extendedProps: {
+            type: 'attendance',
             employeeId: record.empId,
             employeeName: record.empName,
             deptName: record.departmentName,
@@ -304,17 +311,81 @@ const fetchCalendarEvents = async (startDate, endDate) => {
         });
       });
     }
+
+    // 2. Process Department Leave Data
+    const leaveData = leaveResponse.data?.data || [];
+    if (Array.isArray(leaveData)) {
+      // Find current department name to fallback for filtering
+      const currentDept = departmentOptions.value.find(d => String(d.id) === String(selectedDepartmentId.value));
+      const currentDeptName = currentDept?.name;
+
+      leaveData
+        .filter(l => {
+          const isApproved = l.approvalStatus === 'APPROVED';
+          // Match by ID OR Name for robustness
+          const isMyDept = String(l.departmentId) === String(selectedDepartmentId.value) || 
+                           (currentDeptName && l.departmentName === currentDeptName);
+          return isApproved && isMyDept;
+        })
+        .forEach(leave => {
+          // Robust date iteration avoiding toISOString() timezone issues
+          let current = new Date(leave.startDate);
+          const end = new Date(leave.endDate);
+          
+          while (current <= end) {
+            const y = current.getFullYear();
+            const m = String(current.getMonth() + 1).padStart(2, '0');
+            const d = String(current.getDate()).padStart(2, '0');
+            const dateStr = `${y}-${m}-${d}`;
+            
+            if (dateStr >= startDate && dateStr <= endDate) {
+                events.push({
+                  id: `dept-leave-${leave.leaveId}-${dateStr}`,
+                  title: `${leave.empName} (휴가)`,
+                  date: dateStr,
+                  allDay: true,
+                  color: '#ef4444',
+                  extendedProps: {
+                    type: 'leave',
+                    employeeId: leave.empId || leave.employeeId,
+                    employeeName: leave.empName,
+                    deptName: leave.departmentName,
+                    status: '휴가',
+                    workType: 'VACATION',
+                    leaveType: leave.leaveType,
+                    reason: leave.reason
+                  }
+                });
+            }
+            current.setDate(current.getDate() + 1);
+          }
+        });
+    }
+
     rawEvents.value = events;
 
   } catch (error) {
-    console.error('부서 캘린더 이벤트를 불러오는 데 실패했습니다:', error);
+    console.error('부서 캘린더 데이터를 불러오는 데 실패했습니다:', error);
   } finally {
     loading.value = false;
   }
 };
 
+// Real-time update via SSE
+const onNotification = (data) => {
+  if (data.type === 'ATTENDANCE_CHANGED') {
+    console.log('Real-time attendance update received:', data);
+    handleSearch(); // Refresh calendar data
+  }
+};
+
 onMounted(() => {
   fetchDepartments();
+  connectSSE(onNotification);
+});
+
+onUnmounted(() => {
+  disconnectSSE(onNotification);
 });
 
 watch(selectedDepartmentId, (newId) => {
@@ -333,7 +404,7 @@ watch(selectedDepartmentId, (newId) => {
 });
 
 const mapWorkType = (type) => {
-    if (!type || type === '-') return '-';
+    if (!type || type === '-' || type === 'WORK') return '내근';
     const mapper = {
         'WORK': '내근',
         'REMOTE': '재택',
@@ -460,8 +531,8 @@ const mapWorkType = (type) => {
 }
 
 .filter-item input:checked ~ .custom-checkbox {
-    background-color: var(--active-color);
-    border-color: var(--active-color);
+    background-color: var(--active-color, #3b82f6);
+    border-color: var(--active-color, #3b82f6);
 }
 .filter-item input:checked ~ .custom-checkbox:after {
     content: "";
@@ -537,51 +608,69 @@ const mapWorkType = (type) => {
     gap: 12px;
 }
 
-:deep(.fc-toolbar-chunk:first-child) {
+:deep(.fc-button-active) {
+  background-color: #e2e8f0 !important;
+  color: #1e293b !important;
+}
+
+:deep(.fc-daygrid-day-number) {
+  color: #64748b;
+  font-size: 13px;
+  text-decoration: none;
+}
+
+:deep(.fc-col-header-cell-cushion) {
+  color: #334155;
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+  opacity: 1;
+}
+
+:deep(.fc-event) {
+  border: none;
+  border-radius: 4px;
+  font-size: 11px;
+  margin-bottom: 2px;
+  cursor: pointer;
+  background-color: transparent !important;
+  padding: 0;
+}
+
+:deep(.fc-daygrid-event-harness) {
+    margin-bottom: 2px;
+}
+
+:deep(.fc-daygrid-event-dot) {
+    display: none;
+}
+
+.custom-event-content {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 6px;
+    padding: 2px 4px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
 }
 
-:deep(.fc-toolbar-title) {
-  font-size: 20px !important;
-  font-weight: 700 !important;
-  color: #1e293b;
-  margin-left: 4px;
+.custom-event-content:hover {
+    background-color: #f1f5f9;
 }
 
-:deep(.fc-button) {
-    border-radius: 6px !important;
-    padding: 6px 12px !important;
-    font-size: 13px !important;
-    font-weight: 600 !important;
-    box-shadow: none !important;
-    transition: all 0.2s;
+.dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
 }
 
-:deep(.fc-prev-button),
-:deep(.fc-next-button) {
-    background-color: #f8fafc !important; 
-    border: 1px solid #e2e8f0 !important; 
-    color: #334155 !important; 
-}
-
-:deep(.fc-prev-button:hover),
-:deep(.fc-next-button:hover) {
-    background-color: #f1f5f9 !important;
-    border-color: #cbd5e1 !important;
-    color: #0f172a !important;
-}
-
-:deep(.fc-today-button) {
-    background-color: #64748b !important; 
-    border: 1px solid #64748b !important;
-    color: #ffffff !important;
-    opacity: 1 !important;
-}
-
-:deep(.fc-today-button:hover) {
-    background-color: #475569 !important; 
-    border-color: #475569 !important;
+.event-title {
+    font-size: 11px;
+    font-weight: 800;
+    color: #1e293b;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 </style>
