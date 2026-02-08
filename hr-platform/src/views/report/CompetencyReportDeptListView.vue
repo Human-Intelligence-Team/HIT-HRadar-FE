@@ -60,7 +60,7 @@ const loadDeptOptions = async () => {
   }
 }
 
-// 직급 로딩
+// 직위 로딩
 const loadPositionOptions = async () => {
   try {
     pointOptions.value = await fetchPositionOptions()
@@ -140,7 +140,7 @@ onMounted(() => {
     </div>
     <div class="card-head">
       <div class="search-section">
-        <div class="label">직급</div>
+        <div class="label">직위</div>
         <select class="select" v-model="searchData.position">
           <option value="">전체</option>
           <option v-for="dept in pointOptions" :key="dept.positionId" :value="dept.positionId">

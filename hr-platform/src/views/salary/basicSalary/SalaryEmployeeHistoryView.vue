@@ -168,7 +168,7 @@ onMounted(() => {
             <tr>
               <th>부서</th>
               <td>{{ employees.deptName }}</td>
-              <th>직급</th>
+              <th>직위</th>
               <td>{{ employees.positionName }}</td>
             </tr>
             <tr>

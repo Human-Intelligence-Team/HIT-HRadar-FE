@@ -27,7 +27,6 @@ import BasicSalaryEmployeeListView
   from "@/views/salary/basicSalary/BasicSalaryEmployeeListView.vue";
 import CompetencyReportView from "@/views/report/CompetencyReportView.vue";
 import CompetencyReportAllListView from "@/views/report/CompetencyReportAllListView.vue";
-import CompetencyReportDeptListView from "@/views/report/CompetencyReportDeptListView.vue";
 import CompetencyReportMeListView from "@/views/report/CompetencyReportMeListView.vue";
 import CompetencyReportAllCreateView
   from '@/views/report/CompetencyReportAllCreateView.vue'
@@ -87,6 +86,8 @@ import EmpDashboard from '@/views/dashboard/EmpDashboard.vue'
 
 import ContentsCustomCodeView
   from '@/views/contents/content/ContentsCustomCodeView.vue'
+import CompetencyReportDetailView
+  from '@/views/report/CompetencyReportDetailView.vue'
 
 const routes = [
 
@@ -236,8 +237,9 @@ const routes = [
           { path: '/all/competency/report', component: CompetencyReportAllListView },
           { path: '/all/competency/report/create', component: CompetencyReportAllCreateView },
           { path: '/all/competency/report/employee', component: CompetencyReportEmployeeAllListView },
-          { path: '/dept/competency/report', component: CompetencyReportDeptListView },
+         /* { path: '/dept/competency/report', component: CompetencyReportDeptListView },*/
           { path: '/me/competency/report', component: CompetencyReportMeListView },
+          { path: '/me/competency/report/detail/:competencyReportId', component: CompetencyReportDetailView },
         ]
       },
       { path: 'salary/dashboard', component: SalaryDashboardView },

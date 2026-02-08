@@ -1,5 +1,5 @@
 import {fetchDepts} from "@/api/deptApii.js";
-import {fetchPositions} from "@/api/positionApii.js";
+import {fetchPositions} from "@/api/positionApi.js";
 
 /* 이번 년도 기준 - 10년*/
 
@@ -51,13 +51,13 @@ export const fetchDeptOptions = async () => {
   return data.data.departments
 }
 
-// 직급
+// 직위
 export const fetchPositionOptions = async () => {
   const result = await fetchPositions()
   const data = result.data
 
   if (!data.success) {
-    throw new Error('직급 조회 실패')
+    throw new Error('직위 조회 실패')
   }
 
   return data.data.positions
