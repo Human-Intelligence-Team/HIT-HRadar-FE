@@ -26,13 +26,13 @@
     <!-- 출퇴근 기록 테이블 -->
     <div class="attendance-records-container card">
       <h3>출퇴근 기록</h3>
-      
+
       <div class="table-container">
         <table class="attendance-table">
           <thead>
             <tr>
               <th>이름</th>
-              <th>직급</th>
+              <th>직위</th>
               <th>부서</th>
               <th>근무 유형</th>
               <th>근무 장소</th>
@@ -78,7 +78,7 @@ const companyId = computed(() => auth.user?.companyId);
 
 const loading = ref(false);
 const selectedDate = ref(new Date().toISOString().split('T')[0]); // 오늘 날짜로 초기화
-const selectedDepartmentId = ref(auth.user?.deptId || ''); 
+const selectedDepartmentId = ref(auth.user?.deptId || '');
 const departmentOptions = ref([]);
 const attendanceRecords = ref([]);
 
@@ -126,12 +126,12 @@ const fetchRecords = async () => {
 
         const flatRecords = [];
         const data = response.data?.data || response.data || [];
-        
+
         if (Array.isArray(data)) {
             data.forEach(record => {
                 const checkIn = record.checkInTime ? extractTime(record.checkInTime) : '-';
                 const checkOut = record.checkOutTime ? extractTime(record.checkOutTime) : '-';
-                
+
                 let workDuration = '-';
                 if (record.totalWorkMinutes > 0) {
                     const h = Math.floor(record.totalWorkMinutes / 60);
@@ -143,7 +143,7 @@ const fetchRecords = async () => {
                     employeeId: record.empId,
                     name: record.empName,
                     jobTitle: record.position || '-',
-                    department: record.departmentName || '-', 
+                    department: record.departmentName || '-',
                     workingType: record.workType || '-',
                     workplace: record.location || '-',
                     clockInTime: checkIn,

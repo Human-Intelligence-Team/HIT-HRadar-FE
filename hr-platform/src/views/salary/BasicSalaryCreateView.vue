@@ -41,7 +41,7 @@ const basicData = reactive({
 const employeeData = reactive({
   name : user.value.name
   , deptName :user.value.department
-  , positionName : user.value.jobTitle
+  , positionName : user.value.position
 })
 
 // 태그 관리 모달
@@ -344,7 +344,7 @@ onMounted(() => {
         <tr>
           <th>부서</th>
           <td>{{employeeData.deptName}}</td>
-          <th>직급</th>
+          <th>직위</th>
           <td>{{employeeData.positionName}}</td>
         </tr>
       </table>
@@ -393,7 +393,7 @@ onMounted(() => {
           <tr>
 <!--            <th style="width: 10%">순서</th>-->
             <th style="width: 20%">부서</th>
-            <th style="width: 20%">직급</th>
+            <th style="width: 20%">직위</th>
             <th style="width: 20%">사원명</th>
           </tr>
         </thead>
@@ -431,7 +431,7 @@ onMounted(() => {
         <thead class="tbl-hd">
           <tr>
             <th style="width: 20%">부서</th>
-            <th style="width: 20%">직급</th>
+            <th style="width: 20%">직위</th>
             <th style="width: 20%">사원명</th>
           </tr>
         </thead>
@@ -460,7 +460,7 @@ onMounted(() => {
         <thead class="tbl-hd">
           <tr>
             <th style="width: 15%">부서</th>
-            <th style="width: 15%">직급</th>
+            <th style="width: 15%">직위</th>
             <th style="width: 15%">사원명</th>
             <th style="width: 25%">금액</th>
             <th style="width: 40%"

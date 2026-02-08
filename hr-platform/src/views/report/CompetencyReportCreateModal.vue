@@ -2,13 +2,13 @@
 import { onMounted, ref } from 'vue'
 import { YEAR_OPTIONS } from '@/views/report/script/common.js'
 import { createCompetencyReport, fetchCreatedReports } from '@/api/competencyReportApi.js'
-import { VueDatePicker } from '@vuepic/vue-datepicker'
 import '@vuepic/vue-datepicker/dist/main.css'
+import { getYear } from '@/views/salary/js/common.js'
 
 const submitting = ref(false)
 const errorMessage = ref('')
 const emit = defineEmits(['close'])
-const year = ref(new Date().getFullYear())
+const year = ref(getYear())
 const years = ref([])
 const reports = ref([])
 
@@ -42,7 +42,7 @@ const createReport = async (params) => {
     alert(errorMessage.value)
   } finally {
     submitting.value = false
-    searchBtn()
+    isModalOpen()
   }
 }
 
@@ -71,8 +71,10 @@ const createCompetencyReportBtn = (startDate, endDate, cycleId) => {
 }
 
 // 검색
-const searchReport = async (params) => {
-  submitting.value = true
+const searchReport =  async(params) => {
+ submitting.value = true
+
+  console.log("params : " , params)
 
   try {
     const result = await fetchCreatedReports(params)
@@ -105,7 +107,7 @@ function searchBtn() {
 
 // 초기화
 function resetSearch() {
-  year.value = ''
+  year.value = getYear()
 }
 
 onMounted(() => {
