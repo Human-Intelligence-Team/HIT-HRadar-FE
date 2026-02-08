@@ -66,9 +66,9 @@ const auth = useAuthStore()
 const hasAccess = (path) => {
   // 관리자는 모든 메뉴 접근 가능
   if (auth.isAdmin) return true
-  
+
   const mappings = auth.permissionMappings
-  
+
   // 디버깅용 로그
   // console.log(`[CHECK] ${path} in mappings?`, !!mappings?.[path])
 
@@ -77,10 +77,10 @@ const hasAccess = (path) => {
     console.warn('[SIDEBAR] 권한 매핑이 로드되지 않음 (Empty Mappings)')
     return false
   }
-  
+
   // permissionMappings에서 해당 경로의 필요 권한 확인
   const requiredPerm = mappings[path]
-  
+
   // 권한 매핑 없으면 차단
   if (!requiredPerm) {
     // 너무 많은 로그 방지를 위해 특정 경로만 로그
@@ -89,10 +89,10 @@ const hasAccess = (path) => {
     }
     return false
   }
-  
+
   // 권한 체크
   const hasPerm = auth.hasPermission(requiredPerm)
-  
+
   // 주요 경로만 로그
   if (path === '/my-profile' || path === '/notice' || path === '/policy') {
     console.log(`[SIDEBAR] path=${path} key=${requiredPerm} hasPerm=${hasPerm}`)
@@ -119,7 +119,7 @@ const menuConfig = computed(() => {
   // 의존성 강제 주입 (Reactivity Trigger)
   const _trigger = auth.permissionMappings
   const _permissions = auth.permissions
-  
+
   const rawMenu = [
     {
       title: '마이페이지',
@@ -207,9 +207,8 @@ const menuConfig = computed(() => {
           children: [
             { text: '대시보드', to: '/my/dashboard' },
             { text: '사원 대시보드', to: '/hr/dashboard' },
-            { text: '리포트(인사팀)', to: '/all/competency/report' },
-            { text: '리포트(팀장)', to: '/dept/competency/report' },
-            { text: '리포트(개인)', to: '/me/competency/report' },
+            { text: '역량강화 리포트 관리', to: '/all/competency/report' },
+            { text: '역량강화 리포트 이력', to: '/me/competency/report' },
             { text: '학습컨텐츠 관리', to: '/all/contents' },
           ]
         }
@@ -259,11 +258,11 @@ const menuConfig = computed(() => {
       title: '연봉 관리',
       items: [
         {
-          text: '연봉관리',
+          text: '연봉 관리',
           children: [
-            { text: '기본급관리(인사팀)', to: '/all/salary/basic' },
-            { text: '기본급관리(본인)', to: '/me/salary/basic' },
-            { text: '변동보상관리', to: '/all/salary/compensation' },
+            { text: '기본급 관리', to: '/all/salary/basic' },
+            { text: '기본급 이력', to: '/me/salary/basic' },
+            { text: '변동보상 관리', to: '/all/salary/compensation' },
           ]
         }
       ]
@@ -276,13 +275,13 @@ const menuConfig = computed(() => {
       ]
     },
   ]
-  
+
   // 변경된 로직: rawMenu를 복사(deep copy)해서 필터링
   const filtered = JSON.parse(JSON.stringify(rawMenu)).map(section => ({
     ...section,
     items: filterMenuItems(section.items)
   })).filter(section => section.items.length > 0)
-  
+
   console.log(`[SIDEBAR] Filtered sections:`, filtered.map(s => `${s.title}(${s.items.length})`))
   return filtered
 })

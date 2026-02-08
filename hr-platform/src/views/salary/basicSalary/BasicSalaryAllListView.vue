@@ -48,8 +48,6 @@ const searchSalaries = async () => {
     year: year.value,
   }
 
-  console.log('payload', payload)
-
   try {
     const result = await fetchBasicSalaries(payload)
     const data = result.data
