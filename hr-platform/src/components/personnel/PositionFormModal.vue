@@ -8,14 +8,14 @@
           </div>
           <span>{{ isEdit ? '직위 정보 수정' : '새 직위 등록' }}</span>
         </div>
-        <button class="btn ghost btn-sm" @click="$emit('close')">
+        <button class="btn-close ghost" @click="$emit('close')">
           <i class="pi pi-times"></i>
         </button>
       </div>
       
       <div class="modal-body">
-        <div class="form-group">
-          <div class="label">직위명</div>
+        <div class="form-group mb-4">
+          <label class="label">직위명 <span class="required">*</span></label>
           <input 
             type="text" 
             v-model="modelValue.name" 
@@ -25,20 +25,24 @@
           />
         </div>
         <div class="form-group">
-          <div class="label">순위 (서열 순서)</div>
-          <input 
-            type="number" 
-            v-model.number="modelValue.rank" 
-            placeholder="숫자가 낮을수록 서열이 높습니다." 
-            required 
-            class="input"
-          />
-          <div class="hint">서열을 결정하는 숫자입니다. (예: 1, 2, 3...)</div>
+          <label class="label">순위 (서열 순서) <span class="required">*</span></label>
+          <div class="rank-input-wrapper">
+            <input 
+              type="number" 
+              v-model.number="modelValue.rank" 
+              placeholder="예: 1, 2, 3..." 
+              required 
+              class="input rank-input"
+            />
+            <p class="hint">
+              <i class="pi pi-info-circle"></i> 숫자가 낮을수록 서열이 높게 정렬됩니다.
+            </p>
+          </div>
         </div>
       </div>
       
       <div class="modal-foot">
-        <button type="button" class="btn ghost" style="flex: 1" @click="$emit('close')" :disabled="submitting">
+        <button type="button" class="btn outline" style="flex: 1" @click="$emit('close')" :disabled="submitting">
           취소
         </button>
         <button type="button" class="btn primary" style="flex: 2" @click="$emit('submit')" :disabled="submitting">
@@ -64,43 +68,138 @@ defineEmits(['close', 'submit', 'update:modelValue'])
 </script>
 
 <style scoped>
-.form-group { margin-bottom: 20px; }
-.form-group:last-child { margin-bottom: 0; }
-
-.input {
-  width: 100%;
-  padding: 10px;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  font-size: 14px;
-  outline: none;
-  transition: border-color 0.2s;
-}
-.input:focus {
-  border-color: #3b82f6;
-}
-/* Fix Autofill Yellow */
-.input:-webkit-autofill,
-.input:-webkit-autofill:hover, 
-.input:-webkit-autofill:focus {
-  -webkit-box-shadow: 0 0 0px 1000px white inset !important;
-  transition: background-color 5000s ease-in-out 0s;
-}
-
 .modal {
-  width: min(440px, 94vw);
-  height: auto;
-  max-height: 90vh;
+  width: min(400px, 94vw);
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.modal-head {
+  padding: 24px 24px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 18px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.bot-badge {
+  width: 36px;
+  height: 36px;
+  background: #eff6ff;
+  color: #3b82f6;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-close {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: #94a3b8;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-close:hover {
+  background: #f1f5f9;
+  color: #475569;
 }
 
 .modal-body {
-  padding: 24px;
+  padding: 0 24px 24px;
 }
 
-/* Base styles should be covered by app.css, overriding only if necessary */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.mb-4 { margin-bottom: 20px; }
+
+.label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #475569;
+}
+.required { color: #ef4444; }
+
+.input {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 14px;
+  outline: none;
+  transition: all 0.2s;
+}
+.input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
 .hint {
-  margin-top: 8px;
+  margin-top: 6px;
   font-size: 12px;
-  color: var(--text-muted);
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.modal-foot {
+  padding: 16px 24px 24px;
+  display: flex;
+  gap: 10px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.btn {
+  height: 44px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1px solid transparent;
+}
+
+.btn.outline {
+  background: white;
+  border-color: #e2e8f0;
+  color: #64748b;
+}
+.btn.outline:hover:not(:disabled) {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  color: #334155;
+}
+
+.btn.primary {
+  background: #3b82f6;
+  color: white;
+}
+.btn.primary:hover:not(:disabled) {
+  background: #2563eb;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 </style>

@@ -85,10 +85,6 @@
                     <label>입사일</label>
                     <div class="value">{{ employee.hireDate }}</div>
                  </div>
-                 <div class="mini-item">
-                    <label>고용형태</label>
-                    <div class="value">{{ employee.employmentType }}</div>
-                 </div>
               </div>
               
                <div class="info-row mt-3">
@@ -101,10 +97,13 @@
                     <div class="value">{{ genderMap[employee.gender] || '-' }}</div>
                  </div>
                  <div class="mini-item">
-                    <label>상태</label>
-                    <div :class="['status-badge', employee.status === '재직' ? 'active' : '']">
-                       {{ employee.status }}
+                    <label>재직 상태</label>
+                    <div :class="['status-badge', getStatusClass(employee.employmentType)]">
+                       {{ employmentTypeMap[employee.employmentType] || employee.employmentType }}
                     </div>
+                 </div>
+                 <div class="mini-item" style="flex: 1; visibility: hidden;">
+                    <!-- Spacer for alignment -->
                  </div>
               </div>
             </div>
@@ -142,6 +141,12 @@ const employee = ref(null)
 const genderMap = {
   'MALE': '남성',
   'FEMALE': '여성'
+}
+
+const employmentTypeMap = {
+  'WORKING': '재직',
+  'LEAVE': '휴직',
+  'RESIGNED': '퇴사'
 }
 
 const getStatusClass = (status) => {

@@ -158,7 +158,9 @@ const renderChart = () => {
   })
 
   graph.fromJSON({ nodes, edges })
-  graph.centerContent()
+  // graph.centerContent() // Old centering
+  graph.zoomToFit({ padding: 40, maxScale: 1 }) // New centering with fit
+  graph.centerContent() // Ensure it is centered
 }
 
 watch(() => props.data, () => {

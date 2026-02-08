@@ -93,39 +93,14 @@ const routes = [
 
 
 
-
-
-  {
-    path: '/register-company',
-    component: AuthLayout,
-    children: [{ path: '', component: CompanyRegisterView }],
-  },
-  {
-    path: '/privacy-policy',
-    component: AuthLayout,
-    children: [{ path: '', component: PrivacyPolicyView }],
-  },
-  {
-    path: '/terms-of-service',
-    component: AuthLayout,
-    children: [{ path: '', component: TermsOfServiceView }],
-  },
+  { path: '/register-company', component: AuthLayout, children: [{ path: '', component: CompanyRegisterView }], },
+  { path: '/privacy-policy', component: AuthLayout, children: [{ path: '', component: PrivacyPolicyView }], },
+  { path: '/terms-of-service', component: AuthLayout, children: [{ path: '', component: TermsOfServiceView }], },
+  { path: '/home', component: AuthLayout, children: [{ path: '', component: HomeView }], },
+  { path: '/gateway', component: AuthLayout, children: [{ path: '', component: GatewayView }], },
 
   {
-    path: '/home',
-    component: AuthLayout,
-    children: [{ path: '', component: HomeView }],
-  },
-  {
-    path: '/gateway',
-    component: AuthLayout,
-    children: [{ path: '', component: GatewayView }],
-  },
-
-  {
-    path: '/admin',
-    component: AdminLayout,
-    meta: { requiresAuth: true, requiresAdmin: true },
+    path: '/admin', component: AdminLayout, meta: { requiresAuth: true, requiresAdmin: true },
     children: [
       { path: 'company-applications', component: AdminComAppList },
       { path: 'user-accounts', component: AdminUserAccountList },
@@ -183,43 +158,31 @@ const routes = [
         ]
       },
 
-      // 조직/부서/사원 관리
+
+      //마이페이지 (사용자 본인 정보)
+      { path: 'my-profile', name: 'MyProfile', component: () => import('@/views/user/MyProfileView.vue'), },
+      { path: 'my-department', name: 'MyDepartment', component: () => import('@/views/department/MyDepartmentView.vue'), },
+
       { path: 'organization', component: DepartmentListView },
-      {
-        path: 'department/org-chart',
-        component: () => import('@/views/department/OrganizationChartView.vue'),
-      }, // Organization Chart
+      { path: 'department/org-chart', component: () => import('@/views/department/OrganizationChartView.vue'), },
       { path: 'department/manage', component: DepartmentManageView },
+
       { path: 'employee', component: () => import('@/views/personnel/EmployeeListView.vue') },
       {
-        path: 'personnel/employees/list',
-        component: () => import('@/views/personnel/EmployeeReadOnlyView.vue'),
-      }, // Read-Only Employee List
+        path: 'personnel/employees/list', component: () => import('@/views/personnel/EmployeeReadOnlyView.vue'),
+      }, // 조회 전용
+      { path: 'personnel/positions', component: () => import('@/views/personnel/PositionManageView.vue'), },
       {
-        path: 'personnel/positions',
-        component: () => import('@/views/personnel/PositionManageView.vue'),
-      },
-      {
-        path: 'personnel/positions/list',
-        component: () => import('@/views/personnel/PositionReadOnlyView.vue'),
+        path: 'personnel/positions/list', component: () => import('@/views/personnel/PositionReadOnlyView.vue'),
       }, // Read-Only Position List
 
       // 인사 발령 및 이력
-      {
-        path: 'personnel/appointment',
-        component: () => import('@/views/personnel/PersonnelAppointmentView.vue'),
-      },
-      {
-        path: 'personnel/history',
-        component: () => import('@/views/personnel/PersonnelAppointmentHistoryView.vue'),
-      },
+      { path: 'personnel/appointment', component: () => import('@/views/personnel/PersonnelAppointmentView.vue'), },
+      { path: 'personnel/history', component: () => import('@/views/personnel/PersonnelAppointmentHistoryView.vue'), },
 
       // 회사 관리
       { path: 'company/my', component: () => import('@/views/company/MyCompanyView.vue') },
-      {
-        path: 'company/my-manage',
-        component: () => import('@/views/company/MyCompanyManageView.vue'),
-      },
+      { path: 'company/my-manage', component: () => import('@/views/company/MyCompanyManageView.vue'), },
       { path: 'company/roles', component: () => import('@/views/company/RoleManageView.vue') },
       { path: 'company/manage', component: () => import('@/views/company/CompanyManageView.vue') },
 
@@ -227,7 +190,7 @@ const routes = [
       //성과평가-목표관리
       { path: 'goal', component: GoalListView },
       { path: 'goal/create', component: GoalCreateView },
-      { path: 'goal/:goalId(\\d+)', component: GoalDetailView },      { path: 'hr/goals', component: HRGoalDashboard },
+      { path: 'goal/:goalId(\\d+)', component: GoalDetailView }, { path: 'hr/goals', component: HRGoalDashboard },
       { path: 'to/goals', component: TeamOwnerGoalListView },
       {
         path: 'report',
@@ -237,7 +200,7 @@ const routes = [
           { path: '/all/competency/report', component: CompetencyReportAllListView },
           { path: '/all/competency/report/create', component: CompetencyReportAllCreateView },
           { path: '/all/competency/report/employee', component: CompetencyReportEmployeeAllListView },
-         /* { path: '/dept/competency/report', component: CompetencyReportDeptListView },*/
+          /* { path: '/dept/competency/report', component: CompetencyReportDeptListView },*/
           { path: '/me/competency/report', component: CompetencyReportMeListView },
           { path: '/me/competency/report/detail/:competencyReportId', component: CompetencyReportDetailView },
         ]
@@ -362,17 +325,7 @@ const routes = [
         ],
       },
 
-      // 마이페이지 (사용자 본인 정보)
-      {
-        path: 'my-profile',
-        name: 'MyProfile',
-        component: () => import('@/views/user/MyProfileView.vue'),
-      },
-      {
-        path: 'my-department',
-        name: 'MyDepartment',
-        component: () => import('@/views/department/MyDepartmentView.vue'),
-      },
+
     ],
   },
   {
@@ -434,8 +387,20 @@ router.beforeEach((to, from) => {
 
   if (requiredPerm && !auth.hasPermission(requiredPerm)) {
     alert('해당 메뉴에 대한 접근 권한이 없습니다.')
-    // If direct load (!from.matched.length), redirect. Otherwise stay (cancel).
-    return from.matched.length > 0 ? false : auth.firstAccessiblePath()
+
+    // 만약 초기 진입(새로고침 등)에서 권한이 막힌 경우라면, 
+    // 무한 루프 방지를 위해 게이트웨이로 보내거나 로그아웃 처리
+    if (from.matched.length === 0) {
+      // 1. 단순 게이트웨이 이동
+      // return '/gateway'
+
+      // 2. 또는 세션을 초기화하고 완전히 처음부터 다시 시작 (더 확실한 방법)
+      auth.clearAuthState()
+      return '/gateway'
+    }
+
+    // 일반적인 메뉴 클릭 이동 중 권한 부족이면 현재 페이지 유지
+    return false
   }
 })
 

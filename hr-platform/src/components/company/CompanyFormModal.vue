@@ -1,21 +1,23 @@
 <template>
   <div v-if="show" class="modal-overlay" @click.self="$emit('close')">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3>회사 정보 수정</h3>
-        <button class="close-btn" @click="$emit('close')" type="button" aria-label="Close">
-           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-             <line x1="18" y1="6" x2="6" y2="18"></line>
-             <line x1="6" y1="6" x2="18" y2="18"></line>
-           </svg>
+    <div class="modal-content premium-modal">
+      <div class="modal-hd">
+        <div class="modal-title">
+          <div class="bot-badge">
+            <i class="pi pi-building"></i>
+          </div>
+          <span>회사 정보 수정</span>
+        </div>
+        <button class="btn-close ghost" @click="$emit('close')">
+          <i class="pi pi-times"></i>
         </button>
       </div>
       
-      <div class="modal-body">
+      <div class="modal-bd">
         <form @submit.prevent="$emit('submit')" id="companyForm" class="form-grid">
            <!-- Row 1 -->
            <div class="form-group">
-            <label>회사명</label>
+            <label class="label">회사명 <span class="required">*</span></label>
             <input 
               type="text" 
               v-model="modelValue.comName" 
@@ -25,19 +27,19 @@
             />
           </div>
           <div class="form-group">
-            <label>사업자 등록번호</label>
+            <label class="label">사업자 등록번호</label>
             <input 
               type="text" 
               v-model="modelValue.bizNo" 
               placeholder="000-00-00000" 
-              class="input"
+              class="input disabled-input"
               disabled
             />
           </div>
 
           <!-- Row 2 -->
           <div class="form-group">
-            <label>대표자명</label>
+            <label class="label">대표자명</label>
              <input 
                 type="text" 
                 v-model="modelValue.ceoName" 
@@ -46,7 +48,7 @@
               />
           </div>
           <div class="form-group">
-            <label>설립일</label>
+            <label class="label">설립일</label>
             <input 
               type="date" 
               v-model="modelValue.foundDate" 
@@ -56,7 +58,7 @@
 
           <!-- Row 3 -->
            <div class="form-group">
-            <label>회사 이메일</label>
+            <label class="label">회사 이메일</label>
              <input 
                 type="email" 
                 v-model="modelValue.comEmail" 
@@ -65,7 +67,7 @@
               />
           </div>
           <div class="form-group">
-            <label>대표 전화</label>
+            <label class="label">대표 전화</label>
              <input 
                 type="text" 
                 v-model="modelValue.comTel" 
@@ -75,8 +77,8 @@
           </div>
 
           <!-- Row 4 (Full Width) -->
-           <div class="form-group" style="grid-column: 1 / -1;">
-            <label>주소</label>
+           <div class="form-group full-width">
+            <label class="label">주소</label>
             <input 
               type="text" 
               v-model="modelValue.address" 
@@ -84,17 +86,16 @@
               class="input"
             />
           </div>
-          
-           <!-- Footer -->
-          <div class="form-actions">
-            <button type="button" class="btn secondary" @click="$emit('close')" :disabled="submitting">
-              취소
-            </button>
-            <button type="submit" class="btn primary" :disabled="submitting">
-              {{ submitting ? '저장 중...' : '수정 저장' }}
-            </button>
-          </div>
         </form>
+      </div>
+
+      <div class="modal-ft">
+        <button type="button" class="btn outline" style="flex: 1" @click="$emit('close')" :disabled="submitting">
+          취소
+        </button>
+        <button type="submit" form="companyForm" class="btn primary" style="flex: 2" :disabled="submitting">
+          {{ submitting ? '저장 중...' : '변경사항 저장' }}
+        </button>
       </div>
     </div>
   </div>
@@ -118,124 +119,134 @@ defineEmits(['close', 'submit', 'update:modelValue'])
   position: fixed;
   top: 0; left: 0;
   width: 100vw; height: 100vh;
-  background: rgba(0,0,0,0.4);
+  background: rgba(15, 23, 42, 0.4);
+  backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
 }
 
-.modal-content {
+.premium-modal {
   background: white;
-  width: 720px; /* Standard Size */
-  border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+  width: min(720px, 94vw);
+  border-radius: 20px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
   overflow: hidden;
-  max-height: 90vh;
   display: flex;
   flex-direction: column;
 }
 
-.modal-header {
-  padding: 16px 24px;
-  border-bottom: 1px solid #f1f5f9;
+.modal-hd {
+  padding: 24px 24px 16px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  flex-shrink: 0;
 }
 
-.modal-header h3 {
+.modal-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   font-size: 18px;
-  font-weight: 600;
-  margin: 0;
+  font-weight: 700;
   color: #1e293b;
 }
 
-.close-btn {
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  color: #64748b;
-  padding: 8px;
-  border-radius: 50%;
+.bot-badge {
+  width: 38px;
+  height: 38px;
+  background: #eff6ff;
+  color: #3b82f6;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s;
-}
-.close-btn:hover {
-  background-color: #f1f5f9;
-  color: #ef4444;
 }
 
-.modal-body {
-  padding: 24px;
-  overflow-y: auto;
+.btn-close {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: #94a3b8;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-close:hover {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.modal-bd {
+  padding: 0 24px 24px;
 }
 
 .form-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 16px 24px;
+  gap: 20px 24px;
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
-.form-group label {
-  font-size: 13px;
-  font-weight: 500;
-  color: #64748b;
+.form-group.full-width {
+  grid-column: 1 / -1;
 }
+
+.label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #475569;
+}
+.required { color: #ef4444; }
 
 .input {
   width: 100%;
-  padding: 10px;
+  padding: 10px 14px;
   border: 1px solid #e2e8f0;
-  border-radius: 6px;
+  border-radius: 10px;
   font-size: 14px;
-  outline: none; /* Prevent focus outline */
-}
-/* Fix Autofill Yellow */
-.input:-webkit-autofill,
-.input:-webkit-autofill:hover, 
-.input:-webkit-autofill:focus {
-  -webkit-box-shadow: 0 0 0px 1000px white inset !important;
-  transition: background-color 5000s ease-in-out 0s;
+  transition: all 0.2s;
 }
 .input:focus {
-  border-color: #3b82f6; 
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
   outline: none;
 }
-.input:disabled {
+.input.disabled-input {
   background: #f8fafc;
   color: #94a3b8;
 }
 
-.form-actions {
-  grid-column: 1 / -1;
+.modal-ft {
+  padding: 16px 24px 24px;
   display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-top: 20px;
-  padding-top: 20px;
-  border-top: 1px solid #e2e8f0;
+  gap: 12px;
+  border-top: 1px solid #f1f5f9;
 }
 
 .btn {
-  padding: 10px 16px;
-  border-radius: 6px;
+  height: 46px;
+  border-radius: 12px;
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
-  border: none;
+  transition: all 0.2s;
+  border: 1px solid transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .btn.primary { background: #3b82f6; color: white; }
-.btn.secondary { background: #f3f4f6; color: #1e293b; }
-.btn:disabled { opacity: 0.7; cursor: not-allowed; }
+.btn.primary:hover:not(:disabled) { background: #2563eb; }
+.btn.outline { background: white; border-color: #e2e8f0; color: #64748b; }
+.btn.outline:hover:not(:disabled) { background: #f8fafc; border-color: #cbd5e1; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
 </style>
