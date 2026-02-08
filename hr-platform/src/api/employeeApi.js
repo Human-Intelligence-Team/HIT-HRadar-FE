@@ -45,7 +45,7 @@ export function fetchEmployees(params) {
  * GET /employees/{empId}
  */
 export function fetchEmployeeDetail(empId) {
-  return api.get(`/api/v1/employees/${empId}`)
+    return api.get(`/api/v1/employees/${empId}`)
 }
 
 /**
@@ -54,6 +54,16 @@ export function fetchEmployeeDetail(empId) {
  */
 export function updateEmployeeProfile(empId, data) {
     return api.patch(`/api/v1/employees/${empId}/profile`, data)
+}
+
+/**
+ * 사원 프로필 사진 업로드
+ * POST /employees/{empId}/profile-image
+ */
+export function uploadEmployeeProfileImage(empId, formData) {
+    return api.post(`/api/v1/employees/${empId}/profile-image`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+    })
 }
 
 

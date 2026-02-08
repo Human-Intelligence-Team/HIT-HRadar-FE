@@ -39,6 +39,24 @@
           />
         </div>
 
+        <div class="filter-group" v-if="departments.length > 0">
+          <label class="filter-label">부서</label>
+          <ModernSelect 
+            v-model="filters.deptId" 
+            :options="departments" 
+            placeholder="전체"
+          />
+        </div>
+
+        <div class="filter-group" v-if="companies.length > 0">
+           <label class="filter-label">회사</label>
+           <ModernSelect
+             v-model="filters.comId"
+             :options="companies"
+             placeholder="전체"
+           />
+        </div>
+
         <div class="filter-actions">
           <button class="btn-search" @click="handleSearch">검색</button>
         </div>
@@ -111,8 +129,10 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, watch } from 'vue'
 import { fetchUserAccounts } from '@/api/userAccount'
+import { getAllDepartmentsByCompany } from '@/api/departmentApi'
+import { fetchCompanies } from '@/api/companyApi'
 import AdminUserAccountDetailModal from './AdminUserAccountDetailModal.vue'
 import ModernSelect from '@/components/common/ModernSelect.vue'
 
@@ -124,7 +144,9 @@ const selectedId = ref(null)
 const filters = reactive({
   keyword: '',
   status: '',
-  role: ''
+  role: '',
+  deptId: '',
+  comId: ''
 })
 
 const statusOptions = [
@@ -138,6 +160,9 @@ const roleOptions = [
   { label: '일반 사용자', value: 'USER' },
   { label: '관리자', value: 'ADMIN' }
 ]
+
+const departments = ref([])
+const companies = ref([])
 
 const handleSearch = async () => {
   loading.value = true
@@ -154,11 +179,11 @@ const handleSearch = async () => {
     
     if (Array.isArray(data)) {
       list.value = data
+    } else if (data && Array.isArray(data.accounts)) {
+      list.value = data.accounts
     } else if (data && Array.isArray(data.items)) {
       list.value = data.items
-    } else if (data && Array.isArray(data.accounts)) { // Possible field name
-      list.value = data.accounts
-    } else if (data && Array.isArray(data.list)) { // Possible field name
+    } else if (data && Array.isArray(data.list)) {
       list.value = data.list
     } else {
       list.value = []
@@ -181,7 +206,55 @@ const closeModal = () => {
   selectedId.value = null
 }
 
-onMounted(() => {
+// 회사 ID에 따라 부서 목록 조회
+const fetchDepartments = async (comId) => {
+  try {
+    // comId가 없으면 빈 값(전체/내회사)으로 요청
+    const res = await getAllDepartmentsByCompany(comId || '')
+    if (res.data && Array.isArray(res.data.data)) {
+       departments.value = res.data.data.map(d => ({
+         label: d.deptName, 
+         value: d.deptId 
+       }))
+       departments.value.unshift({ label: '전체 부서', value: '' })
+    } else {
+       departments.value = []
+    }
+  } catch (e) {
+    console.error('Failed to fetch departments', e)
+    departments.value = []
+  }
+}
+
+// 회사가 변경되면 부서 목록 갱신 및 부서 선택 초기화
+watch(() => filters.comId, (newComId) => {
+  filters.deptId = '' // 부서 선택 초기화
+  fetchDepartments(newComId)
+})
+
+onMounted(async () => {
+  // 1. Fetch Companies (Super Admin Case)
+  try {
+    const compRes = await fetchCompanies()
+    const compData = compRes.data?.data || []
+    if (Array.isArray(compData) && compData.length > 0) {
+      companies.value = compData.map(c => ({
+        label: c.companyName, 
+        value: c.companyId 
+      }))
+      companies.value.unshift({ label: '전체 회사', value: '' })
+    }
+  } catch (e) {
+    // 403 Forbidden etc. -> Not Super Admin
+    if (e.response && e.response.status !== 403) {
+      alert(`회사 목록 로드 실패: ${e.message}`)
+    }
+  }
+
+  // 2. Initial Departments Fetch (Current Company or Selected)
+  await fetchDepartments(filters.comId)
+
+  // 3. Initial Search
   handleSearch()
 })
 </script>

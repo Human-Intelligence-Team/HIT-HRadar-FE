@@ -1,17 +1,28 @@
 <template>
   <div class="table-container">
     <table class="modern-table">
+      <colgroup>
+        <col style="width: 60px" />
+        <col style="width: 100px" />
+        <col style="width: 200px" />
+        <col style="width: 120px" />
+        <col style="width: 100px" />
+        <col style="width: 150px" />
+        <col style="width: 80px" />
+        <col style="width: 150px" />
+        <col v-if="isAdmin" style="width: 200px" />
+      </colgroup>
       <thead>
         <tr>
-          <th width="60"></th> <!-- 아바타 -->
-          <th width="100">사번</th>
-          <th>사원 정보</th>
-          <th>부서</th>
-          <th>직위</th>
-          <th>역할</th>
-          <th class="text-center" width="80">상태</th>
-          <th>연락처</th>
-          <th v-if="isAdmin" width="240" class="text-center" style="padding-left: 55px">관리</th>
+          <th></th> <!-- 아바타 -->
+          <th>사번</th>
+          <th>사 원 정 보</th>
+          <th>부 서</th>
+          <th>직 위</th>
+          <th>역 할</th>
+          <th>상 태</th>
+          <th>연 락 처</th>
+          <th v-if="isAdmin">관 리</th>
         </tr>
       </thead>
       <tbody>
@@ -67,8 +78,8 @@
 
           <!-- 상태 -->
           <td class="text-center">
-             <span :class="['status-badge', (emp.status === 'RESIGNED' ? 'resigned' : 'active')]">
-               {{ emp.status === 'RESIGNED' ? '퇴직' : '재직' }}
+             <span :class="['status-badge', getStatusClass(emp.employmentType)]">
+               {{ getStatusLabel(emp.employmentType) }}
              </span>
           </td>
 
@@ -122,6 +133,20 @@ defineProps({
 })
 
 defineEmits(['appointment', 'history', 'edit', 'delete', 'view'])
+
+const getStatusClass = (status) => {
+  if (status === 'WORKING' || status === '재직') return 'active'
+  if (status === 'LEAVE' || status === '휴직') return 'leave'
+  if (status === 'RESIGNED' || status === '퇴사') return 'resigned'
+  return 'active' // Default to active if unknown
+}
+
+const getStatusLabel = (status) => {
+  if (status === 'WORKING' || status === '재직') return '재직'
+  if (status === 'LEAVE' || status === '휴직') return '휴직'
+  if (status === 'RESIGNED' || status === '퇴사') return '퇴사'
+  return status || '재직'
+}
 </script>
 
 <style scoped>
@@ -136,18 +161,16 @@ defineEmits(['appointment', 'history', 'edit', 'delete', 'view'])
 .modern-table {
   width: 100%;
   border-collapse: collapse;
-  text-align: left;
 }
 
 .modern-table th {
-  padding: 16px;
+  padding: 12px 16px;
   background: #f8fafc;
   color: #64748b;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
   border-bottom: 1px solid #e2e8f0;
+  text-align: center;
 }
 
 .modern-table td {
@@ -155,6 +178,7 @@ defineEmits(['appointment', 'history', 'edit', 'delete', 'view'])
   border-bottom: 1px solid #f1f5f9;
   vertical-align: middle;
   transition: background 0.2s;
+  text-align: center;
 }
 
 .hover-row:hover td {
@@ -187,6 +211,7 @@ defineEmits(['appointment', 'history', 'edit', 'delete', 'view'])
 .emp-identity {
   display: flex;
   flex-direction: column;
+  align-items: center;
 }
 .emp-name {
   font-size: 14px;
@@ -269,19 +294,20 @@ defineEmits(['appointment', 'history', 'edit', 'delete', 'view'])
   padding: 4px 8px;
   border-radius: 6px;
 }
-.status-badge.active { background: #dcfce7; color: #15803d; }
-.status-badge.resigned { background: #f1f5f9; color: #64748b; }
+.status-badge.active { background: #dcfce7; color: #15803d; } /* Green */
+.status-badge.leave { background: #fef9c3; color: #a16207; } /* Yellow */
+.status-badge.resigned { background: #fee2e2; color: #b91c1c; } /* Red */
 
 .action-buttons.centered {
   justify-content: center;
-  margin-right: 42px; /* Even more nudge left */
+  margin-right: 0;
 }
 
 .empty-cell {
   text-align: center;
   padding: 60px;
 }
-.roles-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+.roles-tags { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; }
 .role-tag { font-size: 11px; background: #f1f5f9; color: #475569; padding: 2px 6px; border-radius: 4px; border: 1px solid #e2e8f0; }
 
 .btn-action.role {
