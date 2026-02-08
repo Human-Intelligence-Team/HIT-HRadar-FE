@@ -80,7 +80,7 @@
         <div class="divider"></div>
 
         <div class="form-group">
-          <label for="adminName">관리자 성명</label>
+          <label for="adminName">성명</label>
           <input
             id="adminName"
             name="adminName"
@@ -97,7 +97,7 @@
         </div>
 
         <div class="form-group">
-          <label for="adminEmail">관리자 이메일</label>
+          <label for="adminEmail">이메일</label>
           <input
             id="adminEmail"
             name="adminEmail"
@@ -115,7 +115,7 @@
         </div>
 
         <div class="form-group full-width">
-          <label for="adminLoginId">관리자 ID</label>
+          <label for="adminLoginId">로그인 ID</label>
           <input
             id="adminLoginId"
             name="adminLoginId"

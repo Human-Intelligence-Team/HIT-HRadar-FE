@@ -144,6 +144,13 @@ const genderMap = {
   'FEMALE': '여성'
 }
 
+const getStatusClass = (status) => {
+  if (status === 'WORKING' || status === '재직') return 'active'
+  if (status === 'LEAVE' || status === '휴직') return 'leave'
+  if (status === 'RESIGNED' || status === '퇴사') return 'resigned'
+  return ''
+}
+
 const loadData = async () => {
     if(!props.empId) return
     loading.value = true
@@ -369,7 +376,9 @@ onMounted(() => {
     font-size: 12px;
     background: #e2e8f0; color: #64748b;
 }
-.status-badge.active { background: #d1fae5; color: #059669; }
+.status-badge.active { background: #dcfce7; color: #15803d; } /* Green */
+.status-badge.leave { background: #fef9c3; color: #a16207; } /* Yellow */
+.status-badge.resigned { background: #fee2e2; color: #b91c1c; } /* Red */
 
 .footer-action {
   margin-top: 32px;

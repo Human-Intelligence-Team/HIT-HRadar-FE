@@ -16,8 +16,19 @@
       <RouterLink v-if="auth.isAdmin" to="/admin/company-applications" class="admin-link">
          관리자 페이지 
       </RouterLink>
+      
       <NotificationBell />
       <ThemeToggle />
+
+      <!-- Profile Area -->
+      <div class="profile-area" @click="router.push('/my-profile')">
+        <span class="profile-name">{{ auth.user?.name || 'User' }}</span>
+        <div class="profile-img">
+            <img v-if="auth.user?.image" :src="auth.user.image" alt="Profile" />
+            <i v-else class="pi pi-user"></i>
+        </div>
+      </div>
+
       <button class="logout-btn" @click="logout">로그아웃</button>
     </div>
   </header>
@@ -126,5 +137,43 @@ const logout = async () => {
 }
 .admin-link:hover {
   background: #dbeafe;
+}
+
+/* ===== Profile ===== */
+.profile-area {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+.profile-area:hover {
+  background: #f3f4f6;
+}
+.profile-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+}
+.profile-img {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #e5e7eb;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.profile-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.profile-img i {
+  color: #9ca3af;
+  font-size: 16px;
 }
 </style>

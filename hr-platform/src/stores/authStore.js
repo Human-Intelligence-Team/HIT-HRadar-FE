@@ -25,11 +25,14 @@ export const useAuthStore = defineStore('auth', () => {
     employeeId: null,
     departmentId: null,
     name: '',
-    department: '', // 부서명 추가
+    department: '',
     jobTitle: '',
     email: '',
     position: '',
+    image: null, // Add image field
   })
+
+
 
   const user = ref(emptyUser())
   const permissions = ref([])

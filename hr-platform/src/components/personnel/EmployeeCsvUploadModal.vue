@@ -29,7 +29,7 @@
                 <i :class="selectedFile ? 'pi pi-file-check' : 'pi pi-cloud-upload'"></i>
                 <div class="drop-text">
                   <span v-if="selectedFile" class="file-name">{{ selectedFile.name }}</span>
-                  <span v-else>CSV 파일을 드래그하거나 클릭하여 선택하세요</span>
+                  <span v-else>파일(CSV)을 드래그하거나 클릭하여 선택하세요</span>
                 </div>
                 <input type="file" ref="fileInput" accept=".csv" hidden @change="handleFileSelect" />
               </div>
@@ -169,6 +169,7 @@ const handleFileSelect = (event) => {
 const handleDownloadTemplate = async () => {
   try {
     const response = await downloadCsvTemplate()
+    // 엑셀 -> CSV로 변경됨
     const url = window.URL.createObjectURL(new Blob([response.data]))
     const link = document.createElement('a')
     link.href = url

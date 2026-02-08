@@ -10,6 +10,24 @@
     <!-- Toolbar -->
     <div class="toolbar">
       <div class="search-box">
+        <!-- 필터: 부서 -->
+        <ModernSelect
+          v-model="selectedDept"
+          :options="deptOptions"
+          placeholder="전체 부서"
+          class="filter-select"
+          @change="loadEmployees"
+        />
+
+        <!-- 필터: 직위 -->
+        <ModernSelect
+          v-model="selectedPos"
+          :options="posOptions"
+          placeholder="전체 직위"
+          class="filter-select"
+          @change="loadEmployees"
+        />
+
         <input 
           type="text" 
           v-model="searchQuery" 
@@ -26,7 +44,7 @@
     <!-- Employee Table Component (Read Only) -->
     <EmployeeTable 
       v-else
-      :employees="filteredEmployees"
+      :employees="employees"
       :dept-map="deptMap"
       :pos-map="posMap"
       :is-admin="false"
@@ -53,9 +71,12 @@ import { getAllDepartmentsByCompany } from '@/api/departmentApi'
 import { fetchPositions } from '@/api/positionApi'
 import EmployeeTable from '@/components/personnel/EmployeeTable.vue'
 import EmployeeFormModal from '@/components/personnel/EmployeeFormModal.vue'
+import ModernSelect from '@/components/common/ModernSelect.vue'
 
 const employees = ref([])
 const searchQuery = ref('')
+const selectedDept = ref(null) // 부서 필터
+const selectedPos = ref(null)  // 직위 필터
 const loading = ref(false)
 
 // 조회 데이터
@@ -63,6 +84,17 @@ const departments = ref([])
 const positions = ref([])
 const deptMap = ref({})
 const posMap = ref({})
+
+// Computed Options
+const deptOptions = computed(() => {
+  const opts = departments.value.map(d => ({ label: d.deptName, value: d.deptId }))
+  return [{ label: '전체 부서', value: null }, ...opts]
+})
+
+const posOptions = computed(() => {
+  const opts = positions.value.map(p => ({ label: p.name || p.positionName || p.posName, value: p.positionId }))
+  return [{ label: '전체 직위', value: null }, ...opts]
+})
 
 const showFormModal = ref(false)
 const selectedEmp = ref(null)
@@ -73,52 +105,64 @@ const openViewModal = (emp) => {
 }
 
 onMounted(() => {
-  loadData()
+  loadInitData()
 })
+
+const loadInitData = async () => {
+    // 1. 기초 데이터 (부서, 직위) 로드
+    try {
+        const [deptRes, posRes] = await Promise.allSettled([
+            getAllDepartmentsByCompany(),
+            fetchPositions()
+        ])
+        
+        // 부서 매핑
+        if(deptRes.status === 'fulfilled') {
+           const dData = deptRes.value.data?.data || deptRes.value.data || []
+           const dList = Array.isArray(dData) ? dData : (dData.departments || [])
+           departments.value = dList
+           const map = {}
+           dList.forEach(d => { map[d.deptId] = d.deptName })
+           deptMap.value = map
+        }
+        
+        // 직위 매핑
+        if(posRes.status === 'fulfilled') {
+           const pData = posRes.value.data?.data || posRes.value.data || []
+           const pList = Array.isArray(pData) ? pData : (pData.positions || [])
+           positions.value = pList
+           const map = {}
+           pList.forEach(p => { map[p.positionId] = p.name || p.positionName || p.posName })
+           posMap.value = map
+        }
+    } catch(e) {
+        console.error("Init Data Load Fail", e)
+    }
+    
+    // 2. 사원 목록 로드
+    loadEmployees()
+}
 
 const loadData = async () => {
   loading.value = true
   try {
-    // 병렬 데이터 조회
-    const [empRes, deptRes, posRes] = await Promise.allSettled([
-      fetchEmployees(),
-      getAllDepartmentsByCompany(),
-      fetchPositions()
-    ])
+    // 검색 조건 구성 by Server
+    const params = {}
+    if (selectedDept.value) params.deptId = selectedDept.value
+    if (selectedPos.value) params.positionId = selectedPos.value
+    if (searchQuery.value) params.keyword = searchQuery.value // Keyword Search
+
+    const empRes = await fetchEmployees(params)
     
     // 1. 사원 목록
-    if(empRes.status === 'fulfilled') {
-      const res = empRes.value
-      let list = []
-      const responseData = res.data?.data
-      if (Array.isArray(res.data)) list = res.data
-      else if (responseData?.employees && Array.isArray(responseData.employees)) list = responseData.employees
-      else if (Array.isArray(responseData)) list = responseData
-      else if (responseData?.content && Array.isArray(responseData.content)) list = responseData.content
-      
-      employees.value = list
-    }
+    let list = []
+    const responseData = empRes.data?.data
+    if (Array.isArray(empRes.data)) list = empRes.data
+    else if (responseData?.employees && Array.isArray(responseData.employees)) list = responseData.employees
+    else if (Array.isArray(responseData)) list = responseData
+    else if (responseData?.content && Array.isArray(responseData.content)) list = responseData.content
     
-    // 2. 부서 매핑
-    if(deptRes.status === 'fulfilled') {
-       const dData = deptRes.value.data?.data || deptRes.value.data || []
-       const dList = Array.isArray(dData) ? dData : (dData.departments || [])
-       departments.value = dList // 리스트 저장
-       // ID -> 이름 매핑
-       const map = {}
-       dList.forEach(d => { map[d.deptId] = d.deptName })
-       deptMap.value = map
-    }
-    
-    // 3. 직위 매핑
-    if(posRes.status === 'fulfilled') {
-       const pData = posRes.value.data?.data || posRes.value.data || []
-       const pList = Array.isArray(pData) ? pData : (pData.positions || [])
-       positions.value = pList // 리스트 저장
-       const map = {}
-       pList.forEach(p => { map[p.positionId] = p.name || p.positionName || p.posName })
-       posMap.value = map
-    }
+    employees.value = list
 
   } catch (e) {
     console.error('Fetch Failed', e)
@@ -131,15 +175,8 @@ const loadData = async () => {
 // 새로고침 시 loadData 재사용
 const loadEmployees = loadData
 
-const filteredEmployees = computed(() => {
-  if (!searchQuery.value) return employees.value
-  const q = searchQuery.value.toLowerCase()
-  return employees.value.filter(e => 
-    e.name?.toLowerCase().includes(q) || 
-    e.employeeNo?.toLowerCase().includes(q) ||
-    e.deptName?.toLowerCase().includes(q)
-  )
-})
+// [Deleted] Client-side filtering logic
+// const filteredEmployees = computed(() => ...)
 </script>
 
 <style scoped>
@@ -155,6 +192,12 @@ const filteredEmployees = computed(() => {
 }
 .search-input {
   width: 320px;
+}
+.search-input {
+  width: 320px;
+}
+.filter-select {
+  width: 160px !important;
 }
 
 /* Standardized Input Styling */
