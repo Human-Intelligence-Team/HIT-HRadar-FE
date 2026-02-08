@@ -54,14 +54,22 @@
         
         <div class="table-wrapper">
           <table class="data-table">
+            <colgroup>
+              <col style="width: 80px" />
+              <col style="width: 15%" />
+              <col style="width: 15%" />
+              <col style="width: 30%" />
+              <col style="width: 20%" />
+              <col style="width: 120px" />
+            </colgroup>
             <thead>
               <tr>
-                <th style="width: 60px"></th>
-                <th>성명</th>
-                <th>직위</th>
-                <th>이메일</th>
-                <th>내선번호</th>
-                <th>상태</th>
+                <th class="text-center">프로필</th>
+                <th class="text-center">성명</th>
+                <th class="text-center">직위</th>
+                <th class="text-center">이메일</th>
+                <th class="text-center">내선번호</th>
+                <th class="text-center">상태</th>
               </tr>
             </thead>
             <tbody>
@@ -80,8 +88,9 @@
                 <td class="text-secondary">{{ member.email || '-' }}</td>
                 <td>{{ member.extNo || '-' }}</td>
                 <td>
-                  <span :class="['status-dot', member.status === '재직' ? 'active' : 'inactive']"></span>
-                  {{ member.status || '미정' }}
+                  <span class="status-badge" :class="{ 'active': member.status === '재직' || member.status === 'ACTIVE' }">
+                    {{ member.status || '미정' }}
+                  </span>
                 </td>
               </tr>
               <tr v-if="members.length === 0">
@@ -305,12 +314,45 @@ onMounted(loadData)
 
 .info-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 24px;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    margin-top: 10px;
 }
-.info-item { display: flex; flex-direction: column; gap: 4px; }
-.info-item .label { font-size: 12px; color: #64748b; font-weight: 600; text-transform: uppercase; }
-.info-item .value { font-size: 15px; color: #1e293b; font-weight: 500; }
+.info-item { 
+    display: flex; 
+    flex-direction: column; 
+    gap: 12px; 
+    align-items: center;
+    text-align: center;
+    position: relative;
+    padding: 0 10px;
+}
+.info-item:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 40px;
+    width: 1px;
+    background-color: #e2e8f0;
+}
+.info-item .label { 
+    font-size: 13px; 
+    color: #64748b; 
+    font-weight: 600; 
+    margin-bottom: 0;
+}
+.info-item .value { 
+    font-size: 16px; 
+    color: #0f172a; 
+    font-weight: 600; 
+}
+
+@media (max-width: 768px) {
+    .info-grid { grid-template-columns: repeat(2, 1fr); gap: 24px; }
+    .info-item:not(:last-child)::after { display: none; }
+}
 
 /* Members Card */
 .members-card .card-header {
@@ -331,20 +373,20 @@ onMounted(loadData)
 .data-table { width: 100%; border-collapse: collapse; }
 .data-table th {
     background: #f8fafc;
-    padding: 12px 24px;
-    text-align: left;
-    font-size: 12px;
+    padding: 12px 16px;
+    text-align: center;
+    font-size: 13px;
     font-weight: 600;
     color: #64748b;
-    text-transform: uppercase;
-    letter-spacing: 0.02em;
+    border-bottom: 1px solid #e2e8f0;
 }
 .data-table td {
-    padding: 16px 24px;
+    padding: 16px 16px;
     border-bottom: 1px solid #f1f5f9;
     vertical-align: middle;
     font-size: 14px;
     color: #334155;
+    text-align: center;
 }
 .data-table tr:last-child td { border-bottom: none; }
 
@@ -369,12 +411,21 @@ onMounted(loadData)
 .badge.position { background: #eff6ff; color: #2563eb; }
 .badge.dept { background: #f5f3ff; color: #7c3aed; }
 
-.status-dot {
-    display: inline-block; width: 8px; height: 8px; border-radius: 50%;
-    background: #cbd5e1; margin-right: 6px;
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 10px;
+    border-radius: 99px;
+    font-size: 13px;
+    font-weight: 600;
+    background: #f1f5f9;
+    color: #64748b;
 }
-.status-dot.active { background: #10b981; }
-.status-dot.inactive { background: #ef4444; }
+.status-badge.active {
+    background: #ecfdf5;
+    color: #059669;
+}
 
 .empty-message { text-align: center; padding: 48px; color: #94a3b8; }
 

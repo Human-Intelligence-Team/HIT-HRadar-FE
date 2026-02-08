@@ -18,7 +18,7 @@ export const useDocumentStore = defineStore('document', {
 
   actions: {
     /* =========================
-       문서 목록
+       문서
     ========================= */
     async loadDocuments() {
       this.documents = await fetchDocuments()

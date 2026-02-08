@@ -159,6 +159,7 @@ const handleSearch = async () => {
     }
   } catch (e) {
     console.error(e)
+    alert(`데이터 로드 실패: ${e.response?.data?.message || e.message}`)
   } finally {
     loading.value = false
   }

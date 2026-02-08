@@ -57,6 +57,18 @@ export function updateEmployeeProfile(empId, data) {
 }
 
 /**
+ * 사원 프로필 사진 업로드
+ * POST /employees/{empId}/profile-image
+ */
+export function uploadEmployeeProfileImage(empId, formData) {
+    return api.post(`/api/v1/employees/${empId}/profile-image`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+    })
+}
+
+
+
+/**
  * 사원 삭제
  * DELETE /employees/{empId}
  */

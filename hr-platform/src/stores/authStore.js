@@ -25,10 +25,14 @@ export const useAuthStore = defineStore('auth', () => {
     employeeId: null,
     departmentId: null,
     name: '',
-    department: '', // 부서명 추가
+    department: '',
     jobTitle: '',
     email: '',
+    position: '',
+    image: null, // Add image field
   })
+
+
 
   const user = ref(emptyUser())
   const permissions = ref([])
@@ -115,19 +119,15 @@ export const useAuthStore = defineStore('auth', () => {
 
       // ✅ [Fix] DB 데이터가 변경되었을 수 있으므로 항상 최신 매핑을 가져오도록 갱신
       // 백그라운드에서 실행 (UI 차단 없음)
-      fetchPermissionMappings().then(() => {
-        console.log('[AuthStore] Permission mappings refreshed from DB');
-      });
+      fetchPermissionMappings();
 
       // ✅ [Fix] 만약 매핑이 비어있으면 즉시 재시도 (최초 로드 실패 대비)
       if (!permissionMappings.value || Object.keys(permissionMappings.value).length === 0) {
-        console.warn('[AuthStore] Empty mappings detected, fetching immediately...');
         fetchPermissionMappings();
       }
     } else {
       // 토큰이 없거나 만료되었으면 localStorage 클리어
       if (token) {
-        console.log('Token expired, clearing auth state');
         localStorage.removeItem('accessToken');
         localStorage.removeItem('user');
         localStorage.removeItem('permissions');
@@ -147,7 +147,7 @@ export const useAuthStore = defineStore('auth', () => {
         name: detail.name,
         department: detail.deptName || detail.department?.name || '',
         jobTitle: detail.position?.name || detail.jobTitle || '',
-        email: detail.email
+        email: detail.email,
       };
       localStorage.setItem('user', JSON.stringify(user.value));
     } catch (err) {
@@ -186,7 +186,7 @@ export const useAuthStore = defineStore('auth', () => {
         try {
           const detailRes = await fetchEmployeeDetail(user.value.employeeId);
           // API 응답 구조: detailRes.data (EmployeeResponseDto) 라고 가정
-          // 만약 detailRes.data.data 형태라면 수정 필요. 보통 axios 설정에 따라 다름. 
+          // 만약 detailRes.data.data 형태라면 수정 필요. 보통 axios 설정에 따라 다름.
           // 여기서는 기존 패턴(employeeApi)이 api.get(...)을 반환하므로 detailRes.data가 본문일 가능성 높음.
           // 하지만 employeeApi.js를 보면 return api.get(...) 이므로, interceptor가 response.data를 반환하지 않는 한 detailRes.data가 맞음.
           // Backend DTO 필드명 확인 필요. (deptId, deptName, department.name 등)
@@ -301,7 +301,6 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       const res = await getPermissionMappingsApi();
       if (res.data.success) {
-        console.log('[AuthStore] Raw Mapping Data from DB:', res.data.data);
         // [ { routePath: '/a', permKey: 'K' }, ... ] -> { '/a': 'K' } 변환
         const list = res.data.data;
         const map = {};
@@ -310,7 +309,6 @@ export const useAuthStore = defineStore('auth', () => {
             map[item.routePath] = item.permKey;
           }
         });
-        console.log('[AuthStore] Converted Map:', map);
         permissionMappings.value = map;
         localStorage.setItem('permissionMappings', JSON.stringify(map));
       } else {

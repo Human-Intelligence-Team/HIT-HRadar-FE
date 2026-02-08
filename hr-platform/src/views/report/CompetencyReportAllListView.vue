@@ -1,20 +1,76 @@
 <script setup>
 import { useRouter } from 'vue-router'
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import CompetencyReportCreateModal from '@/views/report/CompetencyReportCreateModal.vue'
+import { YEAR_OPTIONS } from '@/views/report/script/common.js'
+import {  fetchReportsByCycle } from '@/api/competencyReportApi.js'
 
-const isCreateModalOpen = ref(false);
-const router = useRouter();
+const submitting = ref(false)
+const errorMessage = ref('')
+const router = useRouter()
+
+const year = ref('')
+const years = ref([])
+const cycles = ref([])
+
+const isCreateModalOpen = ref(false)
+
+// 모달 오픈
 const isModalOpen = () => {
- // router.push({ path:'/all/competency/report/create'});
-  // alert("생성하기");
-  isCreateModalOpen.value = !isCreateModalOpen.value;
+  isCreateModalOpen.value = !isCreateModalOpen.value
 }
 
-const goDetailPage = (year) => {
-  router.push(`/all/competency/report/employee/${year}`);
+// 상세 이동
+const goDetailPage = (year, quarter) => {
+  router.push({
+    path: '/all/competency/report/employee',
+    query: {
+      type: 'all',
+      year: year,
+      quarter: quarter,
+    },
+  })
 }
 
+// 검색
+const searchReport = async (params) => {
+  submitting.value = true
+
+  try {
+    const result = await fetchReportsByCycle(params)
+    const data = result.data
+
+    if (data.success) {
+      // 저장
+      cycles.value = data.data.cycles
+    }
+  } catch (e) {
+    errorMessage.value = e.message || '컨텐츠 조회 중 오류 발생'
+    alert(errorMessage.value)
+  } finally {
+    submitting.value = false
+  }
+}
+
+// 초기화
+function resetSearch() {
+  year.value = ''
+}
+
+// 검색
+function searchBtn() {
+  let payload = {
+    year: year.value,
+  }
+
+  // 검색
+  searchReport(payload)
+}
+
+onMounted(() => {
+  searchBtn()
+  years.value = YEAR_OPTIONS()
+})
 </script>
 
 <template>
@@ -23,24 +79,23 @@ const goDetailPage = (year) => {
   <div class="grid">
     <div class="card">
       <div class="card-head">
-
         <div class="search-section">
           <div class="label">년도</div>
-          <select class="select">
+          <select class="select" v-model="year">
             <option value="">전체</option>
+            <option v-for="item in years" :key="item" :value="item">
+              {{ item }}
+            </option>
           </select>
         </div>
 
         <div class="search-btn">
-          <button class="btn reset">초기화</button>
-          <button class="btn primary search">검색</button>
+          <button class="btn reset" @click="resetSearch()">초기화</button>
+          <button class="btn primary search" @click="searchBtn">검색</button>
         </div>
-
       </div>
-
     </div>
   </div>
-
 
   <div class="card">
     <div class="section-btn">
@@ -48,38 +103,39 @@ const goDetailPage = (year) => {
     </div>
     <table class="table">
       <thead class="tbl-hd">
-      <tr>
-        <th style="width:10%;">년도</th>
-        <th style="width:10%;">회차</th>
-        <th style="width:30%;">제목</th>
-        <th style="width:10%;">담당자</th>
-      </tr>
+        <tr>
+          <th style="width: 10%">년도</th>
+          <th style="width: 10%">회차</th>
+          <th style="width: 30%">제목</th>
+          <th style="width: 10%">담당자</th>
+        </tr>
       </thead>
-      <tbody class="tbl-bd">
-      <tr @click="goDetailPage(2025)">
-        <td >2025</td>
-        <td>1</td>
-        <td>2025년 1분기 역량강화 리포트</td>
-        <td>김사원</td>
-      </tr>
-      <tr @click="goDetailPage(2025)">
-        <td >2025</td>
-        <td>1</td>
-        <td>2025년 1분기 역량강화 리포트</td>
-        <td>김사원</td>
-      </tr>
+      <tbody
+        class="tbl-bd"
+        v-for="item in cycles"
+        :key="item.cycleId"
+        :value="item.cycleId"
+      >
+        <tr>
+          <td>{{ item.year }}</td>
+          <td>{{ item.quarter }}</td>
+          <td @click="goDetailPage(item.year, item.quarter)">
+            {{ item.cycleName }}
+          </td>
+          <td>{{ item.empName }}</td>
+        </tr>
       </tbody>
     </table>
   </div>
 
   <CompetencyReportCreateModal
     v-if="isCreateModalOpen"
-    @close="isModalOpen"
-  />
+    @close="isModalOpen" />
 </template>
 
 <style scoped>
-@import "@/assets/styles/searchBox.css";
+@import '@/assets/styles/searchBox.css';
+
 
 .section-btn {
   display: flex;
@@ -87,6 +143,4 @@ const goDetailPage = (year) => {
   padding-bottom: 10px;
   padding-right: 10px;
 }
-
-
 </style>

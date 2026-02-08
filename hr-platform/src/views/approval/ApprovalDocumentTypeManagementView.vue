@@ -56,14 +56,9 @@
         <div class="form-group">
             <label for="attendanceCategory">시스템 연동 설정 (System Mapping)</label>
             <select id="attendanceCategory" v-model="form.attendanceCategory" class="input-field select-field">
-                <option value="NONE">없음 (NONE)</option>
-                <option value="WORK_OFFICE">내근 (Office)</option>
-                <option value="WORK_REMOTE">재택 (Remote)</option>
-                <option value="WORK_FIELD">외근 (Field)</option>
-                <option value="WORK_TRIP">출장 (Trip)</option>
-                <option value="OVERTIME">초과근무 (Overtime)</option>
-                <!-- Vacation is usually handled by Leave Policy, but option exists -->
-                <!-- <option value="VACATION">휴가 (Vacation)</option> -->
+                <option v-for="cat in categories" :key="cat" :value="cat">
+                    {{ mapCategoryName(cat) }} ({{ cat }})
+                </option>
             </select>
             <p class="hint">결재 승인 시, 선택한 시스템 기능(근태/휴가 등)이 자동으로 수행됩니다.</p>
         </div>
@@ -87,43 +82,67 @@ import {
   createApprovalDocumentType,
   updateApprovalDocumentType,
   deleteApprovalDocumentType,
-  // fetchApprovalDocumentTypeDetail, // Unused import
-} from '@/api/approvalApi';
+  fetchApprovalAttendanceCategories
+} from '@/api/approvalApi.js';
 
 const documentTypes = ref([]);
 const showModal = ref(false);
 const isEditing = ref(false);
 const currentTypeId = ref(null);
 const form = ref({
-  docType: '', 
-  name: '',    
-  active: true, 
+  docType: '',
+  name: '',
+  active: true,
   attendanceCategory: 'NONE'
 });
+
+const categories = ref(['NONE']);
 
 const fetchDocumentTypes = async () => {
   try {
     const response = await fetchApprovalDocumentTypes();
-    console.log('Approval Types Raw Data:', response.data.data);
     documentTypes.value = response.data.data.map(type => ({
-      typeId: type.docId, 
+      typeId: type.docId,
       docType: type.docType,
       name: type.name,
       active: type.active,
       attendanceCategory: type.attendanceCategory || 'NONE'
     }));
   } catch (error) {
-    alert('문서 유형 목록을 불러오는 데 실패했습니다.');
     console.error('Failed to fetch document types:', error);
   }
 };
+
+const fetchCategories = async () => {
+    try {
+        const response = await fetchApprovalAttendanceCategories();
+        if (response.data && response.data.data) {
+            categories.value = response.data.data;
+        }
+    } catch (error) {
+        console.error('Failed to fetch categories:', error);
+    }
+}
+
+const mapCategoryName = (cat) => {
+    const mapper = {
+        'NONE': '없음',
+        'WORK_OFFICE': '내근',
+        'WORK_REMOTE': '재택',
+        'WORK_FIELD': '외근',
+        'WORK_TRIP': '출장',
+        'VACATION': '휴가',
+        'OVERTIME': '초과근무'
+    };
+    return mapper[cat] || cat;
+}
 
 const openCreateModal = () => {
   isEditing.value = false;
   currentTypeId.value = null;
   form.value.docType = '';
   form.value.name = '';
-  form.value.active = true; 
+  form.value.active = true;
   form.value.attendanceCategory = 'NONE';
   showModal.value = true;
 };
@@ -139,7 +158,7 @@ const openEditModal = async (type) => {
 };
 
 const saveDocumentType = async () => {
-  if (!form.value.docType.trim() || !form.value.name.trim()) { 
+  if (!form.value.docType.trim() || !form.value.name.trim()) {
     alert('유형 값과 유형명을 모두 입력해주세요.');
     return;
   }
@@ -149,7 +168,7 @@ const saveDocumentType = async () => {
       await updateApprovalDocumentType(currentTypeId.value, {
         docType: form.value.docType,
         name: form.value.name,
-        active: form.value.active, 
+        active: form.value.active,
         attendanceCategory: form.value.attendanceCategory
       });
       alert('문서 유형이 수정되었습니다.');
@@ -157,7 +176,7 @@ const saveDocumentType = async () => {
       await createApprovalDocumentType({
         docType: form.value.docType,
         name: form.value.name,
-        active: form.value.active, 
+        active: form.value.active,
         attendanceCategory: form.value.attendanceCategory
       });
       alert('새 문서 유형이 등록되었습니다.');
@@ -184,6 +203,7 @@ const deleteDocumentType = async (id) => {
 
 onMounted(() => {
   fetchDocumentTypes();
+  fetchCategories();
 });
 </script>
 

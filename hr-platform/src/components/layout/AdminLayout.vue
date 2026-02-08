@@ -43,9 +43,9 @@
       </main>
     </div>
 
-    <!-- Chatbot Components -->
-    <ChatbotButton />
-    <ChatbotModal />
+    <!-- Chatbot Components (Temporarily disabled for debugging clicks) -->
+    <!-- <ChatbotButton /> -->
+    <!-- <ChatbotModal /> -->
   </div>
 </template>
 
@@ -76,12 +76,6 @@ const logout = async () => {
   height: 100vh;
   background-color: #f8fafc; /* Light gray bg like main app */
   font-family: Pretendard, -apple-system, BlinkMacSystemFont, sans-serif;
-  user-select: none;
-}
-
-/* Re-enable for usage in inputs */
-input, textarea {
-  user-select: text;
 }
 
 /* ===== Header ===== */

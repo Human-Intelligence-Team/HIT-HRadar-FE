@@ -20,23 +20,25 @@
     </button>
 
     <Teleport to="body">
-      <div 
-        v-if="isOpen"
-        ref="menuRef"
-        class="modern-select-options-menu" 
-        :style="menuStyle"
-      >
+      <Transition name="select-fade">
         <div 
-          v-for="opt in options" 
-          :key="opt.value"
-          class="option-item"
-          :class="{ selected: modelValue === opt.value }"
-          @click="select(opt.value)"
+          v-if="isOpen"
+          ref="menuRef"
+          class="modern-select-options-menu" 
+          :style="menuStyle"
         >
-          {{ opt.label }}
-          <span v-if="modelValue === opt.value" class="check-icon">✓</span>
+          <div 
+            v-for="opt in options" 
+            :key="opt.value"
+            class="option-item"
+            :class="{ selected: modelValue === opt.value }"
+            @click="select(opt.value)"
+          >
+            {{ opt.label }}
+            <span v-if="modelValue === opt.value" class="check-icon">✓</span>
+          </div>
         </div>
-      </div>
+      </Transition>
     </Teleport>
   </div>
 </template>
@@ -241,5 +243,17 @@ onUnmounted(() => {
 .modern-select-options-menu::-webkit-scrollbar-thumb {
   background: #d1d5db;
   border-radius: 10px;
+}
+
+/* Transition Styles */
+.select-fade-enter-active,
+.select-fade-leave-active {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.select-fade-enter-from,
+.select-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-8px);
 }
 </style>

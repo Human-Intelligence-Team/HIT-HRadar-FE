@@ -1,5 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
+import PrivacyPolicyView from '@/views/auth/PrivacyPolicyView.vue'
+import TermsOfServiceView from '@/views/auth/TermsOfServiceView.vue'
 import PolicyView from '@/views/policy/PolicyView.vue'
 import PolicyDetailView from '@/views/policy/PolicyDetailView.vue'
 import NoticeView from '@/views/notice/NoticeView.vue'
@@ -14,7 +16,7 @@ import ContentsCreateView from '@/views/contents/content/ContentsCreateView.vue'
 import ContentsListView from '@/views/contents/content/ContentsListView.vue'
 import ContentsDetailView from '@/views/contents/content/ContentsDetailView.vue'
 import BasicSalaryAllListView from "@/views/salary/basicSalary/BasicSalaryAllListView.vue";
-import BasicSalaryCreateView from "@/views/salary/basicSalary/BasicSalaryCreateView.vue";
+import BasicSalaryCreateView from "@/views/salary/BasicSalaryCreateView.vue";
 import CompensationSalaryCreateView from "@/views/salary/compensationSalary/CompensationSalaryCreateView.vue";
 import CompensationSalaryAllListView from "@/views/salary/compensationSalary/CompensationSalaryAllListView.vue";
 import BasicSalaryAllDetailView from "@/views/salary/basicSalary/BasicSalaryAllDetailView.vue";
@@ -71,7 +73,7 @@ import CompanyRegisterView from '@/views/auth/CompanyRegisterView.vue'
 import AdminLayout from '@/components/layout/AdminLayout.vue'
 import AdminComAppList from '@/views/admin/AdminComAppList.vue'
 import AdminUserAccountList from '@/views/admin/AdminUserAccountList.vue'
-import ApprovalDocumentTypeManagementView from '@/views/admin/ApprovalDocumentTypeManagementView.vue'
+import ApprovalDocumentTypeManagementView from '@/views/approval/ApprovalDocumentTypeManagementView.vue'
 import DepartmentListView from '@/views/department/DepartmentListView.vue'
 import DepartmentManageView from '@/views/department/DepartmentManageView.vue'
 
@@ -83,6 +85,8 @@ import AttendanceEmployeeDetailView from '@/views/attendance/AttendanceEmployeeD
 import MyDashboard from '@/views/dashboard/MyDashboard.vue'
 import EmpDashboard from '@/views/dashboard/EmpDashboard.vue'
 
+import ContentsCustomCodeView
+  from '@/views/contents/content/ContentsCustomCodeView.vue'
 
 const routes = [
 
@@ -93,24 +97,28 @@ const routes = [
   {
     path: '/register-company',
     component: AuthLayout,
-    children: [
-      { path: '', component: CompanyRegisterView }
-    ],
+    children: [{ path: '', component: CompanyRegisterView }],
+  },
+  {
+    path: '/privacy-policy',
+    component: AuthLayout,
+    children: [{ path: '', component: PrivacyPolicyView }],
+  },
+  {
+    path: '/terms-of-service',
+    component: AuthLayout,
+    children: [{ path: '', component: TermsOfServiceView }],
   },
 
   {
     path: '/home',
     component: AuthLayout,
-    children: [
-      { path: '', component: HomeView }
-    ],
+    children: [{ path: '', component: HomeView }],
   },
   {
     path: '/gateway',
     component: AuthLayout,
-    children: [
-      { path: '', component: GatewayView }
-    ],
+    children: [{ path: '', component: GatewayView }],
   },
 
   {
@@ -120,20 +128,42 @@ const routes = [
     children: [
       { path: 'company-applications', component: AdminComAppList },
       { path: 'user-accounts', component: AdminUserAccountList },
-      { path: 'approval-document-types', component: ApprovalDocumentTypeManagementView },
       { path: 'permissions', component: () => import('@/views/admin/PermissionRegistryView.vue') },
-    ]
+    ],
   },
 
   {
-    path: '/', component: AppLayout,
+    path: '/',
+    component: AppLayout,
     children: [
-      { path: '', redirect: '/my-profile' },
+
       { path: 'policy', component: PolicyView },
-      { path: 'notice', name: 'notice-list', component: NoticeListView, meta: { permission: 'NOTICE_READ' } },
-      { path: 'notice/create', name: 'notice-create', component: NoticeCreateView, meta: { permission: 'NOTICE_MANAGE' } },
-      { path: 'notice/:id', name: 'notice-detail', component: NoticeDetailView, props: true, meta: { permission: 'NOTICE_READ' } },
-      { path: 'notice/:id/edit', name: 'notice-edit', component: NoticeEditView, props: true, meta: { permission: 'NOTICE_MANAGE' } },
+      {
+        path: 'notice',
+        name: 'notice-list',
+        component: NoticeListView,
+
+      },
+      {
+        path: 'notice/create',
+        name: 'notice-create',
+        component: NoticeCreateView,
+
+      },
+      {
+        path: 'notice/:id',
+        name: 'notice-detail',
+        component: NoticeDetailView,
+        props: true,
+
+      },
+      {
+        path: 'notice/:id/edit',
+        name: 'notice-edit',
+        component: NoticeEditView,
+        props: true,
+
+      },
       {
         path: 'policy',
         children: [
@@ -154,65 +184,93 @@ const routes = [
 
       // 조직/부서/사원 관리
       { path: 'organization', component: DepartmentListView },
-      { path: 'department/org-chart', component: () => import('@/views/department/OrganizationChartView.vue') }, // Organization Chart
+      {
+        path: 'department/org-chart',
+        component: () => import('@/views/department/OrganizationChartView.vue'),
+      }, // Organization Chart
       { path: 'department/manage', component: DepartmentManageView },
       { path: 'employee', component: () => import('@/views/personnel/EmployeeListView.vue') },
-      { path: 'personnel/employees/list', component: () => import('@/views/personnel/EmployeeReadOnlyView.vue') }, // Read-Only Employee List
-      { path: 'personnel/positions', component: () => import('@/views/personnel/PositionManageView.vue') },
-      { path: 'personnel/positions/list', component: () => import('@/views/personnel/PositionReadOnlyView.vue') }, // Read-Only Position List
-
+      {
+        path: 'personnel/employees/list',
+        component: () => import('@/views/personnel/EmployeeReadOnlyView.vue'),
+      }, // Read-Only Employee List
+      {
+        path: 'personnel/positions',
+        component: () => import('@/views/personnel/PositionManageView.vue'),
+      },
+      {
+        path: 'personnel/positions/list',
+        component: () => import('@/views/personnel/PositionReadOnlyView.vue'),
+      }, // Read-Only Position List
 
       // 인사 발령 및 이력
-      { path: 'personnel/appointment', component: () => import('@/views/personnel/PersonnelAppointmentView.vue') },
-      { path: 'personnel/history', component: () => import('@/views/personnel/PersonnelAppointmentHistoryView.vue') },
+      {
+        path: 'personnel/appointment',
+        component: () => import('@/views/personnel/PersonnelAppointmentView.vue'),
+      },
+      {
+        path: 'personnel/history',
+        component: () => import('@/views/personnel/PersonnelAppointmentHistoryView.vue'),
+      },
 
       // 회사 관리
       { path: 'company/my', component: () => import('@/views/company/MyCompanyView.vue') },
-      { path: 'company/my-manage', component: () => import('@/views/company/MyCompanyManageView.vue') },
+      {
+        path: 'company/my-manage',
+        component: () => import('@/views/company/MyCompanyManageView.vue'),
+      },
       { path: 'company/roles', component: () => import('@/views/company/RoleManageView.vue') },
       { path: 'company/manage', component: () => import('@/views/company/CompanyManageView.vue') },
 
 
       //성과평가-목표관리
       { path: 'goal', component: GoalListView },
-      { path: 'hr/goals', component: HRGoalDashboard },
-      { path: 'goal/:goalId', component: GoalDetailView },
+      { path: 'goal/create', component: GoalCreateView },
+      { path: 'goal/:goalId(\\d+)', component: GoalDetailView },      { path: 'hr/goals', component: HRGoalDashboard },
       { path: 'to/goals', component: TeamOwnerGoalListView },
-      { path: '/goal/create', component: GoalCreateView },
       {
-        path: 'report', component: CompetencyReportView,
+        path: 'report',
+        component: CompetencyReportView,
+        redirect: '/all/competency/report',
         children: [
           { path: '/all/competency/report', component: CompetencyReportAllListView },
           { path: '/all/competency/report/create', component: CompetencyReportAllCreateView },
-          { path: '/all/competency/report/employee/:year', component: CompetencyReportEmployeeAllListView },
+          { path: '/all/competency/report/employee', component: CompetencyReportEmployeeAllListView },
           { path: '/dept/competency/report', component: CompetencyReportDeptListView },
           { path: '/me/competency/report', component: CompetencyReportMeListView },
         ]
       },
       { path: 'salary/dashboard', component: SalaryDashboardView },
       {
-        path: 'salary/basic', component: BasicSalaryView,
+        path: 'salary/basic',
+        component: BasicSalaryView,
+        redirect: '/all/salary/basic',
         children: [
           { path: '/all/salary/basic', component: BasicSalaryAllListView },
-          { path: '/all/salary/basic/employee/:year', component: BasicSalaryEmployeeListView },
+          { path: '/all/salary/basic/employee/:docId', component: BasicSalaryEmployeeListView },
           { path: '/me/salary/basic', component: BasicSalarMeListView },
-          { path: '/all/salary/basic/create', component: BasicSalaryCreateView },
-          { path: '/all/salary/basic/detail/:basicId', component: BasicSalaryAllDetailView },
-          { path: '/me/salary/history/:basicId', component: SalaryEmployeeHistoryView },
+          { path: '/all/salary/create', component: BasicSalaryCreateView },
+          { path: '/all/salary/basic/detail/:id', component: BasicSalaryAllDetailView },
+          { path: '/me/salary/history/:id', component: SalaryEmployeeHistoryView },
         ]
       },
       {
-        path: 'salary/compensation', component: CompensationSalaryView,
+        path: 'salary/compensation',
+        component: CompensationSalaryView,
+        redirect: '/all/salary/compensation',
         children: [
           { path: '/all/salary/compensation', component: CompensationSalaryAllListView },
           { path: '/all/salary/compensation/create', component: CompensationSalaryCreateView },
-          { path: '/all/salary/compensation/detail/:compensationId', component: CompensationSalaryDetailView },
+          { path: '/all/salary/compensation/employee/:docId', component: CompensationSalaryDetailView },
         ]
       },
       {
-        path: 'contents', component: ContentsView,
+        path: 'contents',
+        component: ContentsView,
+        redirect: '/all/contents',
         children: [
           { path: '/all/contents', component: ContentsListView },
+          { path: '/all/contents/customCode', component: ContentsCustomCodeView },
           { path: '/all/contents/create', component: ContentsCreateView },
           { path: '/all/contents/update/:contentId', component: ContentsCreateView },
           { path: '/all/contents/detail/:contentId', component: ContentsDetailView, props: true }
@@ -235,44 +293,45 @@ const routes = [
       },
       { path: 'hr/cycles', component: CycleAdminManageView },
       { path: 'hr/cycles/:cycleId', component: CycleAdminDetailPage },
-      { path: '/hr/cycles/:cycleId/edit', component: CycleAdminEditPage },
+      { path: 'hr/cycles/:cycleId/edit', component: CycleAdminEditPage },
 
       //등급
       { path: 'grade/setting', component: CompanyGradeSettingPage },
       { path: 'grading/list', component: DeptGradeStatusPage },
-      { path: '/hr/grading/list', component: AdminDeptGradeStatusPage },
-      { path: '/to/grading/list', component: IndividualGradePage },
-      { path: '/hr/grading/list/approve', component: IndividualGradeApprovePage },
-      { path: '/my/grading', component: MygradePage },
-      { path: '/to/grading/objection', component: AdminGradeObjectionPage },
-      { path: '/hr/objections/:objectionId', name: 'AdminGradeObjectionDetailPage', component: AdminGradeObjectionDetailPage },
+      { path: 'hr/grading/list', component: AdminDeptGradeStatusPage },
+      { path: 'to/grading/list', component: IndividualGradePage },
+      { path: 'hr/grading/list/approve', component: IndividualGradeApprovePage },
+      { path: 'my/grading', component: MygradePage },
+      { path: 'to/grading/objection', component: AdminGradeObjectionPage },
+      { path: 'hr/objections/:objectionId', name: 'AdminGradeObjectionDetailPage', component: AdminGradeObjectionDetailPage },
 
       //평가
-      { path: '/hr/evaluation/type/setting', component: EvaluationTypeSetupPage },
-      { path: '/hr/evaluation/question/form/setting', component: EvaluationFormBuilderPage },
-      { path: '/hr/evaluation/assignment', component: EvaluationAssignmentSetupPage },
-      { path: '/hr/evaluation/assignment/status', component: EvaluationAssignmentStatusPage },
-      { path: '/evaluation/assignment/response', component: EvaluationResponsePage },
-      { path: '/hr/evaluation/response/result', component: EvaluationResultPage },
-      { path: '/evaluation/response/my/result', component: EvaluationMyResultPage },
-      { path: '/to/grading/objection', component: AdminGradeObjectionPage },
-      { path: '/hr/objections/:objectionId', name: 'AdminGradeObjectionDetailPage', component: AdminGradeObjectionDetailPage },
-      { path: '/to/grading/objection', component: AdminGradeObjectionPage },
-      { path: '/hr/objections/:objectionId', name: 'AdminGradeObjectionDetailPage', component: AdminGradeObjectionDetailPage },
+      { path: 'hr/evaluation/type/setting', component: EvaluationTypeSetupPage },
+      { path: 'hr/evaluation/question/form/setting', component: EvaluationFormBuilderPage },
+      { path: 'hr/evaluation/assignment', component: EvaluationAssignmentSetupPage },
+      { path: 'hr/evaluation/assignment/status', component: EvaluationAssignmentStatusPage },
+      { path: 'evaluation/assignment/response', component: EvaluationResponsePage },
+      { path: 'hr/evaluation/response/result', component: EvaluationResultPage },
+      { path: 'evaluation/response/my/result', component: EvaluationMyResultPage },
+      { path: 'to/grading/objection', component: AdminGradeObjectionPage },
+      { path: 'hr/objections/:objectionId', name: 'AdminGradeObjectionDetailPage', component: AdminGradeObjectionDetailPage },
+      { path: 'to/grading/objection', component: AdminGradeObjectionPage },
+      { path: 'hr/objections/:objectionId', name: 'AdminGradeObjectionDetailPage', component: AdminGradeObjectionDetailPage },
 
 
       //대시보드
-      { path: '/my/dashboard', component: MyDashboard },
-      { path: '/hr/dashboard', component: EmpDashboard },
+      { path: 'my/dashboard', component: MyDashboard },
+      { path: 'hr/dashboard', component: EmpDashboard },
 
       {
         path: 'approval',
+        redirect: '/approval/my-documents',
         children: [
           { path: 'approval-document-types', component: ApprovalDocumentTypeManagementView },
           { path: 'create', component: () => import('@/views/approval/ApprovalCreateView.vue') },
           { path: 'my-documents', component: () => import('@/views/approval/ApprovalMyListView.vue') },
           { path: 'all-documents', component: () => import('@/views/approval/ApprovalAllListView.vue') },
-          { path: 'admin', component: () => import('@/views/admin/ApprovalDocumentTypeManagementView.vue') },
+          { path: 'admin', component: () => import('@/views/approval/ApprovalDocumentTypeManagementView.vue') },
           { path: ':docId', component: () => import('@/views/approval/ApprovalDetailView.vue'), props: true },
         ],
       },
@@ -293,6 +352,7 @@ const routes = [
       // 휴가 관리
       {
         path: 'leave',
+        redirect: '/leave/my-history',
         children: [
           { path: 'my-history', component: () => import('@/views/leave/MyLeaveHistoryView.vue') },
           { path: 'policy', component: () => import('@/views/leave/LeavePolicyAdminView.vue') },
@@ -301,9 +361,22 @@ const routes = [
       },
 
       // 마이페이지 (사용자 본인 정보)
-      { path: 'my-profile', name: 'MyProfile', component: () => import('@/views/user/MyProfileView.vue') },
-      { path: 'my-department', name: 'MyDepartment', component: () => import('@/views/department/MyDepartmentView.vue') },
+      {
+        path: 'my-profile',
+        name: 'MyProfile',
+        component: () => import('@/views/user/MyProfileView.vue'),
+      },
+      {
+        path: 'my-department',
+        name: 'MyDepartment',
+        component: () => import('@/views/department/MyDepartmentView.vue'),
+      },
     ],
+  },
+  {
+    path: '/:pathMatch(.*)*',
+    name: 'NotFound',
+    component: () => import('@/views/error/NotFoundView.vue'),
   },
 ]
 
@@ -315,16 +388,18 @@ const router = createRouter({
 router.beforeEach((to, from) => {
   const auth = useAuthStore()
 
-  const publicPaths = ['/home', '/register-company', '/gateway']
+  const publicPaths = ['/home', '/register-company', '/gateway', '/privacy-policy', '/terms-of-service']
   const isPublic = publicPaths.includes(to.path)
 
   // 1. Not logged in -> Redirect appropriately (unless public)
   // 참고: authStore.loadFromStorage()에서 이미 토큰 유효성 검증을 수행함
   // 만료된 토큰은 자동으로 제거되므로 isLoggedIn은 유효한 토큰이 있을 때만 true
+  // 0. Root Path Handling
+  if (to.path === '/') {
+    return auth.isLoggedIn ? auth.firstAccessiblePath() : '/home'
+  }
+
   if (!auth.isLoggedIn) {
-    if (to.path === '/') {
-      return '/home'  // 첫 방문자 → /home (랜딩 페이지)
-    }
     if (!isPublic) {
       return { path: '/gateway', query: { redirect: to.fullPath } }
     }
@@ -333,6 +408,12 @@ router.beforeEach((to, from) => {
 
   // 2. Redirect away from public landing pages if already logged in
   if (isPublic) {
+    return auth.firstAccessiblePath()
+  }
+
+  // 2-1. Admin Check (Security)
+  if (to.meta.requiresAdmin && !auth.isAdmin) {
+    alert('관리자 권한이 필요합니다.')
     return auth.firstAccessiblePath()
   }
 

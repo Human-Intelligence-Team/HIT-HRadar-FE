@@ -45,8 +45,8 @@ export function getDepartmentById(deptId) {
  * 회사별 부서 전체 조회
  * GET /departments/query
  */
-export function getAllDepartmentsByCompany() {
-    return api.get('/api/v1/departments/query');
+export function getAllDepartmentsByCompany(comId) {
+    return api.get('/api/v1/departments/query', { params: { comId } });
 }
 
 /**

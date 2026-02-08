@@ -95,6 +95,15 @@
           </div>
           
           <div class="form-group" v-if="isEditMode || isViewMode">
+            <label for="employmentType">고용 형태 (상태)</label>
+            <ModernSelect 
+              v-model="form.employmentType" 
+              :options="statusOptions"
+              :class="['status-select', getStatusClass(form.employmentType)]"
+            />
+          </div>
+
+          <div class="form-group" v-if="isEditMode || isViewMode">
             <label for="exitDate">퇴사일</label>
             <input id="exitDate" name="exitDate" type="date" v-model="form.exitDate" class="input" :disabled="isViewMode" />
           </div>
@@ -129,6 +138,7 @@
 import { ref, watch, computed } from 'vue'
 import { createEmployee, updateEmployeeProfile, updateEmployeeAssignment } from '@/api/employeeApi'
 import { resetUserPassword } from '@/api/userAccount'
+import ModernSelect from '@/components/common/ModernSelect.vue'
 
 const props = defineProps({
   visible: Boolean,
@@ -157,9 +167,24 @@ const form = ref({
   gender: '',
   birth: '',
   hireDate: '',
+  hireDate: '',
   exitDate: '',
-  extNo: ''
+  extNo: '',
+  employmentType: 'WORKING'
 })
+
+const statusOptions = [
+  { label: '재직 (WORKING)', value: 'WORKING' },
+  { label: '휴직 (LEAVE)', value: 'LEAVE' },
+  { label: '퇴사 (RESIGNED)', value: 'RESIGNED' }
+]
+
+const getStatusClass = (status) => {
+  if (status === 'WORKING') return 'status-working'
+  if (status === 'LEAVE') return 'status-leave'
+  if (status === 'RESIGNED') return 'status-resigned'
+  return ''
+}
 
 // Initialize form when opening
 watch(() => props.visible, (val) => {
@@ -179,7 +204,8 @@ watch(() => props.visible, (val) => {
         birth: t.birth,
         hireDate: t.hireDate,
         exitDate: t.exitDate,
-        extNo: t.extNo
+        extNo: t.extNo,
+        employmentType: t.employmentType || 'WORKING'
       }
     } else {
       // Reset for Create
@@ -196,7 +222,8 @@ watch(() => props.visible, (val) => {
         birth: '',
         hireDate: '',
         exitDate: '',
-        extNo: ''
+        extNo: '',
+        employmentType: 'WORKING'
       }
     }
   }
@@ -462,5 +489,32 @@ select.input {
 .role-badge { 
     background: #f1f5f9; color: #475569; font-size: 12px; padding: 4px 8px; 
     border-radius: 4px; border: 1px solid #e2e8f0; font-weight: 500;
+}
+
+/* Colored Status Select */
+.status-select { width: 100% !important; }
+.status-select :deep(.select-trigger) {
+    font-weight: 600;
+    border-radius: 6px;
+    height: 42px;
+    font-size: 14px;
+}
+/* Working - Green */
+.status-select.status-working :deep(.select-trigger) {
+    background-color: #dcfce7; 
+    color: #15803d; 
+    border-color: #bbf7d0;
+}
+/* Leave - Yellow */
+.status-select.status-leave :deep(.select-trigger) {
+    background-color: #fef9c3; 
+    color: #a16207; 
+    border-color: #fde047;
+}
+/* Resigned - Red */
+.status-select.status-resigned :deep(.select-trigger) {
+    background-color: #fee2e2; 
+    color: #b91c1c; 
+    border-color: #fecaca;
 }
 </style>
