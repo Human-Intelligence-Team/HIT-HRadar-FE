@@ -1,9 +1,9 @@
 <template>
-  <section>
+  <section class="narrow-container">
     <div class="section-title">
       <div>
         <h1>회사 정보 관리</h1>
-        <div class="sub">내가 소속된 회사의 정보를 조회하고 관리합니다.</div>
+        <div class="sub">회사의 기본 정보를 조회하고 시스템 설정을 관리합니다.</div>
       </div>
     </div>
 
@@ -40,11 +40,11 @@
              <div class="info-item">
               <span class="label">상태</span>
               <span class="value">
-                <span class="badge good" v-if="!company.isDeleted || company.isDeleted === 'N'">
-                  <span class="dot"></span> 정상
+                <span class="status-badge good" v-if="!company.isDeleted || company.isDeleted === 'N'">
+                   정상
                 </span>
-                <span class="badge bad" v-else>
-                  <span class="dot"></span> 정지
+                <span class="status-badge bad" v-else>
+                   정지
                 </span>
               </span>
             </div>
@@ -81,13 +81,13 @@
         </BaseCard>
       </div>
 
-      <!-- Action Buttons -->
+      <!-- Action Footer -->
       <div class="action-footer">
-        <button class="btn danger" @click="handleDelete" v-if="!company.isDeleted || company.isDeleted === 'N'">
-          삭제하기
-        </button>
         <button class="btn primary" @click="openEditModal">
-          정보 수정
+          <i class="pi pi-pencil"></i> 정보 수정
+        </button>
+        <button class="btn danger outline" @click="handleDelete" v-if="!company.isDeleted || company.isDeleted === 'N'">
+          삭제하기
         </button>
       </div>
 
@@ -136,8 +136,8 @@ const loadCompany = async () => {
   try {
     const res = await fetchMyCompany()
     company.value = res.data?.data
-  } catch (e) {
-    console.error('Failed to load company info', e)
+  } catch (error) {
+    console.error('Failed to load company info', error)
   } finally {
     loading.value = false
   }
@@ -174,8 +174,8 @@ const handleUpdate = async () => {
     alert('회사 정보가 수정되었습니다.')
     closeModal()
     await loadCompany()
-  } catch (e) {
-    console.error('Update failed', e)
+  } catch (error) {
+    console.error('Update failed', error)
     alert('수정에 실패했습니다.')
   } finally {
     submitting.value = false
@@ -188,14 +188,20 @@ const handleDelete = async () => {
     await deleteCompany(company.value.companyId)
     alert('회사가 삭제되었습니다.')
     await loadCompany()
-  } catch (e) {
-    console.error('Delete failed', e)
+  } catch (error) {
+    console.error('Delete failed', error)
     alert('삭제에 실패했습니다.')
   }
 }
 </script>
 
 <style scoped>
+.narrow-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding-bottom: 40px;
+}
+
 .company-detail {
   display: flex;
   flex-direction: column;
@@ -205,13 +211,12 @@ const handleDelete = async () => {
 .info-list {
   display: flex;
   flex-direction: column;
-  gap: 16px;
 }
 .info-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-bottom: 12px;
+  padding: 14px 0;
   border-bottom: 1px solid var(--border);
 }
 .info-item:last-child {
@@ -219,23 +224,47 @@ const handleDelete = async () => {
 }
 .label {
   font-size: 13px;
-  color: var(--text-sub);
+  font-weight: 600;
+  color: #64748b;
 }
 .value {
-  font-weight: 600;
-  color: var(--text-main);
+  font-weight: 500;
+  color: #1e293b;
 }
+
+.status-badge {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+.status-badge.good { background: #dcfce7; color: #15803d; }
+.status-badge.bad { background: #fee2e2; color: #b91c1c; }
+
 .font-mono {
   font-family: var(--font-mono, monospace);
+  color: #4f46e5;
+  font-weight: 700;
 }
 
 .action-footer {
   display: flex;
-  justify-content: flex-end;
+  flex-direction: row-reverse; /* Put primary on right */
+  justify-content: flex-start;
   gap: 12px;
-  margin-top: 20px;
-  padding-top: 20px;
+  margin-top: 12px;
+  padding-top: 24px;
   border-top: 1px solid var(--border);
+}
+
+.btn {
+  height: 42px;
+  padding: 0 20px;
+  font-weight: 600;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .loading-state, .empty-state {
@@ -245,10 +274,6 @@ const handleDelete = async () => {
   background: var(--card);
   border-radius: var(--radius-md);
   border: 1px solid var(--border);
-}
-.empty-state i {
-  font-size: 32px;
-  margin-bottom: 12px;
 }
 
 .grid { display: grid; gap: 24px; }

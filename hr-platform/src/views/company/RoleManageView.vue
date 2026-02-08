@@ -1,62 +1,69 @@
 <template>
-  <div class="page-container">
-    <div class="page-header">
-      <h1>역할 및 권한 관리</h1>
-      <p class="subtitle">우리 회사에 필요한 역할을 정의하고, 각 역할별 권한을 설정합니다.</p>
+  <section class="wide-container">
+    <div class="section-title">
+      <div>
+        <h1>역할 및 권한 관리</h1>
+        <div class="sub">우리 회사에 필요한 역할을 정의하고, 상세 권한을 안전하게 설정하세요.</div>
+      </div>
     </div>
 
-    <div class="layout-container">
+    <div class="layout-grid">
       <!-- Role List -->
-      <div class="role-list-card card">
-        <div class="card-header">
+      <BaseCard class="role-list-card">
+        <div class="card-hd flex-between">
           <h2>역할 목록</h2>
-          <button class="btn-sm primary" @click="startCreate">
-            <i class="pi pi-plus"></i> 추가
+          <button class="btn primary outline btn-sm" @click="startCreate">
+            <i class="pi pi-plus"></i> 새 역할 추가
           </button>
         </div>
-        <ul class="role-list">
-          <li 
-            v-for="role in roles" 
-            :key="role.roleId" 
-            :class="{ active: selectedRole?.roleId === role.roleId, system: role.isSystem === 'Y' }"
-            @click="selectRole(role)"
-          >
-            <div class="role-info">
-              <span class="role-name">{{ role.name }}</span>
-              <span v-if="role.isSystem === 'Y'" class="badge system">기본</span>
-            </div>
-            <div class="role-actions" v-if="role.isSystem === 'N'">
-               <!-- 커스텀 역할 액션 (예: 삭제 등)은 호버 시 표시할 수 있으나, 현재는 상세 뷰에서 수정/삭제를 처리함 -->
-            </div>
-          </li>
-        </ul>
-      </div>
+        <div class="card-bd no-padding">
+          <ul class="role-list">
+            <li 
+              v-for="role in roles" 
+              :key="role.roleId" 
+              :class="{ active: selectedRole?.roleId === role.roleId, system: role.isSystem === 'Y' }"
+              @click="selectRole(role)"
+            >
+              <div class="role-info">
+                <span class="role-name">{{ role.name }}</span>
+                <span v-if="role.isSystem === 'Y'" class="status-badge gray">시스템</span>
+              </div>
+              <i class="pi pi-chevron-right arrow-icon"></i>
+            </li>
+          </ul>
+        </div>
+      </BaseCard>
 
       <!-- Detail / Edit Area -->
-      <div class="role-detail-card card" v-if="selectedRole || isCreating">
-        <div class="card-header">
+      <BaseCard class="role-detail-card" v-if="selectedRole || isCreating">
+        <div class="card-hd flex-between">
           <h2>{{ isCreating ? '새 역할 생성' : '역할 상세 정보' }}</h2>
-          <div class="actions" v-if="!isCreating && selectedRole?.isSystem === 'N'">
-             <button class="btn-sm danger" @click="confirmDelete">삭제</button>
-          </div>
+          <button 
+            v-if="!isCreating && selectedRole?.isSystem === 'N'" 
+            class="btn danger outline btn-sm" 
+            @click="confirmDelete"
+          >
+            역할 삭제
+          </button>
         </div>
 
-        <div class="detail-body">
-          <div class="form-group">
-            <label>역할 명 <span class="required">*</span></label>
+        <div class="card-bd">
+          <div class="form-group mb-6">
+            <label class="label">역할 명 <span class="required">*</span></label>
             <input 
               type="text" 
               v-model="form.name" 
-              placeholder="역할 이름을 입력하세요"
+              placeholder="예: 프로젝트 매니저, 재무 담당자"
+              class="input"
               :disabled="!isCreating && selectedRole?.isSystem === 'Y'"
             />
           </div>
 
           <div class="permissions-section">
-            <label>권한 설정</label>
-            <p class="hint" v-if="selectedRole?.isSystem === 'Y'">
-              <i class="pi pi-info-circle"></i> 기본 역할(System Role)은 시스템에 고정된 역할로, 수정하거나 삭제할 수 없습니다.
-            </p>
+            <label class="label">권한 설정</label>
+            <div v-if="selectedRole?.isSystem === 'Y'" class="system-role-notice">
+              <i class="pi pi-info-circle"></i> 기본 역할(System Role)의 권한은 시스템 보안을 위해 수정할 수 없습니다.
+            </div>
             
             <div class="perm-grid" :class="{ disabled: !isCreating && selectedRole?.isSystem === 'Y' }">
               <div 
@@ -64,43 +71,49 @@
                 :key="perm.permId" 
                 class="perm-item"
               >
-                <label class="checkbox-label">
+                <label class="checkbox-container">
                   <input 
                     type="checkbox" 
                     :value="perm.permId" 
                     v-model="form.permIds"
                     :disabled="!isCreating && selectedRole?.isSystem === 'Y'"
                   />
-                  <span class="check-text">
-                    <span class="perm-name">{{ perm.name }}</span>
-                    <span class="perm-desc">{{ perm.description }}</span>
-                  </span>
+                  <div class="check-ui"></div>
+                  <div class="perm-info">
+                    <div class="perm-name">{{ perm.name }}</div>
+                    <div class="perm-desc">{{ perm.description }}</div>
+                  </div>
                 </label>
               </div>
             </div>
           </div>
           
-          <div class="form-actions">
-            <button class="btn-primary" @click="saveRole" :disabled="loading || (!isCreating && selectedRole?.isSystem === 'Y')">
-              {{ loading ? '저장 중...' : '저장' }}
+          <div class="form-actions mt-8">
+            <button 
+              class="btn primary" 
+              @click="saveRole" 
+              :disabled="loading || (!isCreating && selectedRole?.isSystem === 'Y')"
+            >
+              {{ loading ? '저장 중...' : (isCreating ? '역할 생성' : '변경사항 저장') }}
             </button>
-            <button class="btn-secondary" @click="cancelEdit" v-if="isCreating">취소</button>
+            <button class="btn outline" @click="cancelEdit" v-if="isCreating">취소</button>
           </div>
         </div>
-      </div>
+      </BaseCard>
       
-      <div class="role-detail-card card empty" v-else>
+      <BaseCard class="role-detail-card empty-card" v-else>
         <div class="empty-state">
           <i class="pi pi-shield"></i>
-          <p>좌측 목록에서 역할을 선택하거나 '추가' 버튼을 눌러 새 역할을 만드세요.</p>
+          <p>좌측 목록에서 역할을 선택하거나<br/>'새 역할 추가' 버튼을 눌러 관리하세요.</p>
         </div>
-      </div>
+      </BaseCard>
     </div>
-  </div>
+  </section>
 </template>
 
 <script setup>
-import { ref, onMounted, reactive, watch } from 'vue'
+import { ref, onMounted, reactive } from 'vue'
+import BaseCard from '@/components/common/BaseCard.vue'
 import { getRoles, createRole, updateRole, deleteRole } from '@/api/roleApi'
 import { getPermissions } from '@/api/permissionApi'
 
@@ -125,19 +138,13 @@ const loadData = async () => {
         allPermissions.value = permRes.data?.data || []
     } catch (e) {
         console.error(e)
-        alert('데이터를 불러오는 중 오류가 발생했습니다.')
     }
 }
 
 const selectRole = (role) => {
     isCreating.value = false
     selectedRole.value = role
-    
     form.name = role.name
-    // 백엔드는 역할 조회 시 권한 정보를 반환하지 않을 수 있음.
-    // 만약 `GET /roles` 응답에 `permissions` 필드가 포함되어 있다고 가정함.
-    // 포함되지 않는다면 별도의 상세 조회 API 호출이 필요할 수 있음.
-    // 현재는 role.permissions = [{permId: 1, ...}, ...] 형태로 가정하고 매핑 수행.
     form.permIds = role.permissions ? role.permissions.map(p => p.permId) : []
 }
 
@@ -166,20 +173,18 @@ const saveRole = async () => {
                 name: form.name,
                 permIds: form.permIds
             })
-            alert('생성되었습니다.')
+            alert('새 역할이 생성되었습니다.')
         } else {
             await updateRole(selectedRole.value.roleId, {
                 name: form.name,
                 permIds: form.permIds
             })
-            alert('수정되었습니다.')
+            alert('변경사항이 저장되었습니다.')
         }
         await loadData()
-        // Reselect or reset
         if (isCreating.value) {
            isCreating.value = false
         } else {
-           // Refresh selected role permissions
            const updated = roles.value.find(r => r.roleId === selectedRole.value.roleId)
            if(updated) selectRole(updated)
         }
@@ -210,125 +215,244 @@ onMounted(loadData)
 </script>
 
 <style scoped>
-.page-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 32px 20px;
-}
-.page-header { margin-bottom: 24px; }
-.page-header h1 { font-size: 24px; font-weight: 700; color: #1e293b; margin-bottom: 8px; }
-.subtitle { color: #64748b; margin: 0; font-size: 14px; }
-
-.layout-container {
-    display: grid;
-    grid-template-columns: 300px 1fr;
-    gap: 24px;
-    align-items: start;
+.wide-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding-bottom: 40px;
 }
 
-.card {
-    background: white; border-radius: 12px;
-    border: 1px solid #e2e8f0;
-    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
-    display: flex; flex-direction: column;
-    overflow: hidden;
+.layout-grid {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 24px;
+  align-items: start;
 }
 
-.role-list-card { min-height: 400px; }
-.role-detail-card { min-height: 400px; }
-
-.card-header {
-    padding: 16px 20px; border-bottom: 1px solid #e2e8f0;
-    display: flex; justify-content: space-between; align-items: center;
-    background: #f8fafc;
+/* Card HD Utilities */
+.flex-between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
 }
-.card-header h2 { margin: 0; font-size: 16px; font-weight: 700; color: #334155; }
 
-.role-list { list-style: none; padding: 0; margin: 0; }
+.no-padding { padding: 0 !important; }
+
+/* Role List */
+.role-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 600px;
+  overflow-y: auto;
+}
+
 .role-list li {
-    padding: 14px 20px; border-bottom: 1px solid #f1f5f9;
-    cursor: pointer; transition: background 0.2s;
-    display: flex; justify-content: space-between; align-items: center;
-}
-.role-list li:hover { background: #f8fafc; }
-.role-list li.active { background: #eff6ff; border-left: 3px solid #3b82f6; }
-
-.role-name { font-weight: 500; color: #1e293b; font-size: 14px; }
-.badge.system {
-    background: #e2e8f0; color: #64748b; font-size: 11px; padding: 2px 6px;
-    border-radius: 4px; font-weight: 600;
+  padding: 16px 20px;
+  border-bottom: 1px solid #f1f5f9;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.detail-body { padding: 24px; }
-
-.form-group { margin-bottom: 24px; }
-.form-group label { display: block; font-size: 14px; font-weight: 600; color: #475569; margin-bottom: 8px; }
-.form-group input {
-    width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px;
-    font-size: 14px;
+.role-list li:hover {
+  background: #f8fafc;
 }
-.form-group input:disabled { background: #f1f5f9; color: #94a3b8; }
 
-.permissions-section label { margin-bottom: 12px; }
-.hint { font-size: 13px; color: #64748b; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+.role-list li.active {
+  background: #eff6ff;
+  border-left: 4px solid #3b82f6;
+  padding-left: 16px;
+}
 
+.role-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.status-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-left: 8px;
+}
+.status-badge.gray { background: #f1f5f9; color: #64748b; }
+
+.arrow-icon {
+  font-size: 12px;
+  color: #cbd5e1;
+  transition: transform 0.2s;
+}
+.active .arrow-icon {
+  color: #3b82f6;
+  transform: translateX(3px);
+}
+
+/* Form Styles */
+.label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #475569;
+  margin-bottom: 8px;
+}
+.required { color: #ef4444; }
+
+.input {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+.input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  outline: none;
+}
+.input:disabled {
+  background: #f8fafc;
+  color: #94a3b8;
+}
+
+.system-role-notice {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 12px 16px;
+  font-size: 13px;
+  color: #64748b;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Permissions Grid */
 .perm-grid {
-    display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;
-    max-height: 400px; overflow-y: auto;
-    padding: 4px; border: 1px solid #e2e8f0; border-radius: 8px;
-    padding: 12px;
-}
-
-.perm-grid.disabled { 
-    opacity: 0.8; 
-    background: #f8fafc; 
-    /* pointer-events: none;  <-- Removed to allow scrolling */
-    cursor: default;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  padding: 16px;
+  background: #f8fafc;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  max-height: 400px;
+  overflow-y: auto;
 }
 
 .perm-item {
-    background: white; border: 1px solid #e2e8f0;
-    border-radius: 8px; padding: 10px;
-    transition: all 0.15s;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 12px;
+  transition: all 0.2s;
 }
-.perm-item:hover { border-color: #cbd5e1; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
-
-.checkbox-label {
-    display: flex; align-items: flex-start; gap: 10px; cursor: pointer;
-    width: 100%;
+.perm-item:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
 }
-.checkbox-label input { width: 16px; height: 16px; margin-top: 2px; }
-.check-text { display: flex; flex-direction: column; }
-.perm-name { font-size: 14px; font-weight: 600; color: #334155; }
-.perm-desc { font-size: 12px; color: #94a3b8; margin-top: 2px; }
 
-.form-actions { margin-top: 32px; display: flex; gap: 12px; }
-
-.btn-primary {
-    background: #3b82f6; color: white; border: none; padding: 10px 24px;
-    border-radius: 8px; font-weight: 600; cursor: pointer;
+.checkbox-container {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  cursor: pointer;
+  position: relative;
 }
-.btn-primary:hover { background: #2563eb; }
-.btn-primary:disabled { background: #94a3b8; }
 
-.btn-secondary {
-    background: white; color: #475569; border: 1px solid #cbd5e1; padding: 10px 24px;
-    border-radius: 8px; font-weight: 600; cursor: pointer;
+.checkbox-container input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
 }
-.btn-secondary:hover { background: #f8fafc; }
 
-.btn-sm {
-    padding: 6px 12px; font-size: 13px; border-radius: 6px; border: none; cursor: pointer; font-weight: 600;
+.check-ui {
+  width: 18px;
+  height: 18px;
+  background-color: white;
+  border: 2px solid #cbd5e1;
+  border-radius: 5px;
+  flex-shrink: 0;
+  margin-top: 2px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-.btn-sm.primary { background: #eff6ff; color: #3b82f6; }
-.btn-sm.primary:hover { background: #dbeafe; }
-.btn-sm.danger { background: #fef2f2; color: #ef4444; }
-.btn-sm.danger:hover { background: #fee2e2; }
 
+.checkbox-container input:checked ~ .check-ui {
+  background-color: #3b82f6;
+  border-color: #3b82f6;
+}
+
+.check-ui::after {
+  content: "";
+  width: 5px;
+  height: 9px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+  display: none;
+  margin-bottom: 2px;
+}
+
+.checkbox-container input:checked ~ .check-ui::after {
+  display: block;
+}
+
+.perm-info {
+  display: flex;
+  flex-direction: column;
+}
+.perm-name { font-size: 14px; font-weight: 700; color: #334155; }
+.perm-desc { font-size: 12px; color: #94a3b8; margin-top: 2px; line-height: 1.4; }
+
+.form-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.btn {
+  height: 44px;
+  padding: 0 24px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid transparent;
+}
+.btn.primary { background: #3b82f6; color: white; }
+.btn.primary:hover { background: #2563eb; }
+.btn.outline { background: white; border-color: #e2e8f0; color: #64748b; }
+.btn.outline:hover { background: #f8fafc; border-color: #cbd5e1; }
+.btn.danger.outline { border-color: #fee2e2; color: #ef4444; }
+.btn.danger.outline:hover { background: #fef2f2; }
+
+.btn-sm { height: 32px; padding: 0 12px; font-size: 12px; border-radius: 8px; }
+
+.empty-card {
+  height: 600px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 .empty-state {
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    height: 100%; color: #94a3b8; text-align: center; padding: 40px;
+  text-align: center;
+  color: #94a3b8;
 }
-.empty-state i { font-size: 48px; margin-bottom: 16px; color: #cbd5e1; }
-.empty-state p { font-size: 14px; max-width: 240px; line-height: 1.5; }
+.empty-state i { font-size: 48px; margin-bottom: 20px; opacity: 0.3; }
+.empty-state p { font-size: 15px; line-height: 1.6; }
+
+.mb-6 { margin-bottom: 24px; }
+.mt-8 { margin-top: 32px; }
 </style>

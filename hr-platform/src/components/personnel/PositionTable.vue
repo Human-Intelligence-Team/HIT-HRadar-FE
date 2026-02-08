@@ -1,60 +1,47 @@
 <template>
-  <div class="table-card">
-    <div class="card-header">
-      <div class="header-text">
-        <h2 class="card-title">직위 목록</h2>
-        <span class="badge-count">{{ positions.length }}</span>
-      </div>
-      
-      <button v-if="isAdmin" class="btn-create" @click="$emit('add')">
-        <span class="icon-wrapper">
-          <i class="pi pi-plus"></i>
-        </span>
-        <span class="btn-text">새 직위 등록</span>
-      </button>
-    </div>
-
-    <div class="table-responsive">
-      <table class="modern-table">
-        <thead>
-          <tr>
-            <th width="100">서열 순위</th>
-            <th>직위명</th>
-            <th v-if="isAdmin" width="120" class="text-right">관리</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="pos in positions" :key="pos.positionId" class="hover-row">
-            <td>
-              <div class="rank-circle">{{ pos.rank }}</div>
-            </td>
-            <td>
-              <span class="pos-name">{{ pos.name }}</span>
-            </td>
-            <td v-if="isAdmin">
-              <div class="action-buttons">
-                <button class="btn-icon edit" @click="$emit('edit', pos)">
-                  <i class="pi pi-pencil"></i>
-                  <span>수정</span>
-                </button>
-                <button class="btn-icon delete" @click="$emit('delete', pos.positionId)">
-                  <i class="pi pi-trash"></i>
-                  <span>삭제</span>
-                </button>
-              </div>
-            </td>
-          </tr>
-          <tr v-if="positions.length === 0">
-            <td :colspan="isAdmin ? 3 : 2" class="empty-state">
-              <div class="empty-content">
-                <i class="pi pi-inbox empty-icon"></i>
-                <p>등록된 직위가 없습니다.</p>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+  <div class="table-container">
+    <table class="modern-table">
+      <colgroup>
+        <col style="width: 80px" />
+        <col />
+        <col v-if="isAdmin" style="width: 160px" />
+      </colgroup>
+      <thead>
+        <tr>
+          <th>순위</th>
+          <th>직위명</th>
+          <th v-if="isAdmin">관리</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="pos in positions" :key="pos.positionId" class="hover-row">
+          <td class="text-center">
+            <div class="rank-badge">{{ pos.rank }}</div>
+          </td>
+          <td class="text-center">
+            <span class="pos-name-text">{{ pos.name }}</span>
+          </td>
+          <td v-if="isAdmin" class="text-center">
+            <div class="action-buttons centered">
+              <button class="btn-action edit" @click="$emit('edit', pos)">
+                <span>수정</span>
+              </button>
+              <button class="btn-action delete" @click="$emit('delete', pos.positionId)">
+                <span>삭제</span>
+              </button>
+            </div>
+          </td>
+        </tr>
+        <tr v-if="positions.length === 0">
+          <td :colspan="isAdmin ? 3 : 2" class="empty-cell">
+            <div class="empty-state">
+              <i class="pi pi-inbox"></i>
+              <p>등록된 직위가 없습니다.</p>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
   </div>
 </template>
 
@@ -70,95 +57,16 @@ defineProps({
   }
 })
 
-defineEmits(['add', 'edit', 'delete'])
+defineEmits(['edit', 'delete'])
 </script>
 
 <style scoped>
-.table-card {
+.table-container {
   background: white;
-  border-radius: 20px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
-  overflow: hidden;
-  border: 1px solid #f3f4f6;
-}
-
-.card-header {
-  padding: 24px 32px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid #f3f4f6;
-  background: #ffffff;
-}
-
-.header-text {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.card-title {
-  font-size: 18px;
-  font-weight: 700;
-  color: #111827;
-  margin: 0;
-}
-
-.badge-count {
-  background: #f3f4f6;
-  color: #6b7280;
-  font-size: 12px;
-  font-weight: 600;
-  padding: 2px 8px;
-  border-radius: 9999px;
-}
-
-/* Premium Button Styling */
-.btn-create {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-  color: white;
-  border: none;
-  padding: 10px 20px 10px 16px;
   border-radius: 12px;
-  font-weight: 600;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
-}
-
-.btn-create:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.3);
-  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-}
-
-.btn-create:active {
-  transform: translateY(0);
-}
-
-.icon-wrapper {
-  background: rgba(255, 255, 255, 0.2);
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 8px;
-}
-
-.icon-wrapper i {
-  font-size: 12px;
-  font-weight: bold;
-}
-
-/* Modern Table Styling */
-.table-responsive {
-  width: 100%;
-  overflow-x: auto;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
 }
 
 .modern-table {
@@ -167,120 +75,112 @@ defineEmits(['add', 'edit', 'delete'])
 }
 
 .modern-table th {
-  text-align: left;
-  padding: 16px 32px;
-  color: #6b7280;
+  padding: 14px 16px;
+  background: #f8fafc;
+  color: #64748b;
   font-size: 13px;
   font-weight: 600;
-  background: #f9fafb;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  border-bottom: 1px solid #e2e8f0;
+  text-align: center;
 }
 
 .modern-table td {
-  padding: 20px 32px;
-  border-bottom: 1px solid #f3f4f6;
-  color: #374151;
+  padding: 16px;
+  border-bottom: 1px solid #f1f5f9;
   vertical-align: middle;
+  transition: background 0.2s;
+  text-align: center;
 }
 
 .modern-table tr:last-child td {
   border-bottom: none;
 }
 
-.hover-row {
-  transition: background-color 0.2s ease;
+.hover-row:hover td {
+  background: #f8fafc;
 }
 
-.hover-row:hover {
-  background-color: #f8fafc;
-}
-
-.rank-circle {
-  width: 32px;
-  height: 32px;
-  background: #eff6ff;
-  color: #3b82f6;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.rank-badge {
+  display: inline-flex;
+  align-items: center; justify-content: center;
+  width: 28px; height: 28px;
+  background: #f1f5f9;
+  color: #475569;
+  border-radius: 8px;
   font-weight: 700;
-  font-size: 14px;
-  font-family: var(--font-mono, monospace);
+  font-family: monospace;
+  font-size: 13px;
 }
 
-.pos-name {
+.pos-name-text {
   font-weight: 600;
-  font-size: 15px;
-  color: #111827;
+  color: #1e293b;
+  font-size: 14px;
 }
 
 .action-buttons {
   display: flex;
-  justify-content: flex-end;
   gap: 8px;
 }
+.action-buttons.centered {
+  justify-content: center;
+}
 
-.btn-icon {
-  height: 36px;
-  padding: 0 12px; /* Add padding for text */
-  border-radius: 10px;
-  border: none;
-  background: #f3f4f6;
-  color: #4b5563;
-  cursor: pointer;
+/* Standardized Action Button Styles */
+.btn-action {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px; /* Space between icon and text */
-  transition: all 0.2s;
-  font-size: 13px; /* Text size */
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: white;
+  font-size: 13px;
   font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+.btn-action span {
+  display: inline-block;
+  line-height: 1;
 }
 
-.btn-icon:hover {
-  background: #e5e7eb;
-  color: #1f2937;
-}
-
-.btn-icon.edit {
-  background: #eff6ff;
+.btn-action.edit {
   color: #3b82f6;
+  background: #eff6ff;
+  border-color: #dbeafe;
 }
-.btn-icon.edit:hover {
-  background: #dbeafe;
-  color: #2563eb;
+.btn-action.edit:hover {
+  background: #3b82f6;
+  color: white;
+  border-color: #3b82f6;
 }
 
-.btn-icon.delete {
-  background: #fef2f2;
+.btn-action.delete {
   color: #ef4444;
+  background: #fef2f2;
+  border-color: #fee2e2;
 }
-.btn-icon.delete:hover {
-  background: #fee2e2;
-  color: #dc2626;
+.btn-action.delete:hover {
+  background: #ef4444;
+  color: white;
+  border-color: #ef4444;
 }
 
-.text-right {
-  text-align: right;
-}
-
-.empty-state {
-  padding: 80px 0;
+.empty-cell {
   text-align: center;
+  padding: 80px 0;
 }
-
-.empty-content {
+.empty-state {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 12px;
-  color: #9ca3af;
+  color: #94a3b8;
 }
-
-.empty-icon {
-  font-size: 48px;
-  color: #e5e7eb;
+.empty-state i {
+  font-size: 40px;
+  opacity: 0.5;
 }
 </style>

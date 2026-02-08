@@ -112,13 +112,8 @@ export const useAuthStore = defineStore('auth', () => {
       const permsStr = localStorage.getItem('permissions');
       if (permsStr) permissions.value = JSON.parse(permsStr);
 
-      const mappingsStr = localStorage.getItem('permissionMappings');
-      if (mappingsStr) {
-        permissionMappings.value = JSON.parse(mappingsStr);
-      }
-
-      // ✅ [Fix] DB 데이터가 변경되었을 수 있으므로 항상 최신 매핑을 가져오도록 갱신
-      // 백그라운드에서 실행 (UI 차단 없음)
+      // ✅ [Fix] DB 데이터가 변경되었을 수 있으므로 항상 최신 권한 정보를 가져오도록 갱신
+      fetchPermissions();
       fetchPermissionMappings();
 
       // ✅ [Fix] 만약 매핑이 비어있으면 즉시 재시도 (최초 로드 실패 대비)
@@ -148,10 +143,11 @@ export const useAuthStore = defineStore('auth', () => {
         department: detail.deptName || detail.department?.name || '',
         jobTitle: detail.position?.name || detail.jobTitle || '',
         email: detail.email,
+        image: detail.image || null // Add image field
       };
       localStorage.setItem('user', JSON.stringify(user.value));
-    } catch (err) {
-      console.error('Background fetch detail failed:', err);
+    } catch (error) {
+      console.error('Background fetch detail failed:', error);
     }
   };
 
@@ -199,11 +195,12 @@ export const useAuthStore = defineStore('auth', () => {
             name: detail.name,
             department: detail.deptName || detail.department?.name || '',
             jobTitle: detail.position?.name || detail.jobTitle || '',
-            email: detail.email
+            email: detail.email,
+            image: detail.image || null // Add image field
           };
           localStorage.setItem('user', JSON.stringify(user.value));
-        } catch (detailErr) {
-          console.error('Failed to fetch employee detail:', detailErr);
+        } catch (error) {
+          console.error('Failed to fetch employee detail:', error);
         }
       }
 
@@ -223,7 +220,9 @@ export const useAuthStore = defineStore('auth', () => {
       const res = await refreshApi();
       const { success, data } = res.data;
 
-      if (!success) throw new Error();
+      if (!success) {
+        throw new Error('Refresh tokens failed');
+      }
 
       setAccessToken(data.accessToken);
       setUserFromToken(data.accessToken);
@@ -240,11 +239,12 @@ export const useAuthStore = defineStore('auth', () => {
             name: detail.name,
             department: detail.deptName || detail.department?.name || '',
             jobTitle: detail.position?.name || detail.jobTitle || '',
-            email: detail.email
+            email: detail.email,
+            image: detail.image || null // Add image field
           };
           localStorage.setItem('user', JSON.stringify(user.value));
-        } catch (detailErr) {
-          console.error('Failed to update employee detail after refresh:', detailErr);
+        } catch (error) {
+          console.error('Failed to update employee detail after refresh:', error);
         }
       }
     } catch {

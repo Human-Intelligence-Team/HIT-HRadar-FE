@@ -87,10 +87,11 @@ export function updateEmployeeRoles(empId, roleIds) {
 
 // --- CSV Bulk Registration ---
 
-export const downloadCsvTemplate = () => {
-    return api.get('/api/v1/employees/csv/template', {
+export const downloadCsvTemplate = async () => {
+    const res = await api.get('/api/v1/employees/csv/template', {
         responseType: 'blob'
     })
+    return res.data
 }
 
 export const previewCsv = (formData) => {
