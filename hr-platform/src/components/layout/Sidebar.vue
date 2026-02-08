@@ -69,9 +69,6 @@ const hasAccess = (path) => {
 
   const mappings = auth.permissionMappings
 
-  // 디버깅용 로그
-  // console.log(`[CHECK] ${path} in mappings?`, !!mappings?.[path])
-
   // 권한 매핑이 로드되지 않았으면 보수적으로 차단 (또는 로딩 중 표시)
   if (!mappings || Object.keys(mappings).length === 0) {
     console.warn('[SIDEBAR] 권한 매핑이 로드되지 않음 (Empty Mappings)')
@@ -83,21 +80,11 @@ const hasAccess = (path) => {
 
   // 권한 매핑 없으면 차단
   if (!requiredPerm) {
-    // 너무 많은 로그 방지를 위해 특정 경로만 로그
-    if (path === '/my-profile' || path === '/notice' || path === '/policy') {
-       console.log(`[SIDEBAR] ${path}: 권한 매핑 없음 (requiredPerm is undefined) → 차단`)
-    }
     return false
   }
 
   // 권한 체크
-  const hasPerm = auth.hasPermission(requiredPerm)
-
-  // 주요 경로만 로그
-  if (path === '/my-profile' || path === '/notice' || path === '/policy') {
-    console.log(`[SIDEBAR] path=${path} key=${requiredPerm} hasPerm=${hasPerm}`)
-  }
-  return hasPerm
+  return auth.hasPermission(requiredPerm)
 }
 
 // 메뉴 아이템 필터링 함수
@@ -116,8 +103,11 @@ const filterMenuItems = (items) => {
 // --- Menu Configuration ---
 // permissionMappings가 변경되면 자동으로 재계산되도록 의존성 확인
 const menuConfig = computed(() => {
-  // 의존성 강제 주입 (Reactivity Trigger)
+  // 의존성 강제 주입 (Reactivity Trigger) - computed 내에서 속성에 접근하여 자동 추적을 보장합니다.
+  // 로직 분기(예: 초기 로딩 시)에 따라 의존성 추적이 누락되는 것을 방지합니다.
+  // eslint-disable-next-line no-unused-vars
   const _trigger = auth.permissionMappings
+  // eslint-disable-next-line no-unused-vars
   const _permissions = auth.permissions
 
   const rawMenu = [
@@ -261,7 +251,7 @@ const menuConfig = computed(() => {
           text: '연봉 관리',
           children: [
             { text: '기본급 관리', to: '/all/salary/basic' },
-            { text: '기본급 이력', to: '/me/salary/basic' },
+            { text: '기본급/변동보상 이력', to: '/me/salary/basic' },
             { text: '변동보상 관리', to: '/all/salary/compensation' },
           ]
         }
@@ -282,7 +272,7 @@ const menuConfig = computed(() => {
     items: filterMenuItems(section.items)
   })).filter(section => section.items.length > 0)
 
-  console.log(`[SIDEBAR] Filtered sections:`, filtered.map(s => `${s.title}(${s.items.length})`))
+  // console.log(`[SIDEBAR] Filtered sections:`, filtered.map(s => `${s.title}(${s.items.length})`))
   return filtered
 })
 

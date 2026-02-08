@@ -71,17 +71,33 @@ const renderChart = () => {
     // Create Node (Width 220)
     const nodeWidth = 220
     const employees = dept.employees || []
-    const nodeHeight = 40 + 16 + (employees.length > 0 ? employees.length * 40 : 20) + 20 // Approx height
+
+    // Header (40) + Padding (20) + Employees + Manager Section (if exists) + Bottom Padding
+    const baseHeight = 60
+    const employeeHeight = employees.length > 0 ? employees.length * 42 : 30
+    const managerHeight = dept.managerName ? 50 : 0
+    
+    const nodeHeight = baseHeight + employeeHeight + managerHeight
+
+
+
+    // Debug Log
+    // console.log(`[OrgChart] Processing Node: ${dept.deptName}, Manager: ${dept.managerName}, ID: ${dept.managerId}`)
 
     const node = {
       id: `dept-${dept.deptId}`,
       shape: 'dept-node',
       width: nodeWidth,
       height: nodeHeight,
+
       data: {
+        deptId: dept.deptId, // Critical for click handlers
         deptName: dept.deptName,
         employees: employees,
-        depth: depth, // Pass depth for styling
+        depth: depth,
+        // Add manager info
+        managerName: dept.managerName,
+        managerId: dept.managerId || dept.managerEmpId || null
       },
     }
     nodes.push(node)

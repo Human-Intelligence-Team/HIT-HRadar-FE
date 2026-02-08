@@ -8,27 +8,19 @@ import { connectSSE, disconnectSSE } from '@/api/notificationSse.js'
 import { useNotificationStore } from '@/stores/notificationStore.js'
 import { useAuthStore } from '@/stores/authStore.js'
 
-
 const notificationStore = useNotificationStore()
 const auth = useAuthStore()
 
-// 앱 시작 시 localStorage에서 토큰/권한 복원
 onMounted(() => {
   auth.loadFromStorage()
 })
 
-// router.beforeEach(async (to) => {
-//   if (auth.accessToken && !auth.profile.name) {
-//     await auth.loadProfile()
-//   }
-// })
-
-// ✅ 로그인 후에만 SSE 연결 시작 (immediate: true 제거)
+// 로그인 상태 변화에만 반응
 watch(
   () => auth.isLoggedIn,
   async (loggedIn, wasLoggedIn) => {
+    // 로그인으로 "전환"될 때만 SSE 연결
     if (loggedIn && !wasLoggedIn) {
-      // 로그인 상태로 변경되었을 때만 실행
       try {
         await notificationStore.load()
 
@@ -39,8 +31,11 @@ watch(
       } catch (error) {
         console.error('Failed to setup notifications:', error)
       }
-    } else if (!loggedIn && wasLoggedIn) {
-      // 로그아웃 상태로 변경되었을 때
+      return
+    }
+
+    // 로그아웃으로 "전환"될 때만 SSE 해제
+    if (!loggedIn && wasLoggedIn) {
       disconnectSSE()
       notificationStore.clear()
     }

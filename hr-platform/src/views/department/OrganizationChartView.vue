@@ -35,12 +35,20 @@
       <p>조직도 정보를 불러올 수 없습니다.</p>
     </div>
 
+
     <!-- Employee Profile Modal -->
     <EmployeeProfileModal 
       :visible="!!selectedEmpId" 
       :emp-id="selectedEmpId"
       @close="closeModal"
       @update="handleProfileUpdate"
+    />
+
+    <!-- Department Detail Modal -->
+    <DepartmentDetailModal
+      :visible="!!selectedDeptId"
+      :dept-id="selectedDeptId"
+      @close="closeDeptModal"
     />
   </section>
 </template>
@@ -50,6 +58,7 @@ import { ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import OrganizationChart from '@/components/department/OrganizationChart.vue'
 import EmployeeProfileModal from '@/components/personnel/EmployeeProfileModal.vue'
+import DepartmentDetailModal from '@/components/department/DepartmentDetailModal.vue'
 import { getOrganizationChart } from '@/api/departmentApi'
 
 const route = useRoute()
@@ -59,14 +68,28 @@ const orgData = ref(null)
 const loading = ref(false)
 const chartRef = ref(null)
 const selectedEmpId = ref(null)
+const selectedDeptId = ref(null)
 
 // Watch query for modal control
 watch(() => route.query.empId, (newId) => {
     selectedEmpId.value = newId || null
 }, { immediate: true })
 
+watch(() => route.query.deptId, (newId) => {
+    console.log('OrgChartView watch deptId:', newId)
+    selectedDeptId.value = newId || null
+}, { immediate: true })
+
 const closeModal = () => {
-    router.push({ query: { ...route.query, empId: undefined } })
+    const query = { ...route.query }
+    delete query.empId
+    router.push({ query })
+}
+
+const closeDeptModal = () => {
+    const query = { ...route.query }
+    delete query.deptId
+    router.push({ query })
 }
 
 const handleProfileUpdate = () => {
