@@ -80,18 +80,19 @@ import { ref, onMounted } from 'vue';
 import {
   fetchApprovalDocumentTypes,
   createApprovalDocumentType,
+  updateApprovalDocumentType,
   deleteApprovalDocumentType,
   fetchApprovalAttendanceCategories
-} from '@/api/approvalApi';
+} from '@/api/approvalApi.js';
 
 const documentTypes = ref([]);
 const showModal = ref(false);
 const isEditing = ref(false);
 const currentTypeId = ref(null);
 const form = ref({
-  docType: '', 
-  name: '',    
-  active: true, 
+  docType: '',
+  name: '',
+  active: true,
   attendanceCategory: 'NONE'
 });
 
@@ -101,7 +102,7 @@ const fetchDocumentTypes = async () => {
   try {
     const response = await fetchApprovalDocumentTypes();
     documentTypes.value = response.data.data.map(type => ({
-      typeId: type.docId, 
+      typeId: type.docId,
       docType: type.docType,
       name: type.name,
       active: type.active,
@@ -141,7 +142,7 @@ const openCreateModal = () => {
   currentTypeId.value = null;
   form.value.docType = '';
   form.value.name = '';
-  form.value.active = true; 
+  form.value.active = true;
   form.value.attendanceCategory = 'NONE';
   showModal.value = true;
 };
@@ -157,7 +158,7 @@ const openEditModal = async (type) => {
 };
 
 const saveDocumentType = async () => {
-  if (!form.value.docType.trim() || !form.value.name.trim()) { 
+  if (!form.value.docType.trim() || !form.value.name.trim()) {
     alert('유형 값과 유형명을 모두 입력해주세요.');
     return;
   }
@@ -167,7 +168,7 @@ const saveDocumentType = async () => {
       await updateApprovalDocumentType(currentTypeId.value, {
         docType: form.value.docType,
         name: form.value.name,
-        active: form.value.active, 
+        active: form.value.active,
         attendanceCategory: form.value.attendanceCategory
       });
       alert('문서 유형이 수정되었습니다.');
@@ -175,7 +176,7 @@ const saveDocumentType = async () => {
       await createApprovalDocumentType({
         docType: form.value.docType,
         name: form.value.name,
-        active: form.value.active, 
+        active: form.value.active,
         attendanceCategory: form.value.attendanceCategory
       });
       alert('새 문서 유형이 등록되었습니다.');

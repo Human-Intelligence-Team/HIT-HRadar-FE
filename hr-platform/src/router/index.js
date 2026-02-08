@@ -73,6 +73,7 @@ import CompanyRegisterView from '@/views/auth/CompanyRegisterView.vue'
 import AdminLayout from '@/components/layout/AdminLayout.vue'
 import AdminComAppList from '@/views/admin/AdminComAppList.vue'
 import AdminUserAccountList from '@/views/admin/AdminUserAccountList.vue'
+import ApprovalDocumentTypeManagementView from '@/views/approval/ApprovalDocumentTypeManagementView.vue'
 import DepartmentListView from '@/views/department/DepartmentListView.vue'
 import DepartmentManageView from '@/views/department/DepartmentManageView.vue'
 
@@ -326,25 +327,12 @@ const routes = [
         path: 'approval',
         redirect: '/approval/my-documents',
         children: [
-          { path: 'approval-document-types', component: () => import('@/views/approval/ApprovalDocumentTypeManagementView.vue') },
+          { path: 'approval-document-types', component: ApprovalDocumentTypeManagementView },
           { path: 'create', component: () => import('@/views/approval/ApprovalCreateView.vue') },
-          {
-            path: 'my-documents',
-            component: () => import('@/views/approval/ApprovalMyListView.vue'),
-          },
-          {
-            path: 'all-documents',
-            component: () => import('@/views/approval/ApprovalAllListView.vue'),
-          },
-          {
-            path: 'admin',
-            component: () => import('@/views/approval/ApprovalDocumentTypeManagementView.vue'),
-          },
-          {
-            path: ':docId',
-            component: () => import('@/views/approval/ApprovalDetailView.vue'),
-            props: true,
-          },
+          { path: 'my-documents', component: () => import('@/views/approval/ApprovalMyListView.vue') },
+          { path: 'all-documents', component: () => import('@/views/approval/ApprovalAllListView.vue') },
+          { path: 'admin', component: () => import('@/views/approval/ApprovalDocumentTypeManagementView.vue') },
+          { path: ':docId', component: () => import('@/views/approval/ApprovalDetailView.vue'), props: true },
         ],
       },
 
@@ -357,12 +345,7 @@ const routes = [
           { path: 'ip-policy', component: AttendanceIpPolicyView }, // 인사팀 IP 정책 관리
           { path: 'department', component: AttendanceDepartmentView }, // 인사팀 부서 출퇴근 관리
           { path: 'department-calendar', component: DepartmentAttendanceCalendarView }, // 부서별 근태 캘린더 (인사팀)
-          {
-            path: 'employee-detail/:employeeId/:workDate',
-            name: 'AttendanceEmployeeDetail',
-            component: AttendanceEmployeeDetailView,
-            props: true,
-          }, // 사원 근태 상세 조회
+          { path: 'employee-detail/:employeeId/:workDate', name: 'AttendanceEmployeeDetail', component: AttendanceEmployeeDetailView, props: true }, // 사원 근태 상세 조회
         ],
       },
 
@@ -373,11 +356,7 @@ const routes = [
         children: [
           { path: 'my-history', component: () => import('@/views/leave/MyLeaveHistoryView.vue') },
           { path: 'policy', component: () => import('@/views/leave/LeavePolicyAdminView.vue') },
-          {
-            path: 'admin/department-history',
-            component: () => import('@/views/leave/DepartmentLeaveHistoryView.vue'),
-            meta: { requiresAdmin: true },
-          },
+          { path: 'admin/department-history', component: () => import('@/views/leave/DepartmentLeaveHistoryView.vue'), meta: { requiresAdmin: true } },
         ],
       },
 
