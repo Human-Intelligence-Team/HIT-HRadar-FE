@@ -1,6 +1,6 @@
 <script setup>
 import { useRouter } from 'vue-router'
-import { onMounted, reactive, ref } from 'vue'
+import { onMounted, reactive, ref, watch } from 'vue'
 import { fetchCompensationSalaries, fetchCompensationSalarySummary } from '@/api/salaryApi.js'
 import {
   APPROVAL_OPTIONS,
@@ -9,10 +9,16 @@ import {
   getDateFormatter,
   getLabel,
   getToday,
+  getYear,
 } from '@/views/salary/js/common.js'
+import { YEAR_OPTIONS } from '@/views/report/script/common.js'
 const submitting = ref(false)
 const errorMessage = ref('')
 const router = useRouter()
+
+const currentYear = getYear()
+const year = ref(getYear())
+const years = ref([])
 
 const compensation = ref([])
 const compensationSummary = reactive({
@@ -40,8 +46,12 @@ const goCompensationCreate = () => {
 const searchSalaries = async () => {
   submitting.value = true
 
+  let payload = {
+    year: year.value,
+  }
+
   try {
-    const result = await fetchCompensationSalaries()
+    const result = await fetchCompensationSalaries(payload)
     const data = result.data
 
     if (data.success) {
@@ -90,10 +100,13 @@ const getCompensationSummary = async () => {
     submitting.value = false
   }
 }
-
+watch(year, () => {
+  searchSalaries()
+})
 onMounted(() => {
   searchSalaries()
   getCompensationSummary()
+  years.value = YEAR_OPTIONS()
 })
 
 const goDetailPage = (docId) => {
@@ -103,19 +116,26 @@ const goDetailPage = (docId) => {
 
 <template>
   <div class="sub">변동보상 조회(인사팀)</div>
-
+  <div class="search">
+    <select class="select" v-model="year">
+      <option v-for="item in years" :key="item" :value="item">
+        {{ item }}
+      </option>
+    </select>
+  </div>
   <div class="card">
     <div class="dashboard-box">
       <div class="dashboard-box-header">
         <div class="dashboard-box-title">
-          <span class="title">2026년 변동보상 관리</span>
+          <span class="title">{{ year }}년 변동보상 관리</span>
           <span class="sub-title">
-            formatComma({{ compensationSummary.startDate }} ~
-            {{ compensationSummary.endDate }}</span
+            {{ compensationSummary.startDate }} ~ {{ compensationSummary.endDate }}</span
           >
         </div>
         <div>
-          <button class="btn primary" @click="goCompensationCreate()">등록하기</button>
+          <button class="btn primary" @click="goCompensationCreate()" v-if="currentYear === year">
+            등록하기
+          </button>
         </div>
       </div>
 
@@ -187,9 +207,9 @@ const goDetailPage = (docId) => {
             <td>{{ formatComma(item.totalSalary) }}</td>
             <td>{{ item.empCount }}</td>
             <td>
-                <span :class="['status-badge', item.approvalStatus]">
-                  {{ getLabel(APPROVAL_OPTIONS, item.approvalStatus) }}
-                </span>
+              <span :class="['status-badge', item.approvalStatus]">
+                {{ getLabel(APPROVAL_OPTIONS, item.approvalStatus) }}
+              </span>
             </td>
             <td>{{ item.remark }}</td>
             <td>{{ item.approvedAt }}</td>
@@ -207,5 +227,16 @@ const goDetailPage = (docId) => {
 .card {
   margin-top: 10px;
   padding: 20px;
+}
+
+.search {
+  display: flex;
+  justify-content: end;
+  align-items: center;
+  padding-bottom: 10px;
+}
+
+.search select {
+  width: 10%;
 }
 </style>
