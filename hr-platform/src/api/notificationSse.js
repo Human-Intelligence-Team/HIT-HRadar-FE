@@ -1,8 +1,13 @@
 import { EventSourcePolyfill } from 'event-source-polyfill'
 
 let eventSource = null
+let listeners = []
 
 export function connectSSE(onMessage) {
+  if (onMessage && !listeners.includes(onMessage)) {
+    listeners.push(onMessage)
+  }
+
   if (eventSource) return
 
   const token = localStorage.getItem('accessToken')
@@ -26,7 +31,13 @@ export function connectSSE(onMessage) {
 
   eventSource.addEventListener('notification', (event) => {
     const data = JSON.parse(event.data)
-    onMessage(data)
+    listeners.forEach(cb => {
+      try {
+        cb(data)
+      } catch (err) {
+        console.error('Error in SSE listener:', err)
+      }
+    })
   })
 
   eventSource.onerror = (err) => {
@@ -38,7 +49,7 @@ export function connectSSE(onMessage) {
     const currentToken = localStorage.getItem('accessToken')
     if (currentToken) {
       setTimeout(() => {
-        connectSSE(onMessage)
+        connectSSE()
       }, 5000)
     } else {
       console.warn('No token available - not reconnecting SSE')
@@ -46,9 +57,14 @@ export function connectSSE(onMessage) {
   }
 }
 
-export function disconnectSSE() {
-  if (eventSource) {
-    eventSource.close()
-    eventSource = null
+export function disconnectSSE(onMessage) {
+  if (onMessage) {
+    listeners = listeners.filter(cb => cb !== onMessage)
+  } else {
+    listeners = []
+    if (eventSource) {
+      eventSource.close()
+      eventSource = null
+    }
   }
 }

@@ -47,6 +47,20 @@
               <span class="info-label">근무 유형</span>
               <span class="info-value">{{ mapWorkType(attendance?.workType || attendance?.workingType) }}</span>
             </div>
+
+            <div class="info-row">
+              <span class="info-label">출근 시간</span>
+              <span class="info-value">{{ attendance?.clockInTime || attendance?.checkInTime || '-' }}</span>
+            </div>
+
+            <div class="info-row">
+              <span class="info-label">퇴근 시간</span>
+              <span class="info-value">{{ attendance?.clockOutTime || attendance?.checkOutTime || '-' }}</span>
+            </div>
+            <div class="info-row" v-if="attendance?.reason">
+              <span class="info-label">사유</span>
+              <span class="info-value">{{ attendance.reason }}</span>
+            </div>
             
             <div class="info-row" v-if="attendance?.totalWorkTime">
               <span class="info-label">총 근무시간</span>
