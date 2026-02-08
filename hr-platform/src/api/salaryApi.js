@@ -14,9 +14,12 @@ export const fetchBasicSalaries = (searchParams) => {
 }
 
 /* 변동보상 결재 목록 조회*/
-export const fetchCompensationSalaries = () => {
-  return api.get('/api/v1/compensation-salaries');
+export const fetchCompensationSalaries = (searchParams) => {
+  return api.get('/api/v1/compensation-salaries', {
+    params: searchParams
+  })
 }
+
 
 /*기본급 사원별 목록 조회*/
 export const fetchBasicSalariesById = (id,params) => {

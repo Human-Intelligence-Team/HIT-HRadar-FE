@@ -50,12 +50,12 @@
 
             <div class="info-row">
               <span class="info-label">출근 시간</span>
-              <span class="info-value">{{ attendance?.clockInTime || attendance?.checkInTime || '-' }}</span>
+              <span class="info-value">{{ formatTime(attendance?.clockInTime || attendance?.checkInTime) }}</span>
             </div>
 
             <div class="info-row">
               <span class="info-label">퇴근 시간</span>
-              <span class="info-value">{{ attendance?.clockOutTime || attendance?.checkOutTime || '-' }}</span>
+              <span class="info-value">{{ formatTime(attendance?.clockOutTime || attendance?.checkOutTime) }}</span>
             </div>
             <div class="info-row" v-if="attendance?.reason">
               <span class="info-label">사유</span>
@@ -139,6 +139,27 @@ const mapLocation = (loc) => {
         'NONE': '-'
     };
     return mapper[loc] || loc;
+};
+
+const formatTime = (timeStr) => {
+  if (!timeStr) return '-';
+  // Check if it's already a simple time format HH:mm
+  if (/^\d{2}:\d{2}$/.test(timeStr)) return timeStr + ':00';
+  
+  try {
+    const d = new Date(timeStr);
+    if (isNaN(d.getTime())) {
+      // If not a valid date, try regex extraction
+      const match = String(timeStr).match(/(\d{2}:\d{2}:\d{2})/);
+      return match ? match[1] : timeStr;
+    }
+    const h = String(d.getHours()).padStart(2, '0');
+    const m = String(d.getMinutes()).padStart(2, '0');
+    const s = String(d.getSeconds()).padStart(2, '0');
+    return `${h}:${m}:${s}`;
+  } catch {
+    return timeStr;
+  }
 };
 </script>
 
