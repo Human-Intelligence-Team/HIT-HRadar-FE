@@ -4,7 +4,7 @@
       <div class="spinner"></div>
       <p>공지사항을 불러오는 중입니다...</p>
     </div>
-    
+
     <div v-else-if="!notice" class="empty-state">
       <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="empty-icon"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
       <p>공지사항을 찾을 수 없습니다.</p>
@@ -31,9 +31,9 @@
            <div class="meta-row top">
              <span class="badge">{{ notice.categoryName }}</span>
            </div>
-           
+
            <h1 class="notice-title">{{ notice.title }}</h1>
-           
+
            <!-- Bottom Row: Author | Date | Modifier -->
            <div class="meta-row bottom">
              <div class="author-info">
@@ -51,9 +51,9 @@
         </div>
 
         <div class="card-bd detail-body">
-          <div class="notice-content" v-html="notice.content"></div>
+          <div class="notice-content" v-html="processedContent"></div>
         </div>
-        
+
         <!-- Attachments Section -->
         <div v-if="notice.attachments && notice.attachments.length > 0" class="card-ft attachments-section">
           <h3>
@@ -61,11 +61,11 @@
             첨부파일 ({{ notice.attachments.length }})
           </h3>
           <div class="attachment-list">
-            <a 
-              v-for="(file, index) in notice.attachments" 
+            <a
+              v-for="(file, index) in notice.attachments"
               :key="index"
-              :href="file.url" 
-              target="_blank" 
+              :href="getAttachmentUrl(file.url)"
+              target="_blank"
               rel="noopener noreferrer"
               class="attachment-item"
             >
@@ -101,6 +101,12 @@ const noticeId = route.params.id;
 
 const notice = computed(() => store.currentNotice);
 const loading = computed(() => store.loading);
+const apiBaseUrl = import.meta.env.VITE_API_BASE_URL
+const fileBaseUrl = import.meta.env.VITE_FILE_BASE_URL || apiBaseUrl
+
+const processedContent = computed(() => {
+  return processContent(notice.value?.content || '')
+})
 
 onMounted(() => {
   store.fetchNoticeDetail(noticeId);
@@ -135,6 +141,27 @@ function formatDateTime(dateString) {
     hour: '2-digit',
     minute: '2-digit',
   });
+}
+
+function processContent(content) {
+  if (!content) return ''
+  if (!fileBaseUrl) return content
+
+  return content.replace(/<img[^>]+src="([^">]+)"/g, (match, src) => {
+    if (src.startsWith('http')) return match
+    if (!src.startsWith('/')) return match
+    const baseUrl = fileBaseUrl.endsWith('/') ? fileBaseUrl.slice(0, -1) : fileBaseUrl
+    return match.replace(src, `${baseUrl}${src}`)
+  })
+}
+
+function getAttachmentUrl(url) {
+  if (!url) return url
+  if (url.startsWith('http')) return url
+  if (!fileBaseUrl) return url
+  const baseUrl = fileBaseUrl.endsWith('/') ? fileBaseUrl.slice(0, -1) : fileBaseUrl
+  const clean = url.startsWith('/') ? url : `/${url}`
+  return `${baseUrl}${clean}`
 }
 </script>
 
