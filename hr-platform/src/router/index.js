@@ -74,7 +74,7 @@ import CompanyRegisterView from '@/views/auth/CompanyRegisterView.vue'
 import AdminLayout from '@/components/layout/AdminLayout.vue'
 import AdminComAppList from '@/views/admin/AdminComAppList.vue'
 import AdminUserAccountList from '@/views/admin/AdminUserAccountList.vue'
-import ApprovalDocumentTypeManagementView from '@/views/admin/ApprovalDocumentTypeManagementView.vue'
+import ApprovalDocumentTypeManagementView from '@/views/approval/ApprovalDocumentTypeManagementView.vue'
 import DepartmentListView from '@/views/department/DepartmentListView.vue'
 import DepartmentManageView from '@/views/department/DepartmentManageView.vue'
 
@@ -277,7 +277,7 @@ const routes = [
           { path: 'create', component: () => import('@/views/approval/ApprovalCreateView.vue') },
           { path: 'my-documents', component: () => import('@/views/approval/ApprovalMyListView.vue') },
           { path: 'all-documents', component: () => import('@/views/approval/ApprovalAllListView.vue') },
-          { path: 'admin', component: () => import('@/views/admin/ApprovalDocumentTypeManagementView.vue') },
+          { path: 'admin', component: () => import('@/views/approval/ApprovalDocumentTypeManagementView.vue') },
           { path: ':docId', component: () => import('@/views/approval/ApprovalDetailView.vue'), props: true },
         ],
       },
