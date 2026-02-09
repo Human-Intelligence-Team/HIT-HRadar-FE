@@ -46,7 +46,9 @@
             <tr v-if="loading">
                 <td colspan="9" class="loading-indicator">데이터를 불러오는 중...</td>
             </tr>
-            <!-- User requested to remove the "No results" message row -->
+            <tr v-if="attendanceRecords.length === 0 && !loading">
+              <td colspan="9" class="no-results">조회된 부서 근태 기록이 없습니다.</td>
+            </tr>
             <tr v-else v-for="record in filteredRecords" :key="record.employeeId">
               <td>{{ record.name }}</td>
               <td>{{ record.jobTitle }}</td>
@@ -76,23 +78,23 @@ const companyId = computed(() => auth.user?.companyId);
 
 const loading = ref(false);
 const selectedDate = ref(new Date().toISOString().split('T')[0]); // 오늘 날짜로 초기화
-const selectedDepartmentId = ref(auth.user?.deptId || '');
+const selectedDepartmentId = ref(auth.user?.departmentId || '');
 const departmentOptions = ref([]);
 const attendanceRecords = ref([]);
 
 // 부서 목록 가져오기 함수
 const fetchDepartments = async () => {
     try {
-        const response = await getAllDepartmentsByCompany();
+        const response = await getAllDepartmentsByCompany(companyId.value);
         if (response.data?.success) {
              departmentOptions.value = response.data.data.departments.map(d => ({
                 id: d.deptId,
                 name: d.deptName
              }));
 
-             // 사용자의 부서 ID가 목록에 없으면 첫 번째 부서 선택 (혹은 전체 선택)
-             if (!selectedDepartmentId.value && departmentOptions.value.length > 0) {
-                 selectedDepartmentId.value = departmentOptions.value[0].id;
+             // If selectedDepartmentId is empty, try to set it from authStore or first option
+             if (!selectedDepartmentId.value) {
+                 selectedDepartmentId.value = auth.user?.departmentId || (departmentOptions.value.length > 0 ? departmentOptions.value[0].id : '');
              }
         }
     } catch (error) {
@@ -100,8 +102,8 @@ const fetchDepartments = async () => {
     }
 };
 
-onMounted(() => {
-    fetchDepartments();
+onMounted(async () => {
+    await fetchDepartments();
     // 초기 로딩 시 데이터 조회 (부서 목록 로딩 후 fetchRecords가 watch에 의해 호출될 수도 있지만 명시적으로 호출)
     if (selectedDepartmentId.value) {
         fetchRecords();
@@ -109,18 +111,22 @@ onMounted(() => {
 });
 
 const fetchRecords = async () => {
-    if (!companyId.value || !selectedDepartmentId.value) {
+    if (!companyId.value) {
         return;
     }
     loading.value = true;
     attendanceRecords.value = [];
 
+    const params = {
+        fromDate: selectedDate.value,
+        toDate: selectedDate.value
+    };
+    if (selectedDepartmentId.value) {
+        params.targetDeptId = selectedDepartmentId.value;
+    }
+
     try {
-        const response = await fetchAttendanceCalendar({
-            targetDeptId: selectedDepartmentId.value,
-            fromDate: selectedDate.value,
-            toDate: selectedDate.value
-        });
+        const response = await fetchAttendanceCalendar(params);
 
         const flatRecords = [];
         const data = response.data?.data || response.data || [];
@@ -315,6 +321,10 @@ watch([selectedDate, selectedDepartmentId], () => {
   border-bottom: none;
 }
 
+.attendance-table tbody tr:hover {
+    background-color: #f9fafb;
+}
+
 .status-badge {
     padding: 0.25rem 0.6rem;
     border-radius: 9999px;
@@ -324,4 +334,7 @@ watch([selectedDate, selectedDepartmentId], () => {
     display: inline-block;
 }
 .status-badge.status-no-record { background-color: #f3f4f6; color: #6b7280; } /* 기록 없음 */
+.status-badge.status-normal { background-color: #ecfdf5; color: #065f46; }
+.status-badge.status-late { background-color: #fef2f2; color: #991b1b; }
+.status-badge.status-leave { background-color: #eff6ff; color: #1e40af; }
 </style>
