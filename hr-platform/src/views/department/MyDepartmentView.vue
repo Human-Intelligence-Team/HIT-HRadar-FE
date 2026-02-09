@@ -79,7 +79,7 @@
                   class="clickable-row">
                 <td class="text-center">
                   <div class="avatar-sm">
-                    <img v-if="member.image" :src="member.image" alt="" />
+                    <img v-if="member.image" :src="resolveFileUrl(member.image)" alt="" />
                     <span v-else>{{ member.name.charAt(0) }}</span>
                   </div>
                 </td>
@@ -114,7 +114,7 @@
         <div v-else-if="selectedMember" class="member-detail">
           <div class="modal-header-profile">
             <div class="modal-avatar">
-              <img v-if="selectedMember.image" :src="selectedMember.image" alt="Profile" />
+              <img v-if="selectedMember.image" :src="resolveFileUrl(selectedMember.image)" alt="Profile" />
               <i v-else class="pi pi-user"></i>
             </div>
             <div class="modal-profile-info">
@@ -165,6 +165,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { getDepartmentById, getDepartmentMembers } from '@/api/departmentApi'
 import { fetchEmployeeDetail } from '@/api/employeeApi'
+import { resolveFileUrl } from '@/utils/fileUrl'
 import { useAuthStore } from '@/stores/authStore'
 
 const authStore = useAuthStore()

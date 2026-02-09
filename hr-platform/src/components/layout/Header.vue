@@ -24,7 +24,7 @@
       <div class="profile-area" @click="router.push('/my-profile')">
         <span class="profile-name">{{ auth.user?.name || 'User' }}</span>
         <div class="profile-img">
-            <img v-if="auth.user?.image" :src="auth.user.image" alt="Profile" />
+            <img v-if="auth.user?.image" :src="resolveFileUrl(auth.user.image)" alt="Profile" />
             <i v-else class="pi pi-user"></i>
         </div>
       </div>
@@ -40,6 +40,7 @@ import NotificationBell from '@/components/notification/NotificationBell.vue'
 import { useAuthStore } from '@/stores/authStore'
 import BrandLogo from '@/components/common/BrandLogo.vue'
 import { useRouter } from 'vue-router'
+import { resolveFileUrl } from '@/utils/fileUrl'
 
 const auth = useAuthStore()
 const router = useRouter()
