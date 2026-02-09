@@ -47,7 +47,7 @@
                   'inactive': !clockInInfo
                 }" 
                 @click="handleClockIn"
-                :disabled="!!clockInInfo"
+                :disabled="!!clockInInfo || !!lastClockOutTime"
               >
                 <span class="btn-content">
                   <span class="btn-title">출근하기 <span v-if="clockInInfo">✓</span></span>
@@ -552,6 +552,10 @@ const fetchCalendarData = async (startDate, endDate) => {
 ===================== */
 const handleClockIn = async () => {
   if (clockInInfo.value) return; 
+  if (lastClockOutTime.value) {
+    alert('이미 금일 퇴근 처리가 완료되었습니다.');
+    return;
+  }
   if (confirm('출근하시겠습니까?')) {
     await clockInOut();
   }
@@ -708,6 +712,8 @@ const clockInOut = async () => {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  align-items: center;
+  text-align: center;
 }
 
 .info-item .label { font-size: 11px; color: #94a3b8; font-weight: 600; }
@@ -739,7 +745,8 @@ const clockInOut = async () => {
     display: flex;
     flex-direction: column;
     gap: 8px;
-    align-items: flex-start;
+    align-items: center;
+    width: 100%;
     z-index: 2;
 }
 
