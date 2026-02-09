@@ -42,6 +42,11 @@ onMounted(loadPositions)
 </script>
 
 <style scoped>
+section {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
 .page-content {
   margin-top: 16px;
 }

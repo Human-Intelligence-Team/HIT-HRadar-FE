@@ -1,5 +1,5 @@
 <template>
-  <section>
+  <section class="page-container">
     <div class="section-title">
       <div>
         <h1>인사 이력 상세</h1>
@@ -7,59 +7,62 @@
       </div>
     </div>
 
-    <div class="content-body">
-      <!-- Search & Filter Toolkit -->
-      <div class="toolbar">
-        <div class="search-wrap">
-          <i class="pi pi-search"></i>
-          <input 
-            type="text" 
-            v-model="searchQuery" 
-            placeholder="사원 이름 검색..." 
-            class="search-input"
-          />
-        </div>
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <div class="search-box">
+        <input 
+          type="text" 
+          v-model="searchQuery" 
+          placeholder="사원 이름 검색..." 
+          class="input search-input"
+        />
+        <button class="btn primary" @click="loadAllHistories">검색</button>
       </div>
+    </div>
 
-      <!-- History Table -->
-      <div class="card history-card">
-        <div v-if="loading" class="loading-state">
-           <i class="pi pi-spin pi-spinner"></i>
-           <p>데이터를 불러오는 중입니다...</p>
+    <div v-if="loading" class="loading-state">인사 이력 정보를 불러오는 중...</div>
+    
+    <div v-else-if="filteredHistories.length === 0" class="empty-state">
+      <i class="pi pi-inbox"></i>
+      <p>조회된 이력 데이터가 없습니다.</p>
+    </div>
+
+    <div v-else class="content-wrapper">
+      <MovementHistoryTable 
+        :histories="paginatedHistories"
+        :departments="departments"
+        :positions="positions"
+        :show-employee-col="true"
+      />
+
+      <!-- Pagination -->
+      <div v-if="totalPages > 0" class="pagination-container">
+        <button 
+          class="page-btn prev"
+          :disabled="currentPage === 1"
+          @click="currentPage--"
+        >
+          &lt;
+        </button>
+
+        <div class="page-numbers">
+          <button 
+            v-for="p in pageRange" 
+            :key="p"
+            :class="['page-num', { active: p === currentPage }]"
+            @click="currentPage = p"
+          >
+            {{ p }}
+          </button>
         </div>
 
-        <div v-else-if="filteredHistories.length === 0" class="empty-state">
-           <i class="pi pi-inbox"></i>
-           <p>조회된 이력 데이터가 없습니다.</p>
-        </div>
-        
-        <div v-else>
-           <MovementHistoryTable 
-             :histories="paginatedHistories"
-             :departments="departments"
-             :positions="positions"
-             :show-employee-col="true"
-           />
-           
-           <!-- Pagination -->
-           <div class="pagination" v-if="totalPages > 1">
-              <button 
-                class="page-btn" 
-                :disabled="currentPage === 1" 
-                @click="currentPage--"
-              >
-                <i class="pi pi-chevron-left"></i>
-              </button>
-              <span class="page-info">{{ currentPage }} / {{ totalPages }}</span>
-              <button 
-                class="page-btn" 
-                :disabled="currentPage === totalPages" 
-                @click="currentPage++"
-              >
-                <i class="pi pi-chevron-right"></i>
-              </button>
-           </div>
-        </div>
+        <button 
+          class="page-btn next"
+          :disabled="currentPage === totalPages"
+          @click="currentPage++"
+        >
+          &gt;
+        </button>
       </div>
     </div>
   </section>
@@ -78,7 +81,25 @@ const departments = ref([])
 const positions = ref([])
 const searchQuery = ref('')
 const currentPage = ref(1)
-const pageSize = 15
+const pageSize = 10 // Changed to 10 for consistency with other views
+
+const pageRange = computed(() => {
+  const current = currentPage.value
+  const total = totalPages.value
+  const range = []
+  
+  let start = Math.max(1, current - 2)
+  let end = Math.min(total, start + 4)
+  
+  if (end - start < 4) {
+    start = Math.max(1, end - 4)
+  }
+  
+  for (let i = start; i <= end; i++) {
+    if (i > 0) range.push(i)
+  }
+  return range
+})
 
 onMounted(async () => {
   loading.value = true
@@ -142,72 +163,104 @@ watch(searchQuery, () => { currentPage.value = 1 })
 </script>
 
 <style scoped>
-.toolbar {
-  margin-bottom: 16px;
-  display: flex;
-  justify-content: flex-end;
+.page-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding-bottom: 40px;
 }
 
-.search-wrap {
-  position: relative;
-  width: 300px;
+.toolbar {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  margin-bottom: 16px;
 }
-.search-wrap i {
-  position: absolute;
-  left: 12px; top: 50%;
-  transform: translateY(-50%);
-  color: #94a3b8;
+.search-box {
+  display: flex;
+  gap: 10px;
 }
 .search-input {
-  width: 100%;
-  padding: 10px 10px 10px 36px;
+  width: 320px;
+}
+
+/* Standardized Input Styling */
+.input {
+  padding: 10px 14px;
   border: 1px solid #e2e8f0;
   border-radius: 8px;
   font-size: 14px;
   outline: none;
-  transition: border-color 0.2s;
-}
-.search-input:focus { border-color: #3b82f6; }
-
-.history-card {
+  transition: all 0.2s;
   background: white;
-  border-radius: 8px;
-  border: 1px solid #e2e8f0;
-  overflow: hidden;
-  min-height: 400px; /* Min height */
+  height: 42px;
+}
+.input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.content-wrapper {
+  margin-bottom: 24px;
 }
 
 .loading-state, .empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 60px;
-  color: #94a3b8;
-  gap: 12px;
+  text-align: center;
+  padding: 80px;
+  color: var(--text-muted);
+  background: var(--card);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
 }
-.loading-state i { font-size: 2rem; color: #3b82f6; }
-.empty-state i { font-size: 3rem; opacity: 0.5; }
 
-.pagination {
+/* Pagination */
+.pagination-container {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 16px;
-  padding: 16px;
-  border-top: 1px solid #f1f5f9;
+  gap: 12px;
+  margin-top: 24px;
 }
 .page-btn {
-  width: 32px; height: 32px;
-  border-radius: 6px;
+  width: 36px; height: 36px;
+  border-radius: 8px;
   border: 1px solid #e2e8f0;
   background: white;
+  color: #64748b;
   display: flex; align-items: center; justify-content: center;
   cursor: pointer;
-  color: #64748b;
   transition: all 0.2s;
 }
-.page-btn:hover:not(:disabled) { background: #f8fafc; color: #3b82f6; }
-.page-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-.page-info { font-size: 14px; color: #475569; font-weight: 500; }
+.page-btn:hover:not(:disabled) {
+  background: #f8fafc;
+  color: #0f172a;
+  border-color: #cbd5e1;
+}
+.page-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.page-numbers {
+  display: flex; gap: 6px;
+}
+.page-num {
+  min-width: 36px; height: 36px;
+  padding: 0 6px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: white;
+  color: #64748b;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.page-num:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+.page-num.active {
+  background: #eff6ff;
+  color: #3b82f6;
+  border-color: #bfdbfe;
+  font-weight: 600;
+}
 </style>
