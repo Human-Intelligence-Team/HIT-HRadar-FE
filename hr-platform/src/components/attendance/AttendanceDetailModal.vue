@@ -228,8 +228,9 @@ const formatTime = (timeStr) => {
   flex-direction: column;
   gap: 20px;
   overflow-y: auto;
-  max-height: 60vh; /* Prevent overflow on small screens */
-  padding-right: 4px; /* Space for scrollbar */
+  max-height: 70vh; /* Increased from 60vh for more vertical space */
+  padding-right: 12px; /* More space between content and scrollbar */
+  padding-bottom: 20px; /* Extra room at the bottom */
 }
 
 /* 프로필 영역 강조 */
