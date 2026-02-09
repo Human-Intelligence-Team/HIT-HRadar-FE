@@ -54,6 +54,12 @@
         <FullCalendar ref="fullCalendar" :options="calendarOptions" />
     </div>
 
+    <!-- Dummy usage to satisfy linter for dynamic CSS classes -->
+    <div v-show="false" class="fc">
+      <div class="fc-toolbar-title"></div>
+      <div class="fc-event"></div>
+    </div>
+
     <!-- 범례 섹션 -->
     <div class="legend-card">
       <div v-for="type in workTypes" :key="type.key" class="legend-item">
@@ -72,7 +78,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, watch } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import FullCalendar from '@fullcalendar/vue3';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
@@ -84,7 +90,6 @@ import { fetchAttendanceCalendar } from '@/api/attendanceApi';
 import { getDepartmentLeaves } from '@/api/leaveApi';
 
 const auth = useAuthStore();
-const companyId = computed(() => auth.user?.companyId);
 
 const fullCalendar = ref(null);
 const isModalOpen = ref(false);
@@ -134,7 +139,7 @@ const calendarOptions = ref({
 
 const fetchDepartments = async () => {
   try {
-    const res = await getAllDepartmentsByCompany();
+    const res = await getAllDepartmentsByCompany(auth.user?.companyId);
     const rawData = res.data?.data?.departments || res.data?.data || [];
     
     // Recursive function to flatten the department tree
@@ -173,16 +178,22 @@ const fetchEmployees = async (deptId) => {
     try {
         const response = await getDepartmentMembers(deptId);
         if (response.data && response.data.success) {
-            const memberList = response.data.data.employees || response.data.data || [];
+            const data = response.data.data;
+            // Handle both flat array and nested object { employees: [...] }
+            const memberList = Array.isArray(data) ? data : (data?.employees || []);
+            
             if (Array.isArray(memberList)) {
                 employeeOptions.value = memberList.map(m => ({
                     id: m.empId || m.employeeId,
-                    name: m.name
-                })).sort((a, b) => a.name.localeCompare(b.name));
+                    name: m.name || m.userName || 'Unknown'
+                })).sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+            } else {
+                employeeOptions.value = [];
             }
         }
     } catch (error) {
         console.error("Failed to fetch department members:", error);
+        employeeOptions.value = [];
     }
 };
 

@@ -64,6 +64,14 @@
         </table>
       </div>
     </div>
+
+    <!-- Dummy usage to satisfy linter for dynamic CSS classes -->
+    <div v-show="false">
+      <span class="status-badge status-no-record"></span>
+      <span class="status-badge status-normal"></span>
+      <span class="status-badge status-late"></span>
+      <span class="status-badge status-leave"></span>
+    </div>
   </section>
 </template>
 
@@ -85,7 +93,7 @@ const attendanceRecords = ref([]);
 // 부서 목록 가져오기 함수
 const fetchDepartments = async () => {
   try {
-    const res = await getAllDepartmentsByCompany();
+    const res = await getAllDepartmentsByCompany(companyId.value);
     const rawData = res.data?.data?.departments || res.data?.data || [];
     
     // Recursive function to flatten the department tree
@@ -225,11 +233,11 @@ watch([selectedDate, selectedDepartmentId], () => {
 
 .title-group h1 {
   font-size: 28px;
-  font-weight: 800;
-  color: #111827; /* Darker, high contrast */
+  font-weight: 700;
+  color: #111827;
   margin: 0;
-  letter-spacing: -0.025em;
-  white-space: nowrap; /* Prevent text wrapping */
+  letter-spacing: -0.01em;
+  white-space: nowrap;
 }
 
 .filter-controls {

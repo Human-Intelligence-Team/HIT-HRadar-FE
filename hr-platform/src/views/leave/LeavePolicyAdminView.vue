@@ -48,8 +48,11 @@
       <!-- 2. 새 정책 등록 -->
       <div class="create-policy-card">
         <div class="card-header-with-action">
-            <h2>새 휴가 정책 등록</h2>
-            <button class="btn-outline-small" @click="showPolicyModal = true">정책 조회</button>
+            <h2>{{ isEditPolicyMode ? '휴가 정책 수정' : '새 휴가 정책 등록' }}</h2>
+            <div class="header-btns">
+              <button v-if="isEditPolicyMode" class="btn-cancel-edit" @click="cancelEditMode">수정 취소</button>
+              <button class="btn-outline-small" @click="showPolicyModal = true">정책 조회</button>
+            </div>
         </div>
         <form @submit.prevent="handleCreatePolicy" class="policy-form">
           <div class="form-grid">
@@ -76,7 +79,7 @@
             </div>
           </div>
           <button type="submit" class="btn-primary" :disabled="isSubmitting">
-            {{ isSubmitting ? '처리중...' : '정책 생성' }}
+            {{ isSubmitting ? '처리중...' : (isEditPolicyMode ? '정책 수정' : '정책 생성') }}
           </button>
         </form>
       </div>
@@ -109,6 +112,10 @@
                     <span class="info-label">차감 일수:</span>
                     <span class="info-value font-bold">{{ policy.unitDays }}일</span>
                   </div>
+                  <div class="policy-card-actions">
+                    <button class="btn-card-edit" @click="handleEditClick(policy)">수정</button>
+                    <button class="btn-card-delete" @click="handleDeletePolicy(policy.policyId)">삭제</button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -125,7 +132,7 @@
 import { useRouter } from 'vue-router'
 import { ref, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/authStore'
-import { getLeavePolicies, createLeavePolicy } from '@/api/leaveApi'
+import { getLeavePolicies, createLeavePolicy, updateLeavePolicy, deleteLeavePolicy } from '@/api/leaveApi'
 import { fetchApprovalDocumentTypes } from '@/api/approvalApi'
 import DepartmentEmployeeSelector from '@/components/approval/DepartmentEmployeeSelector.vue'
 
@@ -148,6 +155,8 @@ const grantForm = ref({
   reason: '',
 })
 const docTypes = ref([])
+const isEditPolicyMode = ref(false)
+const editingPolicyId = ref(null)
 
 const loadInitialData = async () => {
   await Promise.all([
@@ -190,26 +199,72 @@ const handleCreatePolicy = async () => {
 
   isSubmitting.value = true;
   try {
-    await createLeavePolicy({
+    const payload = {
       ...newPolicy.value,
       companyId: authStore.user.companyId
-    })
-    alert('새로운 휴가 정책이 생성되었습니다.')
+    };
 
-    newPolicy.value = {
-      typeName: '',
-      typeCode: '',
-      unitCode: '',
-      unitDays: 1,
+    if (isEditPolicyMode.value) {
+      await updateLeavePolicy(editingPolicyId.value, payload)
+      alert('휴가 정책이 수정되었습니다.')
+    } else {
+      await createLeavePolicy(payload)
+      alert('새로운 휴가 정책이 생성되었습니다.')
     }
 
+    resetPolicyForm()
     await loadPolicies() // 목록 새로고침
   } catch (error) {
-    console.error('휴가 정책 생성 중 오류 발생:', error)
-    const message = error.response?.data?.message || '휴가 정책 생성에 실패했습니다.'
+    console.error('휴가 정책 처리 중 오류 발생:', error)
+    const message = error.response?.data?.message || '처리에 실패했습니다.'
     alert(message)
   } finally {
     isSubmitting.value = false;
+  }
+}
+
+const resetPolicyForm = () => {
+  newPolicy.value = {
+    typeName: '',
+    typeCode: '',
+    unitCode: '',
+    unitDays: 1,
+  }
+  isEditPolicyMode.value = false
+  editingPolicyId.value = null
+}
+
+const cancelEditMode = () => {
+  resetPolicyForm()
+}
+
+const handleEditClick = (policy) => {
+  newPolicy.value = {
+    typeName: policy.typeName,
+    typeCode: policy.typeCode,
+    unitCode: policy.unitCode,
+    unitDays: policy.unitDays
+  }
+  isEditPolicyMode.value = true
+  editingPolicyId.value = policy.policyId
+  showPolicyModal.value = false
+  // Scroll to form?
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+
+const handleDeletePolicy = async (policyId) => {
+  if (!confirm('이 정책을 삭제하시겠습니까? 관련 데이터에 영향을 줄 수 있습니다.')) return
+
+  isSubmitting.value = true
+  try {
+    await deleteLeavePolicy(policyId)
+    alert('정책이 삭제되었습니다.')
+    await loadPolicies()
+  } catch (error) {
+    console.error('정책 삭제 중 오류 발생:', error)
+    alert(error.response?.data?.message || '정책 삭제에 실패했습니다.')
+  } finally {
+    isSubmitting.value = false
   }
 }
 
@@ -325,6 +380,27 @@ h2 {
   border-bottom: 1px solid #f1f5f9;
   padding-bottom: 0.75rem;
   color: #334155;
+  margin-top: 0;
+}
+
+.header-btns {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-cancel-edit {
+  padding: 8px 14px;
+  background-color: #fee2e2;
+  color: #ef4444;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn-cancel-edit:hover {
+  background-color: #fecaca;
 }
 
 .no-policies {
@@ -557,6 +633,45 @@ h2 {
 .font-bold {
     font-weight: 800;
     color: #3b82f6;
+}
+
+.policy-card-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.btn-card-edit {
+  padding: 6px 12px;
+  background-color: #eff6ff;
+  color: #3b82f6;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn-card-edit:hover {
+  background-color: #dbeafe;
+}
+
+.btn-card-delete {
+  padding: 6px 12px;
+  background-color: #fef2f2;
+  color: #ef4444;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn-card-delete:hover {
+  background-color: #fee2e2;
 }
 
 .btn-outline-small {

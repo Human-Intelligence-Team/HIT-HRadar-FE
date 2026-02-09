@@ -133,7 +133,7 @@ watch(
 /* ================= methods ================= */
 const fetchDepartments = async () => {
   try {
-    const res = await getAllDepartmentsByCompany();
+    const res = await getAllDepartmentsByCompany(authStore.user?.companyId);
     const rawData = res.data?.data?.departments || res.data?.data || [];
     
     const flattenDepts = (data) => {

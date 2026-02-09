@@ -71,7 +71,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch, computed } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { fetchAdminAllDocuments } from '@/api/approvalApi';
 import { getAllDepartmentsByCompany } from '@/api/departmentApi';
@@ -81,7 +81,6 @@ const authStore = useAuthStore();
 const router = useRouter();
 const documents = ref([]);
 const departments = ref([]);
-const companyId = computed(() => authStore.user?.companyId);
 
 const searchParams = ref({
   startDate: '',
@@ -104,7 +103,7 @@ const fetchDocuments = async () => {
 
 const fetchDepartments = async () => {
   try {
-    const res = await getAllDepartmentsByCompany();
+    const res = await getAllDepartmentsByCompany(authStore.user?.companyId);
     const rawData = res.data?.data?.departments || res.data?.data || [];
     
     // Recursive function to flatten the department tree

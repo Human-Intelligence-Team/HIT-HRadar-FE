@@ -95,6 +95,14 @@
         </table>
       </div>
     </div>
+    <!-- Dummy usage to satisfy linter for dynamic CSS classes -->
+    <div v-show="false">
+      <span class="badge-blue"></span>
+      <span class="badge-green"></span>
+      <span class="badge-red"></span>
+      <span class="badge-gray"></span>
+      <span class="badge-yellow"></span>
+    </div>
   </section>
 </template>
 
