@@ -345,8 +345,6 @@ const validateOkr = () => {
 }
 
 const submit = async () => {
-  alert('submit 호출됨')
-  console.log('submit 실행')
   const requiredError = validateAllRequiredFields()
   if (requiredError) {
     showToast(requiredError)

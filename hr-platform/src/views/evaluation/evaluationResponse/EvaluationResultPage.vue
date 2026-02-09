@@ -27,15 +27,23 @@
         <label>부서</label>
         <select v-model="selectedDeptId">
           <option disabled value="">부서 선택</option>
-          <option v-for="d in departments" :key="d.id" :value="d.id">
-            {{ d.name }}
+          <option
+            v-for="d in departments"
+            :key="d.deptId"
+            :value="d.deptId"
+          >
+            {{ d.deptName }}
           </option>
         </select>
 
         <label>사원</label>
         <select v-model="selectedEmployeeId" :disabled="!selectedDeptId">
           <option disabled value="">사원 선택</option>
-          <option v-for="e in employees" :key="e.id" :value="e.id">
+          <option
+            v-for="e in employees"
+            :key="e.empId"
+            :value="e.empId"
+          >
             {{ e.name }}
           </option>
         </select>
@@ -125,24 +133,29 @@
 
 
 <script setup>
-  import { ref, watch } from 'vue'
-  import { fetchCycleEvaluationTypes } from '@/api/cycleEvaluationTypeApi'
-  import { fetchEvaluateeEvaluationResult } from '@/api/evaluationResponseApi'
-  import { fetchCycles } from '@/api/cycleApi.js'
+import { ref, watch, onMounted } from 'vue'
+import { fetchCycleEvaluationTypes } from '@/api/cycleEvaluationTypeApi'
+import { fetchEvaluateeEvaluationResult } from '@/api/evaluationResponseApi'
+import { fetchCycles } from '@/api/cycleApi'
+import {
+  getAllDepartmentsByCompany,
+  getDepartmentMembers
+} from '@/api/departmentApi'
 
-  /* ===============================
-  State
-  =============================== */
-  const selectedCycleId = ref('')
-  const selectedDeptId = ref('')
-  const selectedEmployeeId = ref('')
-  const selectedEvalTypeId = ref('')
+/* ===============================
+State
+=============================== */
+const selectedCycleId = ref('')
+const selectedDeptId = ref('')
+const selectedEmployeeId = ref('')
+const selectedEvalTypeId = ref('')
 
-  const cycles = ref([])
-  const employees = ref([])
-  const evalTypes = ref([])
+const cycles = ref([])
+const departments = ref([])
+const employees = ref([])
+const evalTypes = ref([])
 
-  const result = ref({
+const result = ref({
   cycleId: null,
   cycleName: '',
   evalTypeId: null,
@@ -150,38 +163,25 @@
   questions: [],
 })
 
-  /* ===============================
-  Mock 조직 데이터
-  =============================== */
-  const departments = [{ id: 1, name: '개발팀' }]
-
-  const deptEmployees = {
-  1: [
-{ id: 1001, name: '김성수' },
-{ id: 1002, name: '이서연' },
-  ],
-}
-
-  /* ===============================
-  초기: 평가 회차 로딩
-  =============================== */
-  watch(
-  () => true,
-  async () => {
-  const res = await fetchCycles()
-  const list = res.data ?? []
+/* ===============================
+초기 로딩
+=============================== */
+onMounted(async () => {
+  const cycleRes = await fetchCycles()
+  const list = cycleRes.data ?? []
 
   cycles.value = list.filter(
-  c => c.status === 'IN_PROGRESS' || c.status === 'CLOSED'
-  )
-},
-  { immediate: true }
+    c => c.status === 'IN_PROGRESS' || c.status === 'CLOSED'
   )
 
-  /* ===============================
-  회차 변경 시 초기화
-  =============================== */
-  watch(selectedCycleId, () => {
+  const deptRes = await getAllDepartmentsByCompany()
+  departments.value = deptRes.data.data.departments
+})
+
+/* ===============================
+회차 변경 시 초기화
+=============================== */
+watch(selectedCycleId, () => {
   selectedDeptId.value = ''
   selectedEmployeeId.value = ''
   selectedEvalTypeId.value = ''
@@ -191,22 +191,29 @@
   result.value.questions = []
 })
 
-  /* ===============================
-  부서 변경 시 사원 세팅
-  =============================== */
-  watch(selectedDeptId, (deptId) => {
+/* ===============================
+부서 변경 시 사원 조회 (실제 API)
+=============================== */
+watch(selectedDeptId, async (deptId) => {
   selectedEmployeeId.value = ''
   selectedEvalTypeId.value = ''
 
-  employees.value = deptEmployees[deptId] ?? []
+  if (!deptId) {
+    employees.value = []
+    return
+  }
+
+  const res = await getDepartmentMembers(deptId)
+  employees.value = res.data.data.employees
+
   evalTypes.value = []
   result.value.questions = []
 })
 
-  /* ===============================
-  사원 선택 → 평가유형 전체 조회
-  =============================== */
-  watch(selectedEmployeeId, async (employeeId) => {
+/* ===============================
+사원 선택 → 평가유형 조회
+=============================== */
+watch(selectedEmployeeId, async (employeeId) => {
   selectedEvalTypeId.value = ''
   result.value.questions = []
 
@@ -215,30 +222,29 @@
   const res = await fetchCycleEvaluationTypes(selectedCycleId.value)
   const types = res.data?.data ?? []
 
-  // 🔥 모든 평가유형 노출 (자기평가 포함)
   evalTypes.value = types.map(t => ({
-  ...t,
-  disabled: false,
-}))
+    ...t,
+    disabled: false,
+  }))
 })
 
-  /* ===============================
-  평가유형 선택 → 결과 조회 (핵심)
-  =============================== */
-  watch(selectedEvalTypeId, async (evalTypeId) => {
+/* ===============================
+평가유형 선택 → 결과 조회
+=============================== */
+watch(selectedEvalTypeId, async (evalTypeId) => {
   if (!evalTypeId || !selectedEmployeeId.value) return
 
   const resultRes = await fetchEvaluateeEvaluationResult(
-  selectedEmployeeId.value,
-  selectedCycleId.value,
-  evalTypeId
+    selectedEmployeeId.value,
+    selectedCycleId.value,
+    evalTypeId
   )
 
   const data = resultRes.data?.data
   if (!data) {
-  result.value.questions = []
-  return
-}
+    result.value.questions = []
+    return
+  }
 
   result.value.cycleId = data.cycleId
   result.value.cycleName = data.cycleName
@@ -247,38 +253,39 @@
   result.value.questions = data.questions ?? []
 })
 
-  /* ===============================
-  Utils
-  =============================== */
-  const averageScore = (responses) => {
+/* ===============================
+Utils
+=============================== */
+const averageScore = (responses) => {
   if (!responses || !responses.length) return '-'
   const sum = responses.reduce((a, r) => a + r.score, 0)
   return (sum / responses.length).toFixed(1)
 }
 
-  const ratingDistribution = (responses) => {
+const ratingDistribution = (responses) => {
   if (!responses || !responses.length) return []
 
   const total = responses.length
   const map = {}
 
   responses.forEach(r => {
-  map[r.score] = (map[r.score] || 0) + 1
-})
+    map[r.score] = (map[r.score] || 0) + 1
+  })
 
   return Object.entries(map).map(([score, count]) => ({
-  score,
-  count,
-  percent: Math.round((count / total) * 100),
-}))
+    score,
+    count,
+    percent: Math.round((count / total) * 100),
+  }))
 }
 
-  const cycleStatusLabel = (status) => {
+const cycleStatusLabel = (status) => {
   if (status === 'IN_PROGRESS') return '진행 중'
   if (status === 'CLOSED') return '종료'
   return status
 }
 </script>
+
 
 
 
