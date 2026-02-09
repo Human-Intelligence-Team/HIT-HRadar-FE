@@ -13,7 +13,7 @@
         <thead>
           <tr>
             <th>ID</th>
-            <th>유형 값</th>
+            <th>카테고리</th>
             <th>유형명</th>
             <th>시스템 연동</th>
             <th>사용 여부</th>
@@ -30,7 +30,7 @@
             <td>{{ type.name }}</td>
             <td>
                 <span :class="['category-badge', type.attendanceCategory.toLowerCase()]">
-                    {{ type.attendanceCategory }}
+                    {{ mapCategoryName(type.attendanceCategory) }}
                 </span>
             </td>
             <td>
@@ -47,7 +47,7 @@
       <div class="modal-content">
         <h3>{{ isEditing ? '문서 유형 수정' : '새 문서 유형 등록' }}</h3>
         <div class="form-group">
-          <label for="docType">유형 값 (고유 ID)</label>
+          <label for="docType">카테고리 (고유 ID)</label>
           <input type="text" id="docType" v-model="form.docType" class="input-field" :disabled="isEditing" placeholder="예: VACATION_REQUEST" />
         </div>
         <div class="form-group">
@@ -138,13 +138,13 @@ const fetchCategories = async () => {
 const mapCategoryName = (cat) => {
     const mapper = {
         'NONE': '연동 없음',
-        'WORK_OFFICE': '내근/출근 시스템 연동',
-        'WORK_REMOTE': '재택근무 시스템 연동',
-        'WORK_FIELD': '외근 시스템 연동',
-        'WORK_TRIP': '출장 시스템 연동',
-        'VACATION': '연차/휴가 시스템 연동',
-        'LEAVE_SICK': '병가 시스템 연동',
-        'OVERTIME': '초과근무 시스템 연동'
+        'WORK_OFFICE': '내근/출근',
+        'WORK_REMOTE': '재택근무',
+        'WORK_FIELD': '외근',
+        'WORK_TRIP': '출장',
+        'VACATION': '휴가',
+        'LEAVE_SICK': '병가',
+        'OVERTIME': '초과근무'
     };
     return mapper[cat] || cat;
 }
@@ -175,7 +175,7 @@ const openEditModal = async (type) => {
 
 const saveDocumentType = async () => {
   if (!form.value.docType.trim() || !form.value.name.trim()) {
-    alert('유형 값과 유형명을 모두 입력해주세요.');
+    alert('카테고리와 유형명을 모두 입력해주세요.');
     return;
   }
 
