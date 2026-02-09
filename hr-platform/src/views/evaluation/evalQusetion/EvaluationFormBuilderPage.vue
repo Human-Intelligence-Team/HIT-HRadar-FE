@@ -613,16 +613,19 @@ textarea {
 
 /* ===== Question Card ===== */
 .question-card {
-  background: #ffffff;
-  border-radius: 14px;
-  padding: 18px;
-  margin-top: 18px;
-  border-left: 4px solid transparent;
-  transition: box-shadow 0.15s ease, border-color 0.15s ease;
+  background: #f8fafc; /* Slightly darker than white section */
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: 20px;
+  border: 1px solid #e2e8f0; /* Visible border */
+  border-left: 4px solid #cbd5e1; /* Default left border */
+  transition: all 0.2s ease;
 }
 .question-card:focus-within {
+  background: #ffffff;
+  border-color: #c7d2fe;
   border-left-color: #6366f1;
-  box-shadow: 0 6px 18px rgba(99, 102, 241, 0.18);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.1);
 }
 
 /* ===== Question Head ===== */

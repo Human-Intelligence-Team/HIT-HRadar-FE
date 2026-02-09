@@ -88,7 +88,18 @@ const endYm = dayjs().add(6, 'month').format('YYYY-MM')
 
 const loadJobStable = async () => {
   const res = await fetchJobStable(startYm, endYm)
-  stability.value = res.data.data
+  if (!res.data.data?.values?.length) {
+    const labels = []
+    for (let i = 0; i < 12; i++) {
+        labels.push(dayjs().subtract(11 - i, 'month').format('YYYY-MM'))
+    }
+    stability.value = {
+      labels: labels,
+      values: new Array(12).fill(0)
+    }
+  } else {
+    stability.value = res.data.data
+  }
   stabilityLoaded.value = true
 }
 
@@ -99,8 +110,14 @@ const loaded = ref(false)
 //업무 기여도
 const loadContribution = async () => {
   const res = await fetchMyContribution()
-  categories.value = res.data.data.categories
-  values.value = res.data.data.values
+  const data = res.data.data
+  if (!data?.values?.length) {
+    categories.value = ['항목 없음', '항목 없음', '항목 없음']
+    values.value = [0, 0, 0]
+  } else {
+    categories.value = data.categories
+    values.value = data.values
+  }
   loaded.value = true
 }
 
@@ -114,7 +131,16 @@ const collaborationLoaded = ref(false)
 
 const loadCollaboration = async () => {
   const res = await fetchMyCollaboration()
-  collaboration.value = res.data.data
+  const data = res.data.data
+  if (!data?.values?.length) {
+    collaboration.value = {
+      labels: ['역량1', '역량2', '역량3', '역량4', '역량5'],
+      values: [0, 0, 0, 0, 0],
+      max: 100
+    }
+  } else {
+    collaboration.value = data
+  }
   collaborationLoaded.value = true
 }
 
@@ -128,7 +154,16 @@ const job = ref({
 
 const loadJob = async () => {
   const res = await fetchJobSatisfaction()
-  job.value = res.data.data
+  const data = res.data.data
+  if (!data?.barValues?.length) {
+     job.value = {
+       labels: ['급여', '워라밸', '동료', '성장', '문화'],
+       barValues: [0, 0, 0, 0, 0],
+       gauge: { percentage: 0, average: 0 }
+     }
+  } else {
+    job.value = data
+  }
   loaded.value = true
 }
 
