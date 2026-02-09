@@ -60,6 +60,7 @@
         >
           <input
             type="radio"
+            class="custom-check"
             name="evaluator"
             :value="m.empId"
             v-model="evaluatorId"
@@ -82,6 +83,7 @@
         >
           <input
             type="checkbox"
+            class="custom-check"
             :value="m.empId"
             v-model="evaluateeIds"
             :disabled="isAlreadyAssigned(m.empId)"
@@ -241,33 +243,32 @@ const submitAssignments = async () => {
 /* =====================
    PAGE
 ===================== */
-.page{
-  max-width: 1160px;
+.page {
+  max-width: 1100px;
   margin: 0 auto;
-  padding: 28px 18px 48px;
+  padding: 24px 20px 40px;
 }
+
+/* =====================
+   HEADER
+===================== */
 .section-title {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
-}
-.section-title h1 {
-  font-size: 20px;
-  font-weight: 700;
+  margin-bottom: 18px;
 }
 
 .section-title h2 {
-  font-size: 28px;
-  font-weight: 900;
-  letter-spacing: -0.03em;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
 }
 
 .section-title p {
-  margin-top: 8px;
-  font-size: 14px;
-  font-weight: 500;
-  color: #64748b;
+  margin-top: 4px;
+  font-size: 13px;
+  color: #6b7280;
 }
 
 /* =====================
@@ -277,31 +278,23 @@ const submitAssignments = async () => {
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 14px;
-  font-size: 13px;
-  color: #64748b;
-  opacity: .85;
+  gap: 8px;
+  margin-bottom: 18px;
+  font-size: 12px;
+  color: #6b7280;
 }
 
 .assignment-link button {
   background: none;
   border: none;
-  padding: 0;
-  font-size: 13px;
-  font-weight: 800;
+  font-size: 12px;
+  font-weight: 700;
   color: #4f46e5;
   cursor: pointer;
-  transition: all .15s ease;
 }
 
 .assignment-link button:hover {
   text-decoration: underline;
-  color: #3730a3;
-}
-
-.assignment-link:hover {
-  opacity: 1;
 }
 
 /* =====================
@@ -310,64 +303,43 @@ const submitAssignments = async () => {
 .selector-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 22px;
-  margin-bottom: 40px;
+  gap: 14px;
+  margin-bottom: 28px;
 }
 
 .selector-grid select {
-  padding: 18px 20px;
-  border-radius: 18px;
-  border: 1.5px solid #e5e7eb;
-  background:
-    linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
-  font-size: 14px;
-  font-weight: 700;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  font-size: 13px;
+  font-weight: 500;
   color: #111827;
-  transition: all .2s ease;
-}
-
-.selector-grid select:hover:not(:disabled) {
-  border-color: #818cf8;
+  transition: all .15s ease;
 }
 
 .selector-grid select:focus {
   outline: none;
   border-color: #6366f1;
-  box-shadow: 0 0 0 5px rgba(99,102,241,.18);
-}
-
-.selector-grid select:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
+  box-shadow: 0 0 0 2px rgba(99,102,241,.15);
 }
 
 /* =====================
    CARD
 ===================== */
 .card {
-  background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
-  border-radius: 24px;
-  padding: 30px;
-  margin-bottom: 32px;
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 20px;
   border: 1px solid #e5e7eb;
-  box-shadow:
-    0 10px 28px rgba(0,0,0,.06),
-    0 2px 6px rgba(0,0,0,.04);
-  transition: transform .2s ease, box-shadow .2s ease;
-}
-
-.card:hover {
-  transform: translateY(-2px);
-  box-shadow:
-    0 16px 36px rgba(0,0,0,.08),
-    0 6px 10px rgba(0,0,0,.05);
+  box-shadow: 0 6px 18px rgba(0,0,0,.05);
 }
 
 .card h3 {
-  font-size: 19px;
-  font-weight: 900;
-  margin-bottom: 22px;
-  letter-spacing: -0.01em;
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 16px;
 }
 
 /* =====================
@@ -376,7 +348,7 @@ const submitAssignments = async () => {
 .list {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
+  gap: 8px;
 }
 
 /* =====================
@@ -385,31 +357,24 @@ const submitAssignments = async () => {
 .item {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 18px 20px;
-  border-radius: 18px;
+  gap: 8px;
+  padding: 10px 12px;   /* ↓ 기존보다 축소 */
+  border-radius: 10px;
   background: #f8fafc;
-  border: 1.5px solid #e5e7eb;
+  border: 1px solid #e5e7eb;
   cursor: pointer;
   transition: all .15s ease;
 }
 
-.item:hover {
-  background: #eef2ff;
-  border-color: #c7d2fe;
-}
-
 .item input {
-  transform: scale(1.3);
+  transform: scale(0.9);   /* ↓ 버튼 크기 축소 */
   accent-color: #6366f1;
 }
 
 .item span {
-  font-size: 14px;
-  font-weight: 700;
-  color: #111827;
+  font-size: 13px;
+  font-weight: 500;
 }
-
 /* =====================
    DISABLED ITEM
 ===================== */
@@ -421,18 +386,17 @@ const submitAssignments = async () => {
 }
 
 .item small {
-  margin-left: 10px;
-  font-size: 12px;
-  font-weight: 800;
+  margin-left: 6px;
+  font-size: 11px;
+  font-weight: 700;
   color: #ef4444;
 }
+
 
 /* =====================
    ACTIONS
 ===================== */
 .actions {
-  position: sticky;
-  bottom: 28px;
   display: flex;
   justify-content: flex-end;
   margin-top: 8px;
@@ -442,29 +406,31 @@ const submitAssignments = async () => {
    PRIMARY BUTTON
 ===================== */
 .primary {
-  padding: 16px 34px;
+  padding: 10px 22px;
   border-radius: 999px;
-  background:
-    linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+  background: #4f46e5;
   color: #ffffff;
   border: none;
-  font-size: 15px;
-  font-weight: 900;
+  font-size: 13px;
+  font-weight: 700;
   cursor: pointer;
-  box-shadow:
-    0 14px 30px rgba(79,70,229,.45);
-  transition: all .2s ease;
+  box-shadow: 0 8px 18px rgba(79,70,229,.25);
+  transition: all .15s ease;
 }
 
 .primary:hover {
-  transform: translateY(-3px);
-  box-shadow:
-    0 20px 40px rgba(79,70,229,.55);
+  transform: translateY(-1px);
+  box-shadow: 0 12px 24px rgba(79,70,229,.35);
 }
 
-.primary:active {
-  transform: translateY(0);
+.custom-check {
+  cursor: pointer;
+  width: 16px !important;   /* 원하는 사이즈 고정 */
+  height: 16px !important;
+  margin: 0;
+  accent-color: #6366f1;    /* 포인트 컬러 */
+  flex-shrink: 0;           /* 레이아웃에서 찌그러짐 방지 */
+  appearance: auto;         /* 브라우저 기본 형태 유지 */
 }
-
 
 </style>

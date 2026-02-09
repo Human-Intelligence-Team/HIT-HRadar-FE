@@ -10,7 +10,6 @@
         </div>
       </div>
     </div>
-
     <div class="layout">
       <!-- LEFT : 내 평가함 -->
       <aside class="eval-panel">
@@ -114,6 +113,7 @@
                 >
                   <input
                     type="radio"
+                    class="custom-check"
                     :name="`q-${q.questionId}`"
                     :value="n"
                     v-model="answers[q.questionId].score"
@@ -147,6 +147,7 @@
                 >
                   <input
                     type="radio"
+                    class="custom-check"
                     :name="`q-${q.questionId}`"
                     :value="opt.optionId"
                     v-model="answers[q.questionId].optionId"
@@ -566,4 +567,13 @@ onMounted(loadMyAssignments)
   line-height: 1.6;
 }
 
+.custom-check {
+  cursor: pointer;
+  width: 16px !important;   /* 원하는 사이즈 고정 /
+  height: 16px !important;
+  margin: 0;
+  accent-color: #6366f1;    / 포인트 컬러 /
+  flex-shrink: 0;           / 레이아웃에서 찌그러짐 방지 /
+  appearance: auto;         / 브라우저 기본 형태 유지 */
+}
 </style>

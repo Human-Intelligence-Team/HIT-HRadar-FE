@@ -15,7 +15,7 @@
             <th>ID</th>
             <th>유형 값 (Value)</th>
             <th>유형명 (Text)</th>
-            <th>시스템 연동 (Mapping)</th>
+            <th>시스템 자동화 커넥터 (Automation Connector)</th>
             <th>액션</th>
           </tr>
         </thead>
@@ -54,17 +54,27 @@
           <input type="text" id="name" v-model="form.name" class="input-field" placeholder="예: 휴가 신청" />
         </div>
         <div class="form-group">
-            <label for="attendanceCategory">시스템 연동 설정 (System Mapping)</label>
+            <label for="attendanceCategory">자동화 서비스 커넥터 설정</label>
             <select id="attendanceCategory" v-model="form.attendanceCategory" class="input-field select-field">
                 <option v-for="cat in categories" :key="cat" :value="cat">
-                    {{ mapCategoryName(cat) }} ({{ cat }})
+                    {{ mapCategoryName(cat) }}
                 </option>
             </select>
-            <p class="hint">결재 승인 시, 선택한 시스템 기능(근태/휴가 등)이 자동으로 수행됩니다.</p>
+            <div class="connector-hint-box" v-if="form.attendanceCategory !== 'NONE'">
+                <p class="hint-title"><i class="icon-bolt"></i> 승인 시 실행될 자동화 로직:</p>
+                <ul class="hint-list">
+                    <li v-if="isWorkCategory(form.attendanceCategory)">• 근태 현황판에 실시간 근무 상태 반영</li>
+                    <li v-if="isWorkCategory(form.attendanceCategory)">• 출퇴근 기록 자동 생성 및 동기화</li>
+                    <li v-if="form.attendanceCategory === 'VACATION' || form.attendanceCategory === 'LEAVE_SICK'">• 잔여 연차 자동 차감 및 휴가 이력 반영</li>
+                    <li v-if="form.attendanceCategory === 'OVERTIME'">• 초과 근무 수당 정산 및 기록 생성</li>
+                    <li>• 관련 사원 및 부서장에게 실시간 SSE 알림 전송</li>
+                </ul>
+            </div>
+            <p v-else class="hint">일반 문서로 등록됩니다 (추가 자동화 로직 없음).</p>
         </div>
-        <div class="form-group">
+        <div class="form-group checkbox-group">
           <label for="active">활성화</label>
-          <input type="checkbox" id="active" v-model="form.active" />
+          <input type="checkbox" id="active" v-model="form.active" class="small-checkbox" />
         </div>
         <div class="modal-actions">
           <button class="btn btn-secondary" @click="showModal = false">취소</button>
@@ -78,7 +88,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import {
-  fetchApprovalDocumentTypes,
+  fetchManagementDocumentTypes,
   createApprovalDocumentType,
   updateApprovalDocumentType,
   deleteApprovalDocumentType,
@@ -100,7 +110,7 @@ const categories = ref(['NONE']);
 
 const fetchDocumentTypes = async () => {
   try {
-    const response = await fetchApprovalDocumentTypes();
+    const response = await fetchManagementDocumentTypes();
     documentTypes.value = response.data.data.map(type => ({
       typeId: type.docId,
       docType: type.docType,
@@ -126,15 +136,20 @@ const fetchCategories = async () => {
 
 const mapCategoryName = (cat) => {
     const mapper = {
-        'NONE': '없음',
-        'WORK_OFFICE': '내근',
-        'WORK_REMOTE': '재택',
-        'WORK_FIELD': '외근',
-        'WORK_TRIP': '출장',
-        'VACATION': '휴가',
-        'OVERTIME': '초과근무'
+        'NONE': '연동 없음',
+        'WORK_OFFICE': '내근/출근 커넥터',
+        'WORK_REMOTE': '재택근무 커넥터',
+        'WORK_FIELD': '외근 커넥터',
+        'WORK_TRIP': '출장 커넥터',
+        'VACATION': '연차/휴가 커넥터',
+        'LEAVE_SICK': '병가 커넥터',
+        'OVERTIME': '초과근무 커넥터'
     };
     return mapper[cat] || cat;
+}
+
+const isWorkCategory = (cat) => {
+    return ['WORK_OFFICE', 'WORK_REMOTE', 'WORK_FIELD', 'WORK_TRIP'].includes(cat);
 }
 
 const openCreateModal = () => {
@@ -221,7 +236,7 @@ onMounted(() => {
 .section-title h1 {
   font-size: 24px;
   font-weight: bold;
-  color: #333;
+  color: #1e293b;
 }
 
 .card {
@@ -247,13 +262,14 @@ onMounted(() => {
 .table td {
   padding: 12px 15px;
   text-align: left;
-  border-bottom: 1px solid #e0e0e0;
+  border-bottom: 1px solid #f1f5f9;
+  color: #1e293b; /* Explicitly dark for both header and data */
 }
 
 .table th {
-  background-color: #f8f9fa;
-  font-weight: 600;
-  color: #555;
+  background-color: #f8fafc;
+  font-weight: 700;
+  color: #111827; /* Darker from #475569 */
 }
 
 .table tbody tr {
@@ -261,7 +277,7 @@ onMounted(() => {
 }
 
 .table tbody tr:hover {
-  background-color: #f1f1f1;
+  background-color: #f8fafc;
 }
 
 .no-data {
@@ -321,18 +337,19 @@ onMounted(() => {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.4);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  backdrop-filter: blur(4px);
 }
 
 .modal-content {
-  background: #fff;
+  background: #ffffff;
   padding: 30px;
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
   width: 90%;
   max-width: 500px;
 }
@@ -341,7 +358,7 @@ onMounted(() => {
   margin-top: 0;
   margin-bottom: 20px;
   font-size: 20px;
-  color: #333;
+  color: #1e293b;
 }
 
 .form-group {
@@ -351,18 +368,19 @@ onMounted(() => {
 .form-group label {
   display: block;
   font-size: 14px;
-  font-weight: 600;
-  color: #333;
+  font-weight: 700;
+  color: #1e293b; /* Darker from #475569 */
   margin-bottom: 8px;
 }
 
 .input-field {
   width: 100%;
   padding: 10px 12px;
-  border: 1px solid #e0e0e0;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
   border-radius: 8px;
   font-size: 14px;
-  color: #333;
+  color: #1e293b; /* Darker from #334155 */
   box-sizing: border-box;
 }
 
@@ -383,30 +401,76 @@ onMounted(() => {
 }
 
 .select-field {
-    background-color: white;
+    background-color: #ffffff;
 }
 
 .hint {
     font-size: 12px;
-    color: #666;
+    color: #94a3b8;
     margin-top: 4px;
 }
 
 .category-badge {
     display: inline-block;
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 12px;
-    font-weight: 600;
-    color: #555;
-    background-color: #eee;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #475569;
+    background-color: #f1f5f9;
+    border: 1px solid #e2e8f0;
 }
 
-.category-badge.work_office { background-color: #e3f2fd; color: #1565c0; }
-.category-badge.work_field { background-color: #e8f5e9; color: #2e7d32; }
-.category-badge.work_trip { background-color: #fff3e0; color: #ef6c00; }
-.category-badge.work_remote { background-color: #f3e5f5; color: #7b1fa2; }
-.category-badge.vacation { background-color: #ffebee; color: #c62828; }
-.category-badge.overtime { background-color: #fff8e1; color: #f57f17; }
-.category-badge.none { background-color: #f5f5f5; color: #757575; }
+.category-badge.work_office { background-color: #f0f9ff; color: #0369a1; border-color: #bae6fd; }
+.category-badge.work_field { background-color: #f0fdf4; color: #15803d; border-color: #bbf7d0; }
+.category-badge.work_trip { background-color: #fffaf5; color: #c2410c; border-color: #ffedd5; }
+.category-badge.work_remote { background-color: #faf5ff; color: #7e22ce; border-color: #f3e8ff; }
+.category-badge.vacation { background-color: #fff1f2; color: #be123c; border-color: #fecdd3; }
+.category-badge.leave_sick { background-color: #fff1f2; color: #e11d48; border-color: #fda4af; }
+.category-badge.overtime { background-color: #fffbeb; color: #b45309; border-color: #fef3c7; }
+.category-badge.none { background-color: #f8fafc; color: #64748b; border-color: #e2e8f0; }
+
+.connector-hint-box {
+    margin-top: 12px;
+    padding: 12px;
+    background-color: #f8fafc;
+    border-radius: 8px;
+    border-left: 4px solid #3b82f6;
+}
+
+.hint-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0 0 8px 0;
+}
+
+.hint-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.hint-list li {
+    font-size: 12px;
+    color: #475569;
+    margin-bottom: 4px;
+}
+
+.checkbox-group {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px; /* Space between label and checkbox */
+}
+
+.small-checkbox {
+    width: 16px;
+    height: 16px;
+    margin: 0;
+    cursor: pointer;
+    /* Optional: Use transform for fine-tuning size if needed, but width/height is usually enough */
+    transform: scale(0.9); 
+    transform-origin: left top;
+}
 </style>

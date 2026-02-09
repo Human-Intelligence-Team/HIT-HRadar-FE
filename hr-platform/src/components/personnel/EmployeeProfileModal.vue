@@ -24,7 +24,7 @@
          <!-- Floating Avatar -->
          <div class="avatar-wrapper">
            <div class="avatar-lg">
-             <img v-if="employee.image" :src="employee.image" alt="Profile" />
+             <img v-if="employee.image" :src="resolveFileUrl(employee.image)" alt="Profile" />
              <span v-else class="avatar-placeholder">{{ employee.name?.charAt(0) }}</span>
            </div>
          </div>
@@ -121,6 +121,7 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue'
 import { fetchEmployeeDetail } from '@/api/employeeApi'
+import { resolveFileUrl } from '@/utils/fileUrl'
 
 const props = defineProps({
   empId: {

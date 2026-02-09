@@ -21,11 +21,60 @@
     <!-- Editor -->
     <div class="form-group">
       <label>내용</label>
+      <div class="editor-toolbar">
+        <select class="toolbar-select" @change="applyFontFamily($event)">
+          <option value="">글꼴</option>
+          <option value="Noto Sans KR">Noto Sans KR</option>
+          <option value="Pretendard">Pretendard</option>
+          <option value="Malgun Gothic">맑은 고딕</option>
+          <option value="Apple SD Gothic Neo">Apple SD Gothic Neo</option>
+        </select>
+
+        <select class="toolbar-select" @change="applyFontSize($event)">
+          <option value="">크기</option>
+          <option value="2">12px</option>
+          <option value="3">14px</option>
+          <option value="4">16px</option>
+          <option value="5">18px</option>
+          <option value="6">24px</option>
+        </select>
+
+        <button type="button" class="toolbar-btn" @click="exec('bold')"><b>B</b></button>
+        <button type="button" class="toolbar-btn" @click="exec('italic')"><i>I</i></button>
+        <button type="button" class="toolbar-btn" @click="exec('underline')"><u>U</u></button>
+
+        <button type="button" class="toolbar-btn" @click="exec('justifyleft')">L</button>
+        <button type="button" class="toolbar-btn" @click="exec('justifycenter')">C</button>
+        <button type="button" class="toolbar-btn" @click="exec('justifyright')">R</button>
+
+        <label class="color-label">
+          글자색
+          <input type="color" @input="applyColor($event)" />
+        </label>
+
+        <label class="color-label">
+          배경색
+          <input type="color" @input="applyBgColor($event)" />
+        </label>
+
+        <div class="img-resize">
+          <span>이미지</span>
+          <select class="toolbar-select" @change="applyImageWidth($event)">
+            <option value="">크기</option>
+            <option value="25">25%</option>
+            <option value="50">50%</option>
+            <option value="75">75%</option>
+            <option value="100">100%</option>
+          </select>
+        </div>
+      </div>
+
       <div
         ref="editorRef"
         contenteditable="true"
         class="editor"
         @input="handleContentInput"
+        @click="handleEditorClick"
         @drop.prevent="handleDrop"
         @dragover.prevent
         @paste="handlePaste"
@@ -116,6 +165,7 @@ const form = ref({
 
 const editorRef = ref(null)
 const fileInputRef = ref(null)
+const selectedImage = ref(null)
 
 function processContent(content) {
   if (!content) return ''
@@ -163,10 +213,54 @@ function handleContentInput(e) {
   form.value.content = e.target.innerHTML
 }
 
+function handleEditorClick(e) {
+  if (e.target && e.target.tagName === 'IMG') {
+    selectedImage.value = e.target
+  } else {
+    selectedImage.value = null
+  }
+}
+
+function exec(command, value = null) {
+  document.execCommand(command, false, value)
+  if (editorRef.value) form.value.content = editorRef.value.innerHTML
+}
+
+function applyFontFamily(e) {
+  const value = e.target.value
+  if (!value) return
+  exec('fontName', value)
+  e.target.value = ''
+}
+
+function applyFontSize(e) {
+  const value = e.target.value
+  if (!value) return
+  exec('fontSize', value)
+  e.target.value = ''
+}
+
+function applyColor(e) {
+  exec('foreColor', e.target.value)
+}
+
+function applyBgColor(e) {
+  exec('hiliteColor', e.target.value)
+}
+
+function applyImageWidth(e) {
+  const value = e.target.value
+  if (!value || !selectedImage.value) return
+  selectedImage.value.style.width = `${value}%`
+  selectedImage.value.style.height = 'auto'
+  if (editorRef.value) form.value.content = editorRef.value.innerHTML
+  e.target.value = ''
+}
 function insertImageAtCursor(url) {
   const img = document.createElement('img');
   img.src = url;
-  img.style.maxWidth = '100%'; // Optional styling
+  img.style.maxWidth = '100%';
+  img.style.height = 'auto';
 
   const selection = window.getSelection();
   if (selection.getRangeAt && selection.rangeCount) {
@@ -298,6 +392,8 @@ function handleSubmit() {
   border-radius: 6px;
   padding: 10px;
   min-height: 300px;
+  max-height: 420px;
+  overflow-y: auto;
   background-color: var(--panel);
   color: var(--text-main);
   outline: none;
@@ -307,6 +403,57 @@ function handleSubmit() {
 }
 .editor:focus {
   border-color: var(--primary);
+}
+.editor-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--panel);
+}
+.toolbar-btn {
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg-soft);
+  cursor: pointer;
+  font-size: 12px;
+}
+.toolbar-btn:hover {
+  border-color: var(--primary);
+}
+.toolbar-select {
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background-color: var(--panel);
+  color: var(--text-main);
+  height: 32px;
+  font-size: 12px;
+}
+.color-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-sub);
+}
+.color-label input[type="color"] {
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  padding: 0;
+}
+.img-resize {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-sub);
 }
 .file-drop-zone {
   border: 2px dashed var(--border);

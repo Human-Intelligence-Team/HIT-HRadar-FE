@@ -737,7 +737,18 @@ textarea {
   display: flex;
   gap: 6px;
   align-items: center;
+  cursor: pointer;
 }
+
+.required-toggle input[type="checkbox"] {
+  cursor: pointer;
+  width: 15px;  /* 원하시는 16px 내외로 조정 */
+  height: 15px;
+  margin: 0;
+  accent-color: #6366f1; /* 체크박스 포인트를 테마 색상으로 변경 (선택사항) */
+  appearance: auto; /* 브라우저 기본 체크박스 형태 유지하면서 크기만 조절 */
+}
+
 .icon-btn {
   background: none;
   border: none;
