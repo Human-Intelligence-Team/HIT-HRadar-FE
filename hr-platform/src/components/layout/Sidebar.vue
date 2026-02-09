@@ -211,7 +211,7 @@ const menuConfig = computed(() => {
           text: '근태 관리',
           children: [
             { text: '나의 출퇴근 관리', to: '/attendance/commute' },
-            { text: 'IP 정책 관리', to: '/attendance/ip-policy' },
+            // { text: 'IP 정책 관리', to: '/attendance/ip-policy' }, // Hidden as per request
             { text: '부서 출퇴근 관리', to: '/attendance/department' },
             { text: '부서별 근태 캘린더', to: '/attendance/department-calendar' }
           ]

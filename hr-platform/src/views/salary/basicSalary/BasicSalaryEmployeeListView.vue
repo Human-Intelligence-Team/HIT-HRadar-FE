@@ -110,7 +110,6 @@ function searchBtn() {
     employeeNo: searchData.employeeNo,
     employeeName: searchData.employeeName,
   }
-  console.log("payload" + payload)
 
   // 검색
   searchReport(payload)
@@ -244,10 +243,11 @@ onMounted(() => {
           v-for="item in basicSalaries"
           :key="item.docId"
           :value="item.docId"
+          @click="goDetailPage(item.empId)"
         >
           <td>{{ getLabel(LEAVE_STATUS_OPTIONS, item.employmentType) }}</td>
           <td>{{item.deptName}}</td>
-          <td @click="goDetailPage(item.empId)">{{item.positionName}}</td>
+          <td >{{item.positionName}}</td>
           <td>{{item.employeeNo}}</td>
           <td>{{item.name}}</td>
           <td>

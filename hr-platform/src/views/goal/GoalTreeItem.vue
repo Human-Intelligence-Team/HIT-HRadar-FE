@@ -127,8 +127,9 @@ const props = defineProps({
 const router = useRouter()
 
 /* 담당자 (임시) */
-const ownerName = computed(() => `사번 ${props.goal.ownerId}`)
-
+const ownerName = computed(() =>
+  props.goal.ownerName || `사번 ${props.goal.ownerId}`
+)
 /* 상태 한글 */
 const STATUS_LABEL_MAP = {
   APPROVED: '승인',

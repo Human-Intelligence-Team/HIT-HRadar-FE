@@ -116,11 +116,12 @@ onMounted(() => {
         v-for="item in cycles"
         :key="item.cycleId"
         :value="item.cycleId"
+        @click="goDetailPage(item.year, item.quarter)"
       >
         <tr>
           <td>{{ item.year }}</td>
           <td>{{ item.quarter }}</td>
-          <td @click="goDetailPage(item.year, item.quarter)">
+          <td>
             {{ item.cycleName }}
           </td>
           <td>{{ item.empName }}</td>

@@ -83,7 +83,6 @@ const searchReport = async () => {
     const data = result.data
 
     if (data.success) {
-      console.log('성공')
       salaries.value = data.data.compensationSalaries
       let approval = data.data.salaryApproval
 

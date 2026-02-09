@@ -19,8 +19,8 @@
           <tr v-if="documents.length === 0">
             <td colspan="5" class="no-data">조회된 문서가 없습니다.</td>
           </tr>
-          <tr v-for="doc in documents" :key="doc.docId" @click="goToDetail(doc.docId)">
-            <td>{{ doc.docId }}</td>
+          <tr v-for="(doc, index) in documents" :key="doc.docId" @click="goToDetail(doc.docId)">
+            <td>{{ index + 1 }}</td>
             <td>{{ doc.title }}</td>
             <td>{{ doc.docType }}</td>
             <td>{{ doc.status }}</td>
@@ -86,12 +86,6 @@ onMounted(() => {
   font-size: 24px;
   font-weight: bold;
   color: #333;
-}
-
-.section-title .sub {
-  margin-top: 8px;
-  font-size: 14px;
-  color: #666;
 }
 
 .card {

@@ -12,15 +12,6 @@ const year = ref(getYear())
 const years = ref([])
 const reports = ref([])
 
-// datepicker
-// 포맷 지정 함수 (선택 사항)
-const format = (date) => {
-  const day = date.getDate()
-  const month = date.getMonth() + 1
-  const year = date.getFullYear()
-  return `${year}-${month}-${day}`
-}
-
 const isModalOpen = () => {
   emit('close')
 }
@@ -66,15 +57,12 @@ const createCompetencyReportBtn = (startDate, endDate, cycleId) => {
   }
 
   alert("리포트 생성합니다. 다시 시간이 많이 걸릴 수 있습니다.");
-  console.log("payload" , payload)
   createReport(payload)
 }
 
 // 검색
 const searchReport =  async(params) => {
  submitting.value = true
-
-  console.log("params : " , params)
 
   try {
     const result = await fetchCreatedReports(params)
@@ -161,18 +149,10 @@ onMounted(() => {
                 <span v-if="item.startDate ">
                   {{ item.startDate }}
                 </span>
-                <!--                <VueDatePicker
-                  v-else
-                  v-model="selectedStartDate"
-                  :format="format"
-                  auto-apply
-                  locale="ko"
-                  :enable-time="false"
-                />-->
-                <input v-else-if="!item.startDate && item.status === 'CLOSED'"
-                       type="text"
-                       class="input"
+                <input type="date"
                        v-model="item.tempStartDate"
+                       v-else-if="!item.startDate && item.status === 'CLOSED'"
+                       class="input"
                 />
                 <span v-else></span>
               </td>
@@ -180,17 +160,8 @@ onMounted(() => {
                 <span v-if="item.endDate">
                   {{ item.endDate }}
                 </span>
-                <!--                <VueDatePicker
-                  v-else
-                  v-model="item.tempStartDate"
-                  :format="format"
-                  auto-apply
-                  locale="ko"
-                  :enable-time="false"
-                  teleport="body"
-                />-->
                 <input v-else-if="!item.endDate && item.status === 'CLOSED'"
-                       type="text"
+                       type="date"
                        class="input"
                        v-model="item.tempEndDate"
                 />
@@ -220,7 +191,7 @@ onMounted(() => {
 
     <div v-if="submitting" class="loading-overlay">
       <div class="loading-content">
-        <img src="@/assets/img/loading-spinner.jpg" alt="로딩중" class="loading-img" />
+        <img src="@/assets/images/loading.gif" alt="로딩중" class="loading-img" />
 
         <p class="loading-text">리포트를 생성하고 있습니다.<br>잠시만 기다려 주세요...</p>
       </div>
