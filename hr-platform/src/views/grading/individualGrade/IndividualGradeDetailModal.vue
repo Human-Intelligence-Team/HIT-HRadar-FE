@@ -1,40 +1,42 @@
 <template>
-  <div class="modal-backdrop">
-    <div class="modal-card">
-      <div class="modal-header">
-        <div>
-          <h3 class="modal-title">사원 등급 상세</h3>
-          <p class="subtitle">{{ employee?.name }} (EMP#{{ employee?.empId }})</p>
-        </div>
-        <button class="btn-close" @click="$emit('close')">✕</button>
-      </div>
-
-      <div class="modal-body">
-        <div class="field readonly">
-          <label>등급</label>
-          <div class="value-box">{{ employee?.gradeName || '미부여' }}</div>
+  <Teleport to="body">
+    <div class="modal-backdrop">
+      <div class="modal-card">
+        <div class="modal-header">
+          <div>
+            <h3 class="modal-title">사원 등급 상세</h3>
+            <p class="subtitle">{{ employee?.name }} (EMP#{{ employee?.empId }})</p>
+          </div>
+          <button class="btn-close" @click="$emit('close')">✕</button>
         </div>
 
-        <div class="field readonly">
-          <label>상태</label>
-          <span class="status" :class="statusClass(employee?.gradeStatus)">
-            {{ statusText(employee?.gradeStatus) }}
-          </span>
-        </div>
+        <div class="modal-body">
+          <div class="field readonly">
+            <label>등급</label>
+            <div class="value-box">{{ employee?.gradeName || '미부여' }}</div>
+          </div>
 
-        <div class="field readonly">
-          <label>부여 사유</label>
-          <div class="value-box reason">
-            {{ employee?.gradeReason || '-' }}
+          <div class="field readonly">
+            <label>상태</label>
+            <span class="status" :class="statusClass(employee?.gradeStatus)">
+              {{ statusText(employee?.gradeStatus) }}
+            </span>
+          </div>
+
+          <div class="field readonly">
+            <label>부여 사유</label>
+            <div class="value-box reason">
+              {{ employee?.gradeReason || '-' }}
+            </div>
           </div>
         </div>
-      </div>
 
-      <div class="modal-footer">
-        <button class="btn ghost" @click="$emit('close')">닫기</button>
+        <div class="modal-footer">
+          <button class="btn ghost" @click="$emit('close')">닫기</button>
+        </div>
       </div>
     </div>
-  </div>
+  </Teleport>
 </template>
 <script setup>
 const props = defineProps({
@@ -61,7 +63,7 @@ const statusClass = (s) => ({
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 200;
+  z-index: 2000;
 }
 
 .modal-card {
