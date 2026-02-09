@@ -24,10 +24,12 @@
               disabled: e.cycleStatus !== 'IN_PROGRESS'
             }"
             @click="e.cycleStatus === 'IN_PROGRESS' && selectAssignment(e)"
-            :title="e.cycleStatus !== 'IN_PROGRESS'
-              ? '평가 기간이 아닙니다'
-              : ''"
           >
+            <!-- Badge for Closed Cycle -->
+            <div v-if="e.cycleStatus !== 'IN_PROGRESS'" class="closed-overlay">
+              <span class="closed-badge">⛔ 평가 마감</span>
+            </div>
+
             <div class="target">{{ e.targetName }}</div>
 
             <div class="meta">
@@ -466,16 +468,52 @@ onMounted(loadMyAssignments)
   padding: 12px;
   border-radius: 12px;
   cursor: pointer;
+  position: relative; /* For overlay positioning */
+  overflow: hidden;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+}
+.eval-list li:hover {
+  background: rgba(255,255,255,0.2);
 }
 .eval-list li.active {
   background: rgba(255,255,255,0.3);
+  border-color: rgba(255,255,255,0.5);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 .eval-list li.disabled {
-  opacity: 0.5;
+  opacity: 0.7;
   cursor: not-allowed;
+  background: rgba(0,0,0,0.15) !important;
+  color: #d1d5db;
+}
+
+.closed-overlay {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(55, 65, 81, 0.6);
+  z-index: 10;
+  backdrop-filter: blur(1px);
+}
+
+.closed-badge {
+  font-size: 13px;
+  font-weight: 800;
+  color: #ffffff;
+  background: #ef4444;
+  padding: 6px 14px;
+  border-radius: 999px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 .target {
   font-weight: 800;
+  margin-bottom: 4px; /* Slight spacing adjustment */
 }
 .meta {
   font-size: 12px;

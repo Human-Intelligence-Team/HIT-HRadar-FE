@@ -474,6 +474,13 @@ input:focus, select:focus {
   user-select: none;
 }
 
+.checkbox-item input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: #3b82f6;
+  cursor: pointer;
+}
+
 /* ===== Buttons ===== */
 .actions{
   display:flex;
