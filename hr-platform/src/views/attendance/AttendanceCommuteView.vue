@@ -47,7 +47,7 @@
                   'inactive': !clockInInfo
                 }" 
                 @click="handleClockIn"
-                :disabled="!!clockInInfo || !!lastClockOutTime"
+                :disabled="!!clockInInfo"
               >
                 <span class="btn-content">
                   <span class="btn-title">출근하기 <span v-if="clockInInfo">✓</span></span>
