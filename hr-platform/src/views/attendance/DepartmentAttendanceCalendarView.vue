@@ -134,10 +134,15 @@ const fetchEmployees = async (deptId) => {
     try {
         const response = await getDepartmentMembers(deptId);
         if (response.data && response.data.success) {
-            employeeOptions.value = response.data.data.map(m => ({
-                id: m.employeeId,
-                name: m.name
-            })).sort((a, b) => a.name.localeCompare(b.name));
+            const memberList = response.data.data.employees || response.data.data || [];
+            if (Array.isArray(memberList)) {
+                employeeOptions.value = memberList.map(m => ({
+                    id: m.empId || m.employeeId,
+                    name: m.name
+                })).sort((a, b) => a.name.localeCompare(b.name));
+            } else {
+                employeeOptions.value = [];
+            }
         }
     } catch (error) {
         console.error("Failed to fetch department members:", error);
