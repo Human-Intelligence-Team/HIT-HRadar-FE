@@ -9,21 +9,32 @@
       <div class="detail-header-column">
         <div class="header-top">
           <h2 class="doc-title">{{ document.title }}</h2>
-          <span :class="['status-badge', document.status.toLowerCase()]">{{ document.status }}</span>
+          <span :class="['status-badge', document.status.toLowerCase()]">{{ translateStatus(document.status) }}</span>
         </div>
         <div class="header-meta-row">
           <span class="meta-label">문서 유형:</span>
-          <span class="meta-value">{{ document.docType }}</span>
+          <span class="meta-value">{{ translateDocType(document.docType) }}</span>
           <span class="divider">|</span>
           <span class="meta-label">제출 일시:</span>
           <span class="meta-value">{{ formatDate(document.submittedAt) }}</span>
-          
+
+          <!-- 휴가 신청인 경우 (startDate 존재) -->
           <template v-if="parsedPayload && parsedPayload.startDate">
              <span class="divider">|</span>
-             <span class="meta-label">기간:</span>
-             <span class="meta-value">
-                {{ parsedPayload.startDate }} ~ {{ parsedPayload.endDate || parsedPayload.startDate }}
+             <span class="meta-label">휴가 기간:</span>
+             <span class="meta-value text-blue">
+                {{ formatDateOnly(parsedPayload.startDate) }} ~ {{ formatDateOnly(parsedPayload.endDate || parsedPayload.startDate) }}
              </span>
+          </template>
+
+          <!-- 연차 부여인 경우 (targetEmployeeId 존재) -->
+          <template v-if="parsedPayload && parsedPayload.targetEmployeeId">
+             <span class="divider">|</span>
+             <span class="meta-label">부여 대상:</span>
+             <span class="meta-value">사원 ID {{ parsedPayload.targetEmployeeId }}</span>
+             <span class="divider">|</span>
+             <span class="meta-label">부여 규모:</span>
+             <span class="meta-value text-green">{{ parsedPayload.days }}일 ({{ parsedPayload.year }}년도)</span>
           </template>
         </div>
       </div>
@@ -69,14 +80,27 @@
         <div class="comment-section-body">
             <p v-if="!document.comments || document.comments.length === 0" class="no-comments">아직 댓글이 없습니다.</p>
             <div v-else class="comment-list-container">
-            <div v-for="comment in document.comments" :key="comment.commentId" :class="['comment-item', { 'is-reply': comment.parentCommentId }]">
-                <div class="comment-header">
-                <span class="comment-writer">{{ comment.writerName || comment.writerId }}</span>
-                <span class="comment-date">{{ formatDate(comment.createdAt) }}</span>
-                <button v-if="canAddComment" @click="replyTo(comment)" class="btn-small btn-reply">답글</button>
+              <div v-for="group in structuredComments" :key="group.parent.commentId" class="comment-group">
+                <!-- Parent Comment -->
+                <div class="comment-item">
+                  <div class="comment-header">
+                    <span class="comment-writer">{{ group.parent.writerName || group.parent.writerId }}</span>
+                    <span class="comment-date">{{ formatDate(group.parent.createdAt) }}</span>
+                    <button v-if="canAddComment" @click="replyTo(group.parent)" class="btn-small btn-reply">답글</button>
+                  </div>
+                  <div class="comment-content">{{ group.parent.content }}</div>
                 </div>
-                <div class="comment-content">{{ comment.content }}</div>
-            </div>
+                
+                <!-- Replies -->
+                <div v-for="reply in group.replies" :key="reply.commentId" class="comment-item is-reply">
+                  <div class="comment-header">
+                    <span class="comment-writer">{{ reply.writerName || reply.writerId }}</span>
+                    <span class="comment-date">{{ formatDate(reply.createdAt) }}</span>
+                    <!-- Nested replies limited to 1 level for simplicity as per current button logic, but they would appear here -->
+                  </div>
+                  <div class="comment-content">{{ reply.content }}</div>
+                </div>
+              </div>
             </div>
 
             <!-- Styled Comment Input -->
@@ -130,7 +154,7 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { useRoute } from 'vue-router';
 import ApprovalLineDisplay from '@/components/approval/ApprovalLineDisplay.vue';
 import ApprovalHistoryDisplay from '@/components/approval/ApprovalHistoryDisplay.vue';
 import {
@@ -230,6 +254,22 @@ const canReject = computed(() => {
 });
 
 // For Comments
+const structuredComments = computed(() => {
+  if (!document.value || !document.value.comments) return [];
+  
+  const comments = [...document.value.comments];
+  // Sort by created date (oldest first for natural flow)
+  comments.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+  
+  const parents = comments.filter(c => !c.parentCommentId);
+  const replies = comments.filter(c => c.parentCommentId);
+  
+  return parents.map(parent => ({
+    parent,
+    replies: replies.filter(r => r.parentCommentId === parent.commentId)
+  }));
+});
+
 const newCommentContent = ref('');
 const replyToCommentId = ref(null);
 const replyToCommentWriter = ref('');
@@ -264,8 +304,8 @@ const postComment = async () => {
 
 const replyTo = (comment) => {
   replyToCommentId.value = comment.commentId;
-  replyToCommentWriter.value = comment.writerId;
-  newCommentContent.value = `@${comment.writerId} `;
+  replyToCommentWriter.value = comment.writerName || comment.writerId;
+  newCommentContent.value = `@${comment.writerName || comment.writerId} `;
   // Focus on the comment input field
   const commentInput = window.document.getElementById('newCommentInput');
   if (commentInput) {
@@ -332,6 +372,32 @@ const withdraw = async () => {
     alert('문서 회수에 실패했습니다.');
     console.error('Failed to withdraw:', error);
   }
+};
+
+const translateStatus = (status) => {
+  const map = {
+    'DRAFT': '임시저장',
+    'IN_PROGRESS': '진행중',
+    'APPROVED': '승인됨',
+    'REJECTED': '반려됨',
+    'WITHDRAWN': '회수됨',
+    'TEMP': '임시저장'
+  };
+  return map[status] || status;
+};
+
+const translateDocType = (type) => {
+  if (type === 'LEAVE_GRANT') return '연차 등록';
+  if (type === 'SICK' || type === 'SICK_LEAVE') return '병가 신청';
+  if (type === 'LEAVE_REQUEST' || type.includes('ANNUAL')) return '휴가 신청';
+  return type;
+};
+
+const formatDateOnly = (dateStr) => {
+  if (!dateStr) return '-';
+  const date = new Date(dateStr);
+  if (isNaN(date.getTime())) return dateStr;
+  return `${date.getFullYear()}년 ${String(date.getMonth() + 1).padStart(2, '0')}월 ${String(date.getDate()).padStart(2, '0')}일`;
 };
 
 const formatDate = (datetime) => {
@@ -472,11 +538,14 @@ onMounted(() => {
   text-transform: uppercase;
 }
 
-.status-badge.draft { background-color: #ecf5ff; color: #3182f6; } /* Project Blue */
-.status-badge.in_progress { background-color: #fff7ed; color: #c2410c; }
-.status-badge.approved { background-color: #ecfdf5; color: #047857; }
-.status-badge.rejected { background-color: #fef2f2; color: #b91c1c; }
-.status-badge.withdrawn { background-color: #fffbeb; color: #b45309; }
+.status-badge.draft { background-color: #f1f5f9; color: #64748b; }
+.status-badge.in_progress { background-color: #eff6ff; color: #3b82f6; }
+.status-badge.approved { background-color: #f0fdf4; color: #16a34a; }
+.status-badge.rejected { background-color: #fef2f2; color: #dc2626; }
+.status-badge.withdrawn { background-color: #fffbeb; color: #d97706; }
+
+.text-blue { color: #3b82f6; }
+.text-green { color: #16a34a; }
 
 .detail-content {
   margin-top: 24px;
@@ -528,14 +597,48 @@ hr {
   background-color: #f8f9fa;
   border-radius: 8px;
   padding: 12px 15px;
-  margin-bottom: 10px;
-  border-left: 4px solid #007bff; /* Primary color for comments */
+  margin-bottom: 8px;
+  border-left: 4px solid #007bff;
+}
+
+.comment-group {
+    margin-bottom: 20px;
 }
 
 .comment-item.is-reply {
-  margin-left: 30px; /* Indent replies */
-  border-left-color: #6c757d; /* Different color for replies */
-  background-color: #eff3f7;
+  margin-left: 36px;
+  margin-top: -6px;
+  margin-bottom: 12px;
+  background-color: #f1f3f5;
+  border-radius: 0 8px 8px 8px;
+  border-left: none; /* Removed default border */
+  position: relative;
+  padding: 10px 12px;
+}
+
+/* Connecting Line for Replies (ㄴ Marker) */
+.comment-item.is-reply::before {
+  content: "ㄴ";
+  position: absolute;
+  left: -22px;
+  top: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #adb5bd;
+}
+
+/* Smaller font sizes for replies */
+.comment-item.is-reply .comment-writer {
+  font-size: 13px;
+}
+
+.comment-item.is-reply .comment-date {
+  font-size: 11px;
+}
+
+.comment-item.is-reply .comment-content {
+  font-size: 13px;
+  color: #555;
 }
 
 .comment-header {
@@ -594,10 +697,6 @@ hr {
   box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
 }
 
-.comment-actions {
-  display: flex;
-  justify-content: flex-end;
-}
 
 .action-buttons {
   display: flex;
@@ -674,6 +773,18 @@ hr {
   margin-left: 4px;
 }
 
+.btn-text-cancel {
+  background: none;
+  border: none;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 4px 8px; /* Added from context */
+  text-decoration: underline; /* Added from context */
+}
+.btn-text-cancel:hover {
+  color: #dc3545;
+}
+
 .btn-text-more {
   background: none;
   border: none;
@@ -687,15 +798,7 @@ hr {
   color: #111827;
 }
 
-.btn-cancel-reply {
-  background: none;
-  border: none;
-  color: #6b7280;
-  cursor: pointer;
-}
-.btn-cancel-reply:hover {
-  color: #dc3545;
-}
+
 
 /* Updated Comment Input */
 .comment-textarea {
