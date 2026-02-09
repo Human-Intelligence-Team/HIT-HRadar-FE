@@ -46,9 +46,7 @@
             <tr v-if="loading">
                 <td colspan="9" class="loading-indicator">데이터를 불러오는 중...</td>
             </tr>
-            <tr v-else-if="attendanceRecords.length === 0">
-                <td colspan="9" class="no-results">해당 날짜와 부서의 출퇴근 기록이 없습니다.</td>
-            </tr>
+            <!-- User requested to remove the "No results" message row -->
             <tr v-else v-for="record in filteredRecords" :key="record.employeeId">
               <td>{{ record.name }}</td>
               <td>{{ record.jobTitle }}</td>
@@ -208,6 +206,7 @@ watch([selectedDate, selectedDepartmentId], () => {
   color: #111827; /* Darker, high contrast */
   margin: 0;
   letter-spacing: -0.025em;
+  white-space: nowrap; /* Prevent text wrapping */
 }
 
 .filter-controls {
@@ -283,14 +282,15 @@ watch([selectedDate, selectedDepartmentId], () => {
 }
 
 .table-container {
-  overflow-x: auto;
+  overflow: auto; /* Enable both horizontal and vertical scrolling */
   flex-grow: 1;
   min-height: 0;
 }
 
 .attendance-table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate; /* Required for sticky header border to look right in some browsers, or keep collapse */
+  border-spacing: 0;
 }
 
 .attendance-table th, .attendance-table td {
@@ -298,13 +298,17 @@ watch([selectedDate, selectedDepartmentId], () => {
   text-align: left;
   border-bottom: 1px solid #f3f4f6;
   font-size: 13px;
-  color: #1e293b; /* Darker from #374151 */
+  color: #1e293b;
 }
 
 .attendance-table th {
   background-color: #f9fafb;
   font-weight: 700;
-  color: #1e293b; /* Darker from #4b5563 */
+  color: #1e293b;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  border-bottom: 2px solid #e5e7eb; /* Stronger border for header */
 }
 
 .attendance-table tbody tr:last-child td {

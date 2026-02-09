@@ -227,6 +227,9 @@ const formatTime = (timeStr) => {
   display: flex;
   flex-direction: column;
   gap: 20px;
+  overflow-y: auto;
+  max-height: 60vh; /* Prevent overflow on small screens */
+  padding-right: 4px; /* Space for scrollbar */
 }
 
 /* 프로필 영역 강조 */
