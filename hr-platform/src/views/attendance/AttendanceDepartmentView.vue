@@ -46,9 +46,7 @@
             <tr v-if="loading">
                 <td colspan="9" class="loading-indicator">데이터를 불러오는 중...</td>
             </tr>
-            <tr v-else-if="attendanceRecords.length === 0">
-                <td colspan="9" class="no-results">해당 날짜와 부서의 출퇴근 기록이 없습니다.</td>
-            </tr>
+            <!-- User requested to remove the "No results" message row -->
             <tr v-else v-for="record in filteredRecords" :key="record.employeeId">
               <td>{{ record.name }}</td>
               <td>{{ record.jobTitle }}</td>
@@ -208,6 +206,7 @@ watch([selectedDate, selectedDepartmentId], () => {
   color: #111827; /* Darker, high contrast */
   margin: 0;
   letter-spacing: -0.025em;
+  white-space: nowrap; /* Prevent text wrapping */
 }
 
 .filter-controls {
