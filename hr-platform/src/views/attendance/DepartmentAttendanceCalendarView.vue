@@ -161,15 +161,14 @@ const filteredEvents = computed(() => {
 
     // 2. Type Filter
     result = result.filter(e => {
-        // Map raw data type to filter keys
-        const typeStr = e.extendedProps.workType || '';
+        const typeStr = String(e.extendedProps.workType || '').toUpperCase();
         let key = 'OFFICE'; // Default
         
-        if (typeStr.includes('재택')) key = 'REMOTE';
-        else if (typeStr.includes('외근')) key = 'FIELD';
-        else if (typeStr.includes('출장')) key = 'TRIP';
-        else if (typeStr.includes('휴가')) key = 'VACATION';
-        else if (typeStr.includes('내근') || typeStr.includes('출근')) key = 'OFFICE';
+        if (typeStr.includes('재택') || typeStr.includes('REMOTE')) key = 'REMOTE';
+        else if (typeStr.includes('외근') || typeStr.includes('FIELD')) key = 'FIELD';
+        else if (typeStr.includes('출장') || typeStr.includes('TRIP')) key = 'TRIP';
+        else if (typeStr.includes('휴가') || typeStr.includes('VACATION')) key = 'VACATION';
+        else if (typeStr.includes('내근') || typeStr.includes('출근') || typeStr.includes('WORK')) key = 'OFFICE';
         
         return selectedFilters.value.includes(key);
     });
@@ -187,10 +186,10 @@ const getWorkTypeColor = (type, status) => {
   return '#3b82f6'; // Default Blue
 };
 
-const calendarOptions = ref({
+const calendarOptions = computed(() => ({
   plugins: [dayGridPlugin, interactionPlugin, bootstrap5Plugin],
   initialView: 'dayGridMonth',
-  events: filteredEvents, // Bind filtered list
+  events: filteredEvents.value, // Bind filtered list
   headerToolbar: {
     left: 'title prev,next today',
     center: '',
@@ -216,7 +215,7 @@ const calendarOptions = ref({
        await fetchCalendarEvents(dateInfo.startStr.substring(0, 10), dateInfo.endStr.substring(0, 10));
     }
   }
-});
+}));
 
 const toggleAllFilters = () => {
     if (selectedFilters.value.length === workTypes.length) {
