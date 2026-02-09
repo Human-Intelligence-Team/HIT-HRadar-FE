@@ -18,7 +18,6 @@
       </RouterLink>
       
       <NotificationBell />
-      <ThemeToggle />
 
       <!-- Profile Area -->
       <div class="profile-area" @click="router.push('/my-profile')">
@@ -35,7 +34,6 @@
 </template>
 
 <script setup>
-import ThemeToggle from '@/components/common/ThemeToggle.vue'
 import NotificationBell from '@/components/notification/NotificationBell.vue'
 import { useAuthStore } from '@/stores/authStore'
 import BrandLogo from '@/components/common/BrandLogo.vue'
