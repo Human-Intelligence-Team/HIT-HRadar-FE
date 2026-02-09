@@ -44,8 +44,12 @@
 
 
       <div class="form-actions">
-        <button class="btn btn-secondary" @click="saveDraft">임시저장</button>
-        <button class="btn btn-primary" @click="handleSubmitApproval">상신</button>
+        <button class="btn btn-secondary" @click="saveDraft" :disabled="isSubmitting">
+          {{ isSubmitting ? '처리중...' : '임시저장' }}
+        </button>
+        <button class="btn btn-primary" @click="handleSubmitApproval" :disabled="isSubmitting">
+          {{ isSubmitting ? '처리중...' : '상신' }}
+        </button>
       </div>
     </section>
   </div>
@@ -78,7 +82,25 @@ const form = ref({
   referenceIds: [],
 });
 
+const existingPayload = ref({});
+
 onMounted(async () => {
+  // 1. Handle Query Parameters (Redirect from other pages like Leave Admin)
+  const { type, title, content, payload } = route.query;
+  if (type) form.value.docType = type;
+  if (title) form.value.title = title;
+  if (content) form.value.content = content;
+  if (payload) {
+    try {
+        const parsed = JSON.parse(payload);
+        existingPayload.value = parsed;
+        if (parsed.overtimeMinutes) form.value.overtimeMinutes = parsed.overtimeMinutes;
+    } catch (e) {
+        console.error('Failed to parse query payload:', e);
+    }
+  }
+
+  // 2. Handle Existing Document ID (Redirect from Drafts)
   if (route.params.id) {
     docId.value = parseInt(route.params.id);
     try {
@@ -92,10 +114,11 @@ onMounted(async () => {
         form.value.endDate = detail.endDate || '';
         if (detail.payload) {
             try {
-                const payload = JSON.parse(detail.payload);
-                form.value.overtimeMinutes = payload.overtimeMinutes || 0;
+                const payloadStr = JSON.parse(detail.payload);
+                existingPayload.value = payloadStr; // Preserve all fields
+                form.value.overtimeMinutes = payloadStr.overtimeMinutes || 0;
             } catch {
-                console.warn('Failed to parse payload for overtimeMinutes');
+                console.warn('Failed to parse payload');
             }
         }
         form.value.approverIds = detail.approverIds || [];
@@ -108,6 +131,8 @@ onMounted(async () => {
     }
   }
 });
+
+const isSubmitting = ref(false);
 
 const validateForm = () => {
   if (!form.value.docType) {
@@ -128,8 +153,10 @@ const validateForm = () => {
 };
 
 const saveDraft = async () => {
+  if (isSubmitting.value) return;
   if (!validateForm()) return;
 
+  isSubmitting.value = true;
   const request = {
     docType: form.value.docType,
     title: form.value.title,
@@ -139,6 +166,7 @@ const saveDraft = async () => {
     startDate: form.value.startDate || null,
     endDate: form.value.endDate || null,
     payload: {
+        ...existingPayload.value, // Merge existing fields
         startDate: form.value.startDate || null,
         endDate: form.value.endDate || null,
         overtimeMinutes: form.value.overtimeMinutes || 0
@@ -155,12 +183,16 @@ const saveDraft = async () => {
   } catch (error) {
     alert('임시저장에 실패했습니다. 관리자에게 문의하거나 브라우저 새로고침(F5)을 해주세요.');
     console.error('Failed to save draft:', error);
+  } finally {
+    isSubmitting.value = false;
   }
 };
 
 const handleSubmitApproval = async () => {
+  if (isSubmitting.value) return;
   if (!validateForm()) return;
 
+  isSubmitting.value = true;
   try {
     if (!docId.value) {
       // 신규 작성 시 바로 상신 API 호출
@@ -173,6 +205,7 @@ const handleSubmitApproval = async () => {
         startDate: form.value.startDate || null,
         endDate: form.value.endDate || null,
         payload: {
+            ...existingPayload.value, // Merge existing fields
             startDate: form.value.startDate || null,
             endDate: form.value.endDate || null,
             overtimeMinutes: form.value.overtimeMinutes || 0
@@ -181,12 +214,7 @@ const handleSubmitApproval = async () => {
       };
       
       console.log('Sending Direct Submit Request:', submitRequest);
-      try {
-        await submitNewApproval(submitRequest);
-      } catch (submitError) {
-        console.error('Direct Submit Error Details:', submitError.response || submitError);
-        throw submitError;
-      }
+      await submitNewApproval(submitRequest);
       
     } else {
       // 이미 임시저장된 문서가 있는 경우 기존 로직
@@ -202,6 +230,8 @@ const handleSubmitApproval = async () => {
       alert('문서 상신에 실패했습니다. 입력 정보를 확인해주세요.');
     }
     console.error('Failed to submit approval:', error);
+  } finally {
+    isSubmitting.value = false;
   }
 };
 </script>

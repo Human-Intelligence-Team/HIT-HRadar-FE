@@ -293,7 +293,8 @@ const submitLeaveApplication = async () => {
     console.log('Draft 생성 성공, docId:', docId);
 
     if (!docId) {
-      throw new Error('결재 문서 생성에 실패했습니다.');
+      alert('결재 문서 생성에 실패했습니다.');
+      return;
     }
 
     // Find policy ID from typeName
@@ -375,6 +376,7 @@ onMounted(fetchInitialData);
 .modal-header h2 {
   font-size: 1.25rem;
   font-weight: 600;
+  color: #111827;
 }
 
 .close-button {
@@ -399,6 +401,7 @@ onMounted(fetchInitialData);
   font-size: 1.1rem;
   font-weight: 600;
   margin-bottom: 1rem;
+  color: #374151;
 }
 
 .form-grid {
@@ -417,6 +420,7 @@ onMounted(fetchInitialData);
   font-size: 0.875rem;
   font-weight: 500;
   margin-bottom: 0.5rem;
+  color: #374151;
 }
 
 .form-field input,
@@ -426,6 +430,8 @@ onMounted(fetchInitialData);
   border: 1px solid #d1d5db;
   border-radius: 8px;
   font-size: 0.9rem;
+  color: #111827;
+  background-color: #ffffff;
 }
 .form-field textarea {
     resize: vertical;

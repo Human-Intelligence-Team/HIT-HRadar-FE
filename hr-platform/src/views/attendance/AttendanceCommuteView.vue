@@ -51,7 +51,7 @@
               >
                 <span class="btn-content">
                   <span class="btn-title">출근하기 <span v-if="clockInInfo">✓</span></span>
-                  <span class="btn-time">{{ clockInInfo ? clockInInfo.clockInTime : '00:00' }}</span>
+                  <span class="btn-time">{{ clockInInfo ? clockInInfo.clockInTime : (lastClockInTime || '00:00') }}</span>
                 </span>
               </button>
 
@@ -76,7 +76,7 @@
              <div class="weekly-history-list">
                 <div class="list-header">
                   <h4>{{ getWeekRangeString() }}</h4>
-                  <span class="total-hours" v-if="weeklyTotalHours">{{ weeklyTotalHours }} / 40시간</span>
+                  <span class="total-hours" v-if="weeklyTotalHours">{{ weeklyTotalHours }} / {{ standardWeeklyHours }}시간</span>
                 </div>
                 <ul>
                   <li v-for="day in weeklyHistory" :key="day.dateStr" :class="{ 'today': day.isToday }">
@@ -166,10 +166,12 @@ const loading = ref({
 });
 
 const clockInInfo = ref(null);
+const lastClockInTime = ref(null); // 출근 시간 저장 (퇴근 후에도 유지)
 const lastClockOutTime = ref(null); // 퇴근 시간 저장
 const initialWorkInfo = ref({ workType: '-', workplace: '-' });
 const weeklyHistory = ref([]); 
 const weeklyTotalHours = ref('');
+const standardWeeklyHours = ref(40); // SaaS-style dynamic policy
 
 // Calendar State
 const fullCalendar = ref(null);
@@ -310,6 +312,8 @@ const fetchMyStatus = async (showLoading = true) => {
     const responseData = response.data?.data || response.data;
     
     if (responseData && (responseData.checkInTime || responseData.workType)) {
+      lastClockInTime.value = extractTime(responseData.checkInTime);
+      
       if (!responseData.checkOutTime) {
          // 출근 중
          clockInInfo.value = {
@@ -329,6 +333,7 @@ const fetchMyStatus = async (showLoading = true) => {
       }
     } else {
       clockInInfo.value = null;
+      lastClockInTime.value = null;
       lastClockOutTime.value = null;
       initialWorkInfo.value.workType = responseData?.workType || '-';
       initialWorkInfo.value.workplace = responseData?.workPlace || '-';
@@ -547,12 +552,16 @@ const fetchCalendarData = async (startDate, endDate) => {
 ===================== */
 const handleClockIn = async () => {
   if (clockInInfo.value) return; 
-  await clockInOut();
+  if (confirm('출근하시겠습니까?')) {
+    await clockInOut();
+  }
 };
 
 const handleClockOut = async () => {
   if (!clockInInfo.value) return; 
-  await clockInOut();
+  if (confirm('퇴근하시겠습니까?')) {
+    await clockInOut();
+  }
 };
 
 
@@ -617,12 +626,11 @@ const clockInOut = async () => {
 
 <style scoped>
 .attendance-dashboard {
-  height: 100%;
+  min-height: 100%; /* Allow growth */
   display: flex;
   gap: 24px;
   background-color: #f8fafc;
   padding: 0;
-  min-height: 80vh;
 }
 
 /* ===============================
@@ -635,7 +643,7 @@ const clockInOut = async () => {
 }
 
 .my-commute-card {
-  height: 100%;
+  min-height: 100%; /* Allow growth */
   border-radius: 20px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
   display: flex;
@@ -786,6 +794,7 @@ const clockInOut = async () => {
     margin-top: auto;
     border-top: 1px solid #f1f5f9;
     padding-top: 20px;
+    padding-bottom: 24px; /* Prevent bottom cutoff */
     flex-grow: 1;
 }
 
