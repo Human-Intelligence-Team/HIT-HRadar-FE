@@ -64,8 +64,8 @@
           <tr v-if="documents.length === 0">
             <td colspan="7" class="no-data">조회된 문서가 없습니다.</td>
           </tr>
-          <tr v-for="doc in documents" :key="doc.docId" @click="goToDetail(doc.docId)">
-            <td>{{ doc.docId }}</td>
+          <tr v-for="(doc, index) in documents" :key="doc.docId" @click="goToDetail(doc.docId)">
+            <td>{{ index + 1 }}</td>
             <td>{{ doc.title }}</td>
             <td>{{ doc.docType }}</td>
             <td>{{ doc.status }}</td>
@@ -194,13 +194,6 @@ onMounted(() => {
   font-size: 13px;
   color: #333;
   box-sizing: border-box;
-}
-
-.filter-group .btn {
-  padding: 8px 15px;
-  font-size: 13px;
-  font-weight: 600;
-  min-width: 80px;
 }
 
 
