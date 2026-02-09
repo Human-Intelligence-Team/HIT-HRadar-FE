@@ -133,21 +133,39 @@ const calendarOptions = ref({
 });
 
 const fetchDepartments = async () => {
-    try {
-        const response = await getAllDepartmentsByCompany(companyId.value);
-        if (response.data && response.data.success) {
-            departmentOptions.value = response.data.data.departments.map(d => ({
-                id: d.deptId,
-                name: d.deptName
-            }));
-            
-            if (!selectedDepartmentId.value && departmentOptions.value.length > 0) {
-                selectedDepartmentId.value = departmentOptions.value[0].id;
-            }
-        }
-    } catch (error) {
-        console.error("Failed to fetch departments:", error);
+  try {
+    const res = await getAllDepartmentsByCompany();
+    const rawData = res.data?.data?.departments || res.data?.data || [];
+    
+    // Recursive function to flatten the department tree
+    const flattenDepts = (data) => {
+      if (!data) return [];
+      if (Array.isArray(data)) {
+        let result = [];
+        data.forEach(item => {
+          result.push(item);
+          if (item.children && Array.isArray(item.children)) {
+            result = result.concat(flattenDepts(item.children));
+          }
+        });
+        return result;
+      }
+      return [data];
+    };
+
+    const flatList = flattenDepts(rawData);
+    
+    departmentOptions.value = flatList.map(d => ({
+      id: d.deptId || d.id || d.departmentId,
+      name: d.deptName || d.name || d.departmentName
+    })).filter(d => d.id);
+
+    if (!selectedDepartmentId.value && departmentOptions.value.length > 0) {
+      selectedDepartmentId.value = auth.user?.departmentId || departmentOptions.value[0].id;
     }
+  } catch (error) {
+    console.error("Failed to fetch departments:", error);
+  }
 };
 
 const fetchEmployees = async (deptId) => {

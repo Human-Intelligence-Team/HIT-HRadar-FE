@@ -104,10 +104,32 @@ const fetchDocuments = async () => {
 
 const fetchDepartments = async () => {
   try {
-    const res = await getAllDepartmentsByCompany(companyId.value);
-    if (res.data && res.data.success) {
-      departments.value = res.data.data.departments;
-    }
+    const res = await getAllDepartmentsByCompany();
+    const rawData = res.data?.data?.departments || res.data?.data || [];
+    
+    // Recursive function to flatten the department tree
+    const flattenDepts = (data) => {
+      if (!data) return [];
+      if (Array.isArray(data)) {
+        let result = [];
+        data.forEach(item => {
+          result.push(item);
+          if (item.children && Array.isArray(item.children)) {
+            result = result.concat(flattenDepts(item.children));
+          }
+        });
+        return result;
+      }
+      return [data];
+    };
+
+    const flatList = flattenDepts(rawData);
+    
+    departments.value = flatList.map(d => ({
+      deptId: d.deptId || d.id || d.departmentId,
+      deptName: d.deptName || d.name || d.departmentName
+    })).filter(d => d.deptId);
+
   } catch (error) {
     console.error('Failed to fetch departments:', error);
   }

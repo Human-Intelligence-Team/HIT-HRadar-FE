@@ -199,7 +199,7 @@ const fetchData = async () => {
         const [leavesRes, policiesRes, deptsRes] = await Promise.all([
             getDepartmentLeaves(),
             getLeavePolicies(authStore.user?.companyId),
-            getAllDepartmentsByCompany(authStore.user?.companyId)
+            getAllDepartmentsByCompany(authStore.user?.companyId || undefined)
         ]);
 
         if (leavesRes.data && leavesRes.data.success) {
@@ -212,7 +212,28 @@ const fetchData = async () => {
         }
 
         if (deptsRes.data && deptsRes.data.success) {
-            departments.value = deptsRes.data.data.departments || [];
+            const rawData = deptsRes.data.data.departments || deptsRes.data.data || [];
+            
+            const flattenDepts = (data) => {
+                if (!data) return [];
+                if (Array.isArray(data)) {
+                    let result = [];
+                    data.forEach(item => {
+                        result.push(item);
+                        if (item.children && Array.isArray(item.children)) {
+                            result = result.concat(flattenDepts(item.children));
+                        }
+                    });
+                    return result;
+                }
+                return [data];
+            };
+
+            const flatList = flattenDepts(rawData);
+            departments.value = flatList.map(d => ({
+                deptId: d.deptId || d.id || d.departmentId,
+                deptName: d.deptName || d.name || d.departmentName
+            })).filter(d => d.deptId);
         }
 
     } catch (e) {

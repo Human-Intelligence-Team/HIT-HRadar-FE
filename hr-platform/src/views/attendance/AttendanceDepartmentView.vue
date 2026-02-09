@@ -84,22 +84,39 @@ const attendanceRecords = ref([]);
 
 // 부서 목록 가져오기 함수
 const fetchDepartments = async () => {
-    try {
-        const response = await getAllDepartmentsByCompany(companyId.value);
-        if (response.data?.success) {
-             departmentOptions.value = response.data.data.departments.map(d => ({
-                id: d.deptId,
-                name: d.deptName
-             }));
+  try {
+    const res = await getAllDepartmentsByCompany();
+    const rawData = res.data?.data?.departments || res.data?.data || [];
+    
+    // Recursive function to flatten the department tree
+    const flattenDepts = (data) => {
+      if (!data) return [];
+      if (Array.isArray(data)) {
+        let result = [];
+        data.forEach(item => {
+          result.push(item);
+          if (item.children && Array.isArray(item.children)) {
+            result = result.concat(flattenDepts(item.children));
+          }
+        });
+        return result;
+      }
+      return [data];
+    };
 
-             // If selectedDepartmentId is empty, try to set it from authStore or first option
-             if (!selectedDepartmentId.value) {
-                 selectedDepartmentId.value = auth.user?.departmentId || (departmentOptions.value.length > 0 ? departmentOptions.value[0].id : '');
-             }
-        }
-    } catch (error) {
-        console.error("부서 목록 조회 실패:", error);
+    const flatList = flattenDepts(rawData);
+    
+    departmentOptions.value = flatList.map(d => ({
+      id: d.deptId || d.id || d.departmentId,
+      name: d.deptName || d.name || d.departmentName
+    })).filter(d => d.id);
+
+    if (!selectedDepartmentId.value && departmentOptions.value.length > 0) {
+      selectedDepartmentId.value = auth.user?.departmentId || departmentOptions.value[0].id;
     }
+  } catch (error) {
+    console.error("부서 목록 조회 실패:", error);
+  }
 };
 
 onMounted(async () => {
