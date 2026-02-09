@@ -191,10 +191,53 @@ watch(selectedEmpId, async empId => {
     fetchEmpJobStable(empId, startYm, endYm)
   ])
 
-  contribution.value = c1.data.data
-  collaboration.value = c2.data.data
-  job.value = c3.data.data
-  stability.value = c4.data.data
+  /* Contribution Empty Check */
+  if (!c1.data.data?.values?.length) {
+    contribution.value = {
+      categories: ['항목 없음', '항목 없음', '항목 없음'],
+      values: [0, 0, 0]
+    }
+  } else {
+    contribution.value = c1.data.data
+  }
+
+  /* Collaboration Empty Check */
+  if (!c2.data.data?.values?.length) {
+    collaboration.value = {
+      labels: ['역량1', '역량2', '역량3', '역량4', '역량5'],
+      values: [0, 0, 0, 0, 0],
+      max: 100
+    }
+  } else {
+    collaboration.value = c2.data.data
+  }
+
+  /* Job Satisfaction Empty Check */
+  const jobData = c3.data.data
+  if (!jobData?.barValues?.length) {
+    job.value = {
+      labels: ['급여', '워라밸', '동료', '성장', '문화'],
+      barValues: [0, 0, 0, 0, 0],
+      gauge: { percentage: 0, average: 0 }
+    }
+  } else {
+    job.value = jobData
+  }
+
+  /* Stability Empty Check */
+  if (!c4.data.data?.values?.length) {
+    // Generate last 12 months labels
+    const labels = []
+    for (let i = 0; i < 12; i++) {
+        labels.push(dayjs().subtract(11 - i, 'month').format('YYYY-MM'))
+    }
+    stability.value = {
+      labels: labels,
+      values: new Array(12).fill(0)
+    }
+  } else {
+    stability.value = c4.data.data
+  }
 
   loaded.value.contribution = true
   loaded.value.collaboration = true

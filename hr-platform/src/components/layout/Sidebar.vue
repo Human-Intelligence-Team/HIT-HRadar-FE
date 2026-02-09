@@ -171,12 +171,12 @@ const menuConfig = computed(() => {
           text: '다면 평가',
           children: [
             { text: '회차 등록/조회', to: '/cycles' },
-            { text: '회차 등록/조회', to: '/hr/cycles' },
-            { text: '평가유형 생성/회차 포함', to: '/hr/evaluation/type/setting' },
+            { text: '회차 등록/조회(관리자)', to: '/hr/cycles' },
+            { text: '평가유형 생성/회차 포함(관리자)', to: '/hr/evaluation/type/setting' },
             { text: '문항지 생성', to: '/hr/evaluation/question/form/setting' },
             { text: '평가 배정', to: '/hr/evaluation/assignment' },
             { text: '다면 평가', to: '/evaluation/assignment/response' },
-            { text: '평가 응답 조회', to: '/hr/evaluation/response/result' },
+            { text: '평가 응답 조회(관리자)', to: '/hr/evaluation/response/result' },
             { text: '평가 결과 조회', to: '/evaluation/response/my/result' },
           ]
         },
@@ -185,7 +185,7 @@ const menuConfig = computed(() => {
           children: [
             { text: '등급 설정', to: '/grade/setting' },
             { text: '부서 등급 부여 현황', to: '/grading/list' },
-            { text: '부서 등급 부여 현황(승인)', to: '/hr/grading/list' },
+            { text: '부서 등급 부여 현황(관리자)', to: '/hr/grading/list' },
             { text: '부서원 등급 부여', to: '/to/grading/list' },
             { text: '부서원 등급 부여 및 승인', to: '/hr/grading/list/approve' },
             { text: '부여된 등급 조회', to: '/my/grading' },
