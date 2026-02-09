@@ -146,7 +146,7 @@ const handleDelete = async (id) => {
 
 <style scoped>
 section {
-  max-width: 1000px;
+  max-width: 800px;
   margin: 0 auto;
   padding-bottom: 40px;
 }

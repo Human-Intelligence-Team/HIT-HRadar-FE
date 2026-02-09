@@ -12,7 +12,7 @@
       <BaseCard class="role-list-card">
         <div class="card-hd flex-between">
           <h2>역할 목록</h2>
-          <button class="btn primary outline btn-sm" @click="startCreate">
+          <button class="btn primary btn-sm" @click="startCreate">
             <i class="pi pi-plus"></i> 새 역할 추가
           </button>
         </div>
@@ -88,11 +88,11 @@
             </div>
           </div>
           
-          <div class="form-actions mt-8">
+          <div class="form-actions mt-8" v-if="isCreating || selectedRole?.isSystem === 'N'">
             <button 
               class="btn primary" 
               @click="saveRole" 
-              :disabled="loading || (!isCreating && selectedRole?.isSystem === 'Y')"
+              :disabled="loading"
             >
               {{ loading ? '저장 중...' : (isCreating ? '역할 생성' : '변경사항 저장') }}
             </button>
@@ -344,6 +344,17 @@ onMounted(loadData)
   border: 1px solid #e2e8f0;
   max-height: 400px;
   overflow-y: auto;
+  transition: all 0.3s ease;
+}
+
+.perm-grid.disabled {
+  opacity: 0.7;
+  filter: grayscale(0.5);
+}
+
+.perm-grid.disabled .perm-item {
+  pointer-events: none;
+  cursor: not-allowed;
 }
 
 .perm-item {
