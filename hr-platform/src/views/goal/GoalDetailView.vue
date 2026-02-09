@@ -275,6 +275,7 @@
     </div>
   </section>
 
+  <Teleport to="body">
   <!-- ===== 성과 입력 모달 ===== -->
   <div v-if="showModal" class="modal-backdrop">
     <div class="modal">
@@ -456,50 +457,69 @@
 
   <!-- ===== 목표 수정 모달 ===== -->
   <div v-if="showEditModal" class="modal-backdrop">
-    <div class="modal">
+    <div class="modal edit-modal">
 
       <div class="modal-header">
         <h3>목표 수정</h3>
         <button class="btn-close" @click="closeEditModal">✕</button>
       </div>
 
-      <div class="modal-body">
-        <div class="field">
+      <div class="modal-body edit-body">
+
+        <div class="form-section">
           <label>목표명</label>
-          <input v-model="editForm.title" />
+          <input
+            v-model="editForm.title"
+            class="input"
+            placeholder="목표명을 입력하세요"
+          />
         </div>
 
-        <div class="field">
+        <div class="form-section">
           <label>설명</label>
-          <input v-model="editForm.description" />
+          <textarea
+            v-model="editForm.description"
+            class="textarea"
+            rows="3"
+            placeholder="목표에 대한 설명을 입력하세요"
+          />
         </div>
 
-        <div class="field">
-          <label>시작일</label>
-          <input type="date" v-model="editForm.startDate" />
+        <div class="form-row">
+          <div class="form-section">
+            <label>시작일</label>
+            <input type="date" v-model="editForm.startDate" class="input" />
+          </div>
+
+          <div class="form-section">
+            <label>종료일</label>
+            <input type="date" v-model="editForm.endDate" class="input" />
+          </div>
         </div>
 
-        <div class="field">
-          <label>종료일</label>
-          <input type="date" v-model="editForm.endDate" />
-        </div>
-
-        <div class="field">
+        <div class="form-section">
           <label>목표 범위</label>
-          <select v-model="editForm.goalScope">
-            <option value="TEAM">TEAM</option>
-            <option value="PERSONAL">PERSONAL</option>
+          <select v-model="editForm.goalScope" class="select">
+            <option value="TEAM">팀</option>
+            <option value="PERSONAL">개인</option>
           </select>
         </div>
+
       </div>
 
-      <div class="modal-footer">
-        <button class="btn-secondary" @click="closeEditModal">취소</button>
-        <button class="btn-primary" @click="submitEdit">저장</button>
+      <div class="modal-footer edit-footer">
+        <button class="btn-cancel" @click="closeEditModal">
+          취소
+        </button>
+        <button class="btn-save" @click="submitEdit">
+          수정 저장
+        </button>
       </div>
 
     </div>
   </div>
+  </Teleport>
+
 
 </template>
 
@@ -1107,7 +1127,7 @@ th, td {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 100;
+  z-index: 2000;
 }
 
 /* ===== Modal Card ===== */
@@ -1511,6 +1531,90 @@ svg .progress {
 
 .btn-submit:hover {
   background: #d1fae5;
+}
+/* ===== Edit Modal 전용 ===== */
+.edit-modal {
+  width: 520px;
+  height: auto;
+  border-radius: 16px;
+}
+
+.edit-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* 섹션 */
+.form-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-section label {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+/* 두 칸 레이아웃 */
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+/* input */
+.input,
+.select,
+.textarea {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  font-size: 14px;
+  background: #f9fafb;
+}
+
+.input:focus,
+.select:focus,
+.textarea:focus {
+  outline: none;
+  border-color: #6366f1;
+  background: #ffffff;
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15);
+}
+
+.textarea {
+  resize: none;
+}
+
+/* footer */
+.edit-footer {
+  justify-content: space-between;
+}
+
+.btn-cancel {
+  padding: 8px 18px;
+  border-radius: 10px;
+  border: 1px solid #d1d5db;
+  background: #ffffff;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.btn-save {
+  padding: 8px 20px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #6366f1, #4f46e5);
+  color: white;
+  border: none;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.btn-save:hover {
+  opacity: 0.92;
 }
 
 </style>
