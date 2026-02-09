@@ -35,7 +35,7 @@
           <!-- 아바타 -->
           <td class="text-center">
              <div class="avatar-circle">
-               <img v-if="emp.image" :src="emp.image" alt="Profile" class="profile-img" />
+               <img v-if="emp.image" :src="resolveFileUrl(emp.image)" alt="Profile" class="profile-img" />
                <i v-else class="pi pi-user"></i>
              </div>
           </td>
@@ -114,6 +114,7 @@
 </template>
 
 <script setup>
+import { resolveFileUrl } from '@/utils/fileUrl'
 defineProps({
   employees: {
     type: Array,

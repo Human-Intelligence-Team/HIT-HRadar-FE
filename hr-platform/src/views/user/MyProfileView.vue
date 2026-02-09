@@ -35,7 +35,7 @@
         <div class="profile-header">
           <div class="avatar-area">
             <div class="avatar-lg">
-              <img v-if="employee.image" :src="employee.image" alt="Profile" />
+              <img v-if="employee.image" :src="resolveFileUrl(employee.image)" alt="Profile" />
               <i v-else class="pi pi-user"></i>
             </div>
             
@@ -176,6 +176,7 @@
 <script setup>
 import { ref, onMounted, computed, reactive } from 'vue'
 import { fetchEmployeeDetail, updateEmployeeProfile, uploadEmployeeProfileImage } from '@/api/employeeApi'
+import { resolveFileUrl } from '@/utils/fileUrl'
 import { changeMyPassword } from '@/api/userAccount'
 import { useAuthStore } from '@/stores/authStore'
 
