@@ -112,7 +112,6 @@
             <div class="avatar">{{ emp.name?.slice(0, 1) ?? '?' }}</div>
             <div class="emp-meta">
               <div class="emp-name">{{ emp.name ?? '-' }}</div>
-              <div class="emp-sub">EMP#{{ emp.empId }}</div>
             </div>
           </td>
 

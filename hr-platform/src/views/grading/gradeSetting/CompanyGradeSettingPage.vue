@@ -25,7 +25,7 @@
           </div>
           <div class="pill">
             <span class="dot"></span>
-            <span>{{ grades.length }} grades</span>
+            <span>{{ grades.length }}개 등급</span>
           </div>
         </div>
 
@@ -43,7 +43,6 @@
               <td class="mono strong">{{ g.gradeOrder }}</td>
               <td>
                 <span class="grade-chip">{{ g.gradeName }}</span>
-                <span class="muted small">#{{ g.gradeId }}</span>
               </td>
               <td class="right actions">
                 <button class="btn btn-light" @click="startEditGrade(g)">수정</button>
@@ -130,7 +129,7 @@
                   :key="g.gradeId"
                   :value="g.gradeId"
                 >
-                  {{ g.gradeName }} (id: {{ g.gradeId }})
+                  {{ g.gradeName }}
                 </option>
               </select>
             </div>
@@ -172,7 +171,7 @@
                 <td>
                   <div class="row-title">
                     <span class="grade-chip">{{ gradeName(row.memberGradeId) }}</span>
-                    <span class="muted small">memberGradeId: {{ row.memberGradeId }}</span>
+                    <!-- <span class="muted small">memberGradeId: {{ row.memberGradeId }}</span> -->
                   </div>
                 </td>
 
@@ -655,12 +654,16 @@ input:focus, select:focus{
 }
 .summary{
   display:flex;
-  gap: 12px;
+  gap: 16px;
   flex-wrap: wrap;
   justify-content:flex-end;
+  align-items: center;
 }
 .summary-item{
-  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 16px;
   border-radius: 14px;
   background: #f8fafc;
   border: 1px solid #e2e8f0;
