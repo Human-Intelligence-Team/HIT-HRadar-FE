@@ -41,7 +41,7 @@
           <select
             v-model="goalForm.goalScope"
             class="select"
-            :disabled="!selectedParentGoal || selectedParentGoal.depth === 'LEVEL_1'"
+            :disabled="!selectedParentGoal"
           >
             <option value="TEAM">팀</option>
             <option value="PERSONAL">개인</option>
@@ -76,8 +76,17 @@
           </div>
 
           <div class="field">
-            <label>부서 ID</label>
-            <input type="number" v-model="goalForm.departmentId" />
+            <label>부서 선택</label>
+            <select v-model="goalForm.departmentId" class="select">
+              <option :value="null">부서를 선택하세요</option>
+              <option
+                v-for="dept in departments"
+                :key="dept.deptId"
+                :value="dept.deptId"
+              >
+                {{ dept.deptName }}
+              </option>
+            </select>
           </div>
         </div>
 
@@ -146,6 +155,7 @@ import { createKeyResult } from '@/api/okrApi'
 import { onMounted, computed, watch } from 'vue'
 import { fetchOrganizationGoals } from '@/api/goalApi'
 import { useAuthStore } from '@/stores/authStore'
+import { getAllDepartmentsByCompany } from '@/api/departmentApi'
 
 const auth = useAuthStore()
 
@@ -154,6 +164,7 @@ const router = useRouter()
 
 const orgGoals = ref([])
 
+const departments = ref([])
 const goalType = ref('KPI')
 
 const goalForm = ref({
@@ -277,9 +288,13 @@ const showToast = (message) => {
 
 
 onMounted(async () => {
-  const res = await fetchOrganizationGoals()
-  orgGoals.value = res.data.data
+  const goalRes = await fetchOrganizationGoals()
+  orgGoals.value = goalRes.data.data
+
+  const deptRes = await getAllDepartmentsByCompany(auth.user.companyId)
+  departments.value = deptRes.data.data.departments
 })
+
 
 const validateGoal = () => {
   const { startDate, endDate } = goalForm.value
@@ -530,7 +545,6 @@ const validateAllRequiredFields = () => {
   color: #6b7280;
 }
 
-/* 🔥 핵심: 입력 크기 축소 */
 .field input,
 .field textarea,
 .select {

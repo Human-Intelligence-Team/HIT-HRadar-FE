@@ -22,8 +22,12 @@
             </div>
 
             <div class="goal-meta">
-              <span class="pill">{{ goal.scope }}</span>
-              <span class="pill success">{{ goal.approveStatus }}</span>
+              <span class="pill">
+  {{ scopeLabel[goal.scope] || goal.scope }}
+</span>
+              <span class="pill success">
+                {{ statusLabel[goal.approveStatus] || goal.approveStatus }}
+              </span>
             </div>
 
             <div
@@ -482,7 +486,7 @@
 
         <div class="field">
           <label>목표 범위</label>
-          <select v-model="editForm.scope">
+          <select v-model="editForm.goalScope">
             <option value="TEAM">TEAM</option>
             <option value="PERSONAL">PERSONAL</option>
           </select>
@@ -530,6 +534,18 @@ const goBack = () => {
 const goal = ref({})
 const items = ref([])
 const selectedItem = ref(null)
+const scopeLabel = {
+  TEAM: '팀',
+  PERSONAL: '개인',
+}
+
+const statusLabel = {
+  DRAFT: '임시저장',
+  SUBMITTED: '제출됨',
+  APPROVED: '승인',
+  REJECTED: '반려',
+}
+
 
 /* ===== 성과 입력 모달 ===== */
 const showModal = ref(false)
@@ -785,7 +801,7 @@ const editForm = ref({
   description: '',
   startDate: '',
   endDate: '',
-  scope: '',
+  goalScope: '',
 })
 const openEditModal = () => {
   editForm.value = {
@@ -793,7 +809,7 @@ const openEditModal = () => {
     description: goal.value.description,
     startDate: goal.value.startDate,
     endDate: goal.value.endDate,
-    scope: goal.value.scope,
+    goalScope: goal.value.scope,
   }
   showEditModal.value = true
 }
