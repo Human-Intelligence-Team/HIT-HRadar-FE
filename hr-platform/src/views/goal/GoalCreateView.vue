@@ -279,7 +279,6 @@ const showToast = (message) => {
 onMounted(async () => {
   const res = await fetchOrganizationGoals()
   orgGoals.value = res.data.data
-  console.log('orgGoals raw:', orgGoals.value)
 })
 
 const validateGoal = () => {

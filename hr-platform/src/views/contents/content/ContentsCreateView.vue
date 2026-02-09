@@ -233,7 +233,7 @@ const getContentDetail = async (contentId) => {
     const result = await fetchContentDetail(contentId)
     let data = result.data
     let contents = result.data.data.content
-    console.log('contents ' + contents.title)
+
     if (data.success) {
       contentData.title = contents.title
       contentData.type = contents.type
@@ -243,10 +243,6 @@ const getContentDetail = async (contentId) => {
       contentData.notes = contents.notes
       contentData.resourcePath = contents.resourcePath
       contentData.tags = contents.tags
-
-      console.log("contents.type" + contents.type)
-      console.log("contents.level" + contents.level)
-      console.log("contents.level" + contents.level)
 
     }
   } catch (e) {
@@ -263,7 +259,6 @@ onMounted(() => {
 
   const contentId = route.params.contentId
   page.value = contentId ? 'update' : 'edit'
-  console.log('page:', page.value)
 
   if (page.value === 'update') {
     getContentDetail(contentId)

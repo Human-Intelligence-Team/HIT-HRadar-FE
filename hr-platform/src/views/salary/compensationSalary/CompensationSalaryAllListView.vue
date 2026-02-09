@@ -82,8 +82,7 @@ const getCompensationSummary = async () => {
     if (data.success) {
       // 저장
       let salary = data.data.compensationSalary
-      console.log(getDateFormatter(data.data.startDate))
-      console.log(salary.totalBonus)
+
       compensationSummary.totalBonus = salary.totalBonus
       compensationSummary.totalIncentive = salary.totalIncentive
       compensationSummary.totalPerformance = salary.totalPerformance
@@ -194,7 +193,10 @@ const goDetailPage = (docId) => {
           </tr>
         </thead>
         <tbody class="tbl-bd">
-          <tr v-for="item in compensation" :key="item.docId">
+          <tr v-for="item in compensation"
+              :key="item.docId"
+              @click="goDetailPage(item.docId)"
+          >
             <td>{{ item.year }}</td>
             <td>
               <span v-for="type in COMPENSATION_OPTIONS" :key="type.value">
@@ -203,7 +205,7 @@ const goDetailPage = (docId) => {
                 </template>
               </span>
             </td>
-            <td @click="goDetailPage(item.docId)">{{ item.title }}</td>
+            <td >{{ item.title }}</td>
             <td>{{ formatComma(item.totalSalary) }}</td>
             <td>{{ item.empCount }}</td>
             <td>

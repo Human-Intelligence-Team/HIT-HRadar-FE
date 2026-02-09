@@ -72,7 +72,6 @@ const compensationHistory = async () => {
 
 // 기본급 히스토리
 const basicHistory = async () => {
-  console.log('시작??')
   submitting.value = true
 
   try {

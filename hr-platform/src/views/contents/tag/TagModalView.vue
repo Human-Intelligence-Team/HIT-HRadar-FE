@@ -18,7 +18,6 @@ const isModalOpen = () => {
 const getTagList = async () => {
   // validation
   let tag = tagData.tagFetchName
-  console.log(tag)
   if (tag.length > 45) {
     alert('태그는 최대 45자까지 입력이 가능합니다.')
     return
@@ -119,7 +118,6 @@ const tagAdd = async () => {
     let result = await createTag(payload)
     let data = result.data.success
 
-    console.log(data)
     if (data) {
       alert('태그 등록되었습니다.')
     }

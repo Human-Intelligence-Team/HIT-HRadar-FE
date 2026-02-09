@@ -28,7 +28,6 @@ const getTagList = async () => {
     let result = await fetchTags(param)
     let data = result.data
 
-    console.log(data)
     if (data.success) {
       tags.value = data.data.tags
       tagCount.value = data.data.tags.length

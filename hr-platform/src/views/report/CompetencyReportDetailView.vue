@@ -68,8 +68,6 @@ const searchReport = async () => {
   }
 }
 onMounted(() => {
-  console.log('page:', page)
-
   searchReport()
 })
 </script>
