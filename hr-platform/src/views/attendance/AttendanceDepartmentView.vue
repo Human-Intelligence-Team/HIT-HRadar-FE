@@ -26,13 +26,13 @@
     <!-- 출퇴근 기록 테이블 -->
     <div class="attendance-records-container card">
       <h3>출퇴근 기록</h3>
-      
+
       <div class="table-container">
         <table class="attendance-table">
           <thead>
             <tr>
               <th>이름</th>
-              <th>직급</th>
+              <th>직위</th>
               <th>부서</th>
               <th>근무 유형</th>
               <th>근무 장소</th>
@@ -78,7 +78,7 @@ const companyId = computed(() => auth.user?.companyId);
 
 const loading = ref(false);
 const selectedDate = ref(new Date().toISOString().split('T')[0]); // 오늘 날짜로 초기화
-const selectedDepartmentId = ref(auth.user?.deptId || ''); 
+const selectedDepartmentId = ref(auth.user?.deptId || '');
 const departmentOptions = ref([]);
 const attendanceRecords = ref([]);
 
@@ -126,12 +126,12 @@ const fetchRecords = async () => {
 
         const flatRecords = [];
         const data = response.data?.data || response.data || [];
-        
+
         if (Array.isArray(data)) {
             data.forEach(record => {
                 const checkIn = record.checkInTime ? extractTime(record.checkInTime) : '-';
                 const checkOut = record.checkOutTime ? extractTime(record.checkOutTime) : '-';
-                
+
                 let workDuration = '-';
                 if (record.totalWorkMinutes > 0) {
                     const h = Math.floor(record.totalWorkMinutes / 60);
@@ -143,7 +143,7 @@ const fetchRecords = async () => {
                     employeeId: record.empId,
                     name: record.empName,
                     jobTitle: record.position || '-',
-                    department: record.departmentName || '-', 
+                    department: record.departmentName || '-',
                     workingType: record.workType || '-',
                     workplace: record.location || '-',
                     clockInTime: checkIn,
@@ -203,9 +203,11 @@ watch([selectedDate, selectedDepartmentId], () => {
 }
 
 .title-group h1 {
-  font-size: 24px;
-  font-weight: 700;
+  font-size: 28px;
+  font-weight: 800;
+  color: #111827; /* Darker, high contrast */
   margin: 0;
+  letter-spacing: -0.025em;
 }
 
 .filter-controls {
@@ -227,7 +229,8 @@ watch([selectedDate, selectedDepartmentId], () => {
 
 .form-group label {
   font-size: 12px;
-  color: #6b7280;
+  color: #374151; /* Darker from #6b7280 */
+  font-weight: 600;
   margin-bottom: 5px;
 }
 
@@ -238,6 +241,7 @@ watch([selectedDate, selectedDepartmentId], () => {
   border-radius: 8px;
   border: 1px solid #d1d5db;
   background-color: #ffffff;
+  color: #1e293b; /* Explicit dark color */
   cursor: pointer;
   min-width: 150px;
 }
@@ -294,13 +298,13 @@ watch([selectedDate, selectedDepartmentId], () => {
   text-align: left;
   border-bottom: 1px solid #f3f4f6;
   font-size: 13px;
-  color: #374151;
+  color: #1e293b; /* Darker from #374151 */
 }
 
 .attendance-table th {
   background-color: #f9fafb;
-  font-weight: 600;
-  color: #4b5563;
+  font-weight: 700;
+  color: #1e293b; /* Darker from #4b5563 */
 }
 
 .attendance-table tbody tr:last-child td {

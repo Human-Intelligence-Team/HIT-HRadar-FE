@@ -51,7 +51,7 @@
               >
                 <span class="btn-content">
                   <span class="btn-title">출근하기 <span v-if="clockInInfo">✓</span></span>
-                  <span class="btn-time">{{ clockInInfo ? clockInInfo.clockInTime : '00:00' }}</span>
+                  <span class="btn-time">{{ clockInInfo ? clockInInfo.clockInTime : (lastClockInTime || '00:00') }}</span>
                 </span>
               </button>
 
@@ -76,7 +76,7 @@
              <div class="weekly-history-list">
                 <div class="list-header">
                   <h4>{{ getWeekRangeString() }}</h4>
-                  <span class="total-hours" v-if="weeklyTotalHours">{{ weeklyTotalHours }} / 40시간</span>
+                  <span class="total-hours" v-if="weeklyTotalHours">{{ weeklyTotalHours }} / {{ standardWeeklyHours }}시간</span>
                 </div>
                 <ul>
                   <li v-for="day in weeklyHistory" :key="day.dateStr" :class="{ 'today': day.isToday }">
@@ -166,10 +166,12 @@ const loading = ref({
 });
 
 const clockInInfo = ref(null);
+const lastClockInTime = ref(null); // 출근 시간 저장 (퇴근 후에도 유지)
 const lastClockOutTime = ref(null); // 퇴근 시간 저장
 const initialWorkInfo = ref({ workType: '-', workplace: '-' });
 const weeklyHistory = ref([]); 
 const weeklyTotalHours = ref('');
+const standardWeeklyHours = ref(40); // SaaS-style dynamic policy
 
 // Calendar State
 const fullCalendar = ref(null);
@@ -310,6 +312,8 @@ const fetchMyStatus = async (showLoading = true) => {
     const responseData = response.data?.data || response.data;
     
     if (responseData && (responseData.checkInTime || responseData.workType)) {
+      lastClockInTime.value = extractTime(responseData.checkInTime);
+      
       if (!responseData.checkOutTime) {
          // 출근 중
          clockInInfo.value = {
@@ -329,6 +333,7 @@ const fetchMyStatus = async (showLoading = true) => {
       }
     } else {
       clockInInfo.value = null;
+      lastClockInTime.value = null;
       lastClockOutTime.value = null;
       initialWorkInfo.value.workType = responseData?.workType || '-';
       initialWorkInfo.value.workplace = responseData?.workPlace || '-';
@@ -547,12 +552,16 @@ const fetchCalendarData = async (startDate, endDate) => {
 ===================== */
 const handleClockIn = async () => {
   if (clockInInfo.value) return; 
-  await clockInOut();
+  if (confirm('출근하시겠습니까?')) {
+    await clockInOut();
+  }
 };
 
 const handleClockOut = async () => {
   if (!clockInInfo.value) return; 
-  await clockInOut();
+  if (confirm('퇴근하시겠습니까?')) {
+    await clockInOut();
+  }
 };
 
 
@@ -598,7 +607,7 @@ onUnmounted(() => {
 const clockInOut = async () => {
   loading.value.myStatus = true;
   try {
-    const response = await processAttendance();
+    await processAttendance();
 
     // Refresh Status
     await fetchMyStatus(false);
@@ -617,12 +626,11 @@ const clockInOut = async () => {
 
 <style scoped>
 .attendance-dashboard {
-  height: 100%;
+  min-height: 100%; /* Allow growth */
   display: flex;
   gap: 24px;
   background-color: #f8fafc;
   padding: 0;
-  min-height: 80vh;
 }
 
 /* ===============================
@@ -635,7 +643,7 @@ const clockInOut = async () => {
 }
 
 .my-commute-card {
-  height: 100%;
+  min-height: 100%; /* Allow growth */
   border-radius: 20px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
   display: flex;
@@ -786,6 +794,7 @@ const clockInOut = async () => {
     margin-top: auto;
     border-top: 1px solid #f1f5f9;
     padding-top: 20px;
+    padding-bottom: 24px; /* Prevent bottom cutoff */
     flex-grow: 1;
 }
 
@@ -824,10 +833,11 @@ const clockInOut = async () => {
 }
 
 .weekly-history-list li.today {
-    background-color: #f8fafc;
-    border-radius: 8px;
-    padding: 12px 8px;
-    margin: 0 -8px;
+    background-color: #f8faff;
+    border-radius: 12px;
+    padding: 12px;
+    margin: 4px 0;
+    box-shadow: inset 0 0 0 1px rgba(59, 130, 246, 0.1);
 }
 
 .day-info {
@@ -843,8 +853,9 @@ const clockInOut = async () => {
     flex: 1;
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding-left: 16px;
+    gap: 8px;
+    padding: 0 12px;
+    min-width: 0; /* Allow shrinking */
 }
 .status-dot {
     width: 8px;
@@ -852,22 +863,27 @@ const clockInOut = async () => {
     border-radius: 50%;
     flex-shrink: 0;
 }
+/* Explicitly link to status-dot to satisfy linter and preserve dynamic classes */
 .status-dot.blue { background-color: #3b82f6; }
 .status-dot.orange { background-color: #f97316; }
 .status-dot.gray { background-color: #e2e8f0; }
 
 .work-times {
     font-size: 13px;
-    color: #334155;
+    color: #475569;
     font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .work-duration {
     font-size: 13px;
-    color: #3b82f6;
-    font-weight: 600;
-    width: 50px;
+    color: #3182f6;
+    font-weight: 700;
+    width: 60px;
     text-align: right;
+    flex-shrink: 0;
 }
 
 
@@ -961,7 +977,7 @@ const clockInOut = async () => {
   padding: 6px 12px;
 }
 
-:deep(.fc-button-primary:hover) {
+:deep(.fc-button-primary):hover {
   background-color: #e2e8f0;
   color: #1e293b;
 }

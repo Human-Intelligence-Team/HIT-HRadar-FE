@@ -51,6 +51,36 @@
       @view="openViewModal"
     />
 
+    <!-- Pagination -->
+    <div v-if="!loading && totalPages > 0" class="pagination-container">
+      <button 
+        class="page-btn prev"
+        :disabled="page === 1"
+        @click="changePage(page - 1)"
+      >
+        &lt;
+      </button>
+
+      <div class="page-numbers">
+        <button 
+          v-for="p in pageRange" 
+          :key="p"
+          :class="['page-num', { active: p === page }]"
+          @click="changePage(p)"
+        >
+          {{ p }}
+        </button>
+      </div>
+
+      <button 
+        class="page-btn next"
+        :disabled="page === totalPages"
+        @click="changePage(page + 1)"
+      >
+        &gt;
+      </button>
+    </div>
+
     <!-- Detail View Modal -->
     <EmployeeFormModal 
       :visible="showFormModal"
@@ -78,6 +108,36 @@ const searchQuery = ref('')
 const selectedDept = ref(null) // 부서 필터
 const selectedPos = ref(null)  // 직위 필터
 const loading = ref(false)
+
+// Pagination State
+const page = ref(1)
+const size = ref(10)
+const totalCount = ref(0)
+const totalPages = ref(0)
+const pageRange = computed(() => {
+  const current = page.value
+  const total = totalPages.value
+  const range = []
+  
+  // Show 5 pages
+  let start = Math.max(1, current - 2)
+  let end = Math.min(total, start + 4)
+  
+  if (end - start < 4) {
+    start = Math.max(1, end - 4)
+  }
+  
+  for (let i = start; i <= end; i++) {
+    range.push(i)
+  }
+  return range
+})
+
+const changePage = (newPage) => {
+  if (newPage < 1 || newPage > totalPages.value) return
+  page.value = newPage
+  loadEmployees()
+}
 
 // 조회 데이터
 const departments = ref([])
@@ -147,20 +207,31 @@ const loadData = async () => {
   loading.value = true
   try {
     // 검색 조건 구성 by Server
-    const params = {}
+    const params = {
+      page: page.value,
+      size: size.value
+    }
     if (selectedDept.value) params.deptId = selectedDept.value
     if (selectedPos.value) params.positionId = selectedPos.value
-    if (searchQuery.value) params.keyword = searchQuery.value // Keyword Search
+    if (searchQuery.value) params.keyword = searchQuery.value
 
     const empRes = await fetchEmployees(params)
     
-    // 1. 사원 목록
+    // 1. 사원 목록 & Pagination Info
     let list = []
     const responseData = empRes.data?.data
-    if (Array.isArray(empRes.data)) list = empRes.data
-    else if (responseData?.employees && Array.isArray(responseData.employees)) list = responseData.employees
-    else if (Array.isArray(responseData)) list = responseData
-    else if (responseData?.content && Array.isArray(responseData.content)) list = responseData.content
+    
+    if (responseData) {
+      if (Array.isArray(responseData)) {
+        list = responseData
+      } else {
+        list = responseData.employees || []
+        totalCount.value = responseData.totalCount || 0
+        totalPages.value = responseData.totalPages || 0
+      }
+    } else if (Array.isArray(empRes.data)) {
+        list = empRes.data
+    }
     
     employees.value = list
 
@@ -216,10 +287,8 @@ const loadEmployees = loadData
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 /* Fix Autofill Yellow */
-.input:-webkit-autofill,
-.input:-webkit-autofill:hover, 
 .input:-webkit-autofill:focus {
-  -webkit-box-shadow: 0 0 0px 1000px white inset !important;
+  -webkit-box-shadow: 0 0 0 1000px white inset !important;
   transition: background-color 5000s ease-in-out 0s;
 }
 
@@ -230,5 +299,57 @@ const loadEmployees = loadData
   background: var(--card);
   border-radius: var(--radius-md);
   border: 1px solid var(--border);
+}
+
+/* Pagination */
+.pagination-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin-top: 24px;
+}
+.page-btn {
+  width: 36px; height: 36px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  background: white;
+  color: #64748b;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.page-btn:hover:not(:disabled) {
+  background: #f8fafc;
+  color: #0f172a;
+  border-color: #cbd5e1;
+}
+.page-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.page-numbers {
+  display: flex; gap: 6px;
+}
+.page-num {
+  min-width: 36px; height: 36px;
+  padding: 0 6px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: white;
+  color: #64748b;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.page-num:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+.page-num.active {
+  background: #eff6ff;
+  color: #3b82f6;
+  border-color: #bfdbfe;
+  font-weight: 600;
 }
 </style>

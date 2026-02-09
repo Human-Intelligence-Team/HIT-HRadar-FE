@@ -1,8 +1,8 @@
 <template>
-  <section>
+  <section class="narrow-container">
     <div class="section-title">
       <div>
-        <h1>회사 정보 조회</h1>
+        <h1>내 회사 정보</h1>
         <div class="sub">내가 소속된 회사의 기본 정보를 확인합니다.</div>
       </div>
     </div>
@@ -56,11 +56,11 @@
             <div class="info-item full-width">
               <span class="label">상태</span>
               <span class="value">
-                <span class="badge good" v-if="!company.isDeleted || company.isDeleted === 'N'">
-                  <span class="dot"></span> 정상
+                <span class="status-badge good" v-if="!company.isDeleted || company.isDeleted === 'N'">
+                   정상
                 </span>
-                <span class="badge bad" v-else>
-                  <span class="dot"></span> 정지
+                <span class="status-badge bad" v-else>
+                   정지
                 </span>
               </span>
             </div>
@@ -102,11 +102,17 @@ onMounted(loadCompany)
 
 
 <style scoped>
+.narrow-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding-bottom: 40px;
+}
+
 .info-list {
   display: grid;
-  grid-template-columns: repeat(2, 1fr); /* 2 Columns */
-  gap: 0; /* Remove gap to connect borders */
-  border-top: 1px solid var(--border); /* Top border for the list */
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0;
+  border-top: 1px solid var(--border);
 }
 
 .info-item {
@@ -114,28 +120,41 @@ onMounted(loadCompany)
   flex-direction: row;
   align-items: center;
   gap: 16px;
-  min-height: 48px; /* Taller rows for table look */
-  padding: 0 16px; /* Horizontal padding */
-  border-bottom: 1px solid var(--border); /* Bottom border for each cell */
+  min-height: 52px;
+  padding: 0 20px;
+  border-bottom: 1px solid var(--border);
 }
 
 .info-item.full-width {
-  grid-column: span 2; /* Full width */
+  grid-column: span 2;
 }
 
 .label {
   font-size: 13px;
-  color: var(--text-sub);
-  min-width: 120px; /* Fixed width */
+  font-weight: 600;
+  color: #64748b;
+  min-width: 130px;
   flex-shrink: 0;
 }
 
 .value {
   font-size: 14px;
   font-weight: 500;
-  color: var(--text-main);
+  color: #1e293b;
   word-break: break-all;
 }
+
+.status-badge {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+}
+.status-badge.good { background: #dcfce7; color: #15803d; }
+.status-badge.bad { background: #fee2e2; color: #b91c1c; }
+
 .font-mono {
   font-family: var(--font-mono, monospace);
   letter-spacing: 0px;

@@ -1,81 +1,94 @@
 <template>
-  <section>
+  <section class="wide-container">
     <div class="section-title">
       <div>
         <h1>회사 관리</h1>
-        <div class="sub">전체 등록된 회사를 조회하고 정보를 관리합니다.</div>
+        <div class="sub">전체 등록된 회사를 조회하고 상세 정보를 통합 관리합니다.</div>
       </div>
     </div>
 
     <!-- Toolbar -->
     <div class="toolbar">
-      <input 
-        type="text" 
-        v-model="keyword" 
-        placeholder="회사명 검색..." 
-        class="input search-input"
-        @keyup.enter="loadCompanies"
-      />
-      <div class="checkbox-group">
-        <input type="checkbox" id="includeDeleted" v-model="includeDeleted" @change="loadCompanies" />
-        <label for="includeDeleted">삭제된 회사 포함</label>
+      <div class="search-box">
+        <input 
+          type="text" 
+          v-model="keyword" 
+          placeholder="회사명 검색..." 
+          class="input search-input"
+          @keyup.enter="loadCompanies"
+        />
+        <button class="btn primary" @click="loadCompanies">검색</button>
       </div>
-      <button class="btn primary" @click="loadCompanies">검색</button>
+
+      <div class="toolbar-right">
+        <label class="checkbox-container">
+          <input type="checkbox" v-model="includeDeleted" @change="loadCompanies" />
+          <div class="check-ui"></div>
+          <span class="label-text">삭제된 회사 포함</span>
+        </label>
+      </div>
     </div>
 
     <div v-if="loading" class="loading-state">회사 목록을 불러오는 중...</div>
     
-    <div v-else class="card">
-      <div class="card-bd no-padding">
-        <table class="table">
-          <thead>
-            <tr>
-              <th style="width: 100px">회사코드</th>
-              <th>회사명</th>
-              <th>사업자 번호</th>
-              <th>대표 전화</th>
-              <th style="width: 100px">상태</th>
-              <th style="width: 120px" class="text-right">관리</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="com in companies" :key="com.companyId">
-              <td><span class="text-muted font-mono">{{ com.comCode || '-' }}</span></td>
-              <td><b class="com-name">{{ com.companyName }}</b></td>
-              <td><span class="text-sub">{{ com.bizNo || '-' }}</span></td>
-              <td><span class="text-sub">{{ com.comTel || '-' }}</span></td>
-              <td>
-                <span class="badge good" v-if="!com.isDeleted || com.isDeleted === 'N'">
-                  <span class="dot"></span> 정상
-                </span>
-                <span class="badge bad" v-else>
-                  <span class="dot"></span> 삭제됨
-                </span>
-              </td>
-              <td class="text-right">
-                <div class="action-btns">
-                  <button class="btn-icon" title="수정" @click="openEditModal(com)">
-                    <i class="pi pi-pencil"></i>
-                  </button>
-                  <button 
-                    class="btn-icon danger" 
-                    title="삭제" 
-                    @click="handleDelete(com.companyId)"
-                    v-if="!com.isDeleted || com.isDeleted === 'N'"
-                  >
-                    <i class="pi pi-trash"></i>
-                  </button>
-                </div>
-              </td>
-            </tr>
-            <tr v-if="companies.length === 0">
-              <td colspan="7" class="text-center py-12">
-                <div class="empty-msg">등록된 회사가 없습니다.</div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+    <div v-else class="table-container">
+      <table class="modern-table">
+        <thead>
+          <tr>
+            <th width="120">회사코드</th>
+            <th>회사명</th>
+            <th>사업자 번호</th>
+            <th>대표 전화</th>
+            <th width="100">상태</th>
+            <th width="140">관리</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="com in companies" :key="com.companyId" class="hover-row">
+            <td class="text-center">
+              <span class="code-badge">{{ com.comCode || '-' }}</span>
+            </td>
+            <td>
+              <div class="com-info-cell">
+                <span class="com-name-text">{{ com.companyName }}</span>
+              </div>
+            </td>
+            <td class="text-center">
+              <span class="biz-no">{{ com.bizNo || '-' }}</span>
+            </td>
+            <td class="text-center">
+              <span class="tel-no">{{ com.comTel || '-' }}</span>
+            </td>
+            <td class="text-center">
+              <span class="status-badge" :class="(!com.isDeleted || com.isDeleted === 'N') ? 'good' : 'bad'">
+                {{ (!com.isDeleted || com.isDeleted === 'N') ? '정상' : '삭제됨' }}
+              </span>
+            </td>
+            <td class="text-center">
+              <div class="action-buttons centered">
+                <button class="btn-action edit" @click="openEditModal(com)">
+                  <span>수정</span>
+                </button>
+                <button 
+                  v-if="!com.isDeleted || com.isDeleted === 'N'"
+                  class="btn-action delete" 
+                  @click="handleDelete(com.companyId)"
+                >
+                  <span>삭제</span>
+                </button>
+              </div>
+            </td>
+          </tr>
+          <tr v-if="companies.length === 0">
+            <td colspan="6" class="empty-cell">
+              <div class="empty-state">
+                <i class="pi pi-inbox"></i>
+                <p>등록된 회사가 없습니다.</p>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
 
     <!-- Edit Modal -->
@@ -190,65 +203,162 @@ const handleDelete = async (id) => {
 </script>
 
 <style scoped>
+.wide-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding-bottom: 40px;
+}
+
 .toolbar {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 16px;
   margin-bottom: 20px;
 }
+
+.search-box {
+  display: flex;
+  gap: 8px;
+}
 .search-input { width: 300px; }
-.checkbox-group {
+
+.toolbar-right {
+  display: flex;
+  align-items: center;
+}
+
+/* Custom Checkbox */
+.checkbox-container {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 13px;
-  color: var(--text-sub);
-}
-.checkbox-group label { cursor: pointer; }
-
-.no-padding { padding: 0 !important; }
-.com-name { color: var(--text-main); }
-.text-muted { color: var(--text-muted); }
-.text-sub { color: var(--text-sub); font-size: 13px; }
-.text-right { text-align: right; }
-.text-center { text-align: center; }
-.py-12 { padding: 60px 0; }
-.empty-msg { color: var(--text-muted); }
-
-.action-btns {
-  display: flex;
-  justify-content: flex-end;
-  gap: 6px;
-}
-.btn-icon {
-  width: 32px;
-  height: 32px;
-  display: grid;
-  place-items: center;
-  border-radius: 8px;
-  border: 1px solid var(--border);
-  background: rgba(255,255,255,.03);
-  color: var(--text-sub);
   cursor: pointer;
-  transition: var(--transition-fast);
 }
-.btn-icon:hover {
-  background: rgba(255,255,255,.08);
-  color: var(--text-main);
-  border-color: var(--primary);
+.checkbox-container input { display: none; }
+.check-ui {
+  width: 18px;
+  height: 18px;
+  border: 2px solid #cbd5e1;
+  border-radius: 5px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-.btn-icon.danger:hover {
-  background: rgba(251,113,133,.1);
-  color: var(--bad);
-  border-color: var(--bad);
+.checkbox-container input:checked + .check-ui {
+  background: #3b82f6;
+  border-color: #3b82f6;
 }
+.check-ui::after {
+  content: "";
+  width: 4px;
+  height: 8px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+  display: none;
+  margin-bottom: 2px;
+}
+.checkbox-container input:checked + .check-ui::after {
+  display: block;
+}
+.label-text {
+  font-size: 13px;
+  font-weight: 600;
+  color: #64748b;
+}
+
+/* Table Design */
+.table-container {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+}
+
+.modern-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.modern-table th {
+  padding: 14px 16px;
+  background: #f8fafc;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 600;
+  border-bottom: 1px solid #e2e8f0;
+  text-align: center;
+}
+
+.modern-table td {
+  padding: 16px;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+  font-size: 14px;
+}
+
+.hover-row:hover {
+  background: #f8fafc;
+}
+
+.code-badge {
+  background: #f1f5f9;
+  color: #475569;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-family: var(--font-mono, monospace);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.com-name-text {
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.status-badge {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 6px;
+  display: inline-flex;
+}
+.status-badge.good { background: #dcfce7; color: #15803d; }
+.status-badge.bad { background: #fee2e2; color: #b91c1c; }
+
+.btn-action {
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-action.edit { color: #3b82f6; background: #eff6ff; }
+.btn-action.delete { color: #ef4444; background: #fef2f2; }
+.btn-action:hover { filter: brightness(0.95); }
+
+.centered { justify-content: center; }
+.text-center { text-align: center; }
+
+.empty-cell { padding: 80px 0; }
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #94a3b8;
+}
+.empty-state i { font-size: 40px; opacity: 0.3; margin-bottom: 12px; }
 
 .loading-state {
   text-align: center;
   padding: 80px;
   color: var(--text-muted);
   background: var(--card);
-  border-radius: var(--radius-md);
+  border-radius: 12px;
   border: 1px solid var(--border);
 }
 </style>

@@ -30,7 +30,7 @@
         <div class="profile-header">
            <div class="avatar-area">
              <div class="avatar-lg">
-               <img v-if="employee.image" :src="employee.image" alt="Profile" />
+               <img v-if="employee.image" :src="resolveFileUrl(employee.image)" alt="Profile" />
                <i v-else class="pi pi-user"></i>
              </div>
              <button v-if="isEditMode" class="btn-xs ghost mt-2">사진 변경</button>
@@ -119,6 +119,7 @@
 import { ref, onMounted, computed, reactive } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { fetchEmployeeDetail, updateEmployeeProfile, deleteEmployee } from '@/api/employeeApi'
+import { resolveFileUrl } from '@/utils/fileUrl'
 import { useAuthStore } from '@/stores/authStore'
 
 const route = useRoute()

@@ -18,8 +18,10 @@ export function connectSSE(onMessage) {
     return
   }
 
+  const baseURL = import.meta.env.VITE_API_BASE_URL.replace(/\/$/, '')
+
   eventSource = new EventSourcePolyfill(
-    `${import.meta.env.VITE_API_BASE_URL}/api/notifications/subscribe`,
+    `${baseURL}/api/notifications/subscribe`,
     {
       headers: {
         Authorization: `Bearer ${token}`

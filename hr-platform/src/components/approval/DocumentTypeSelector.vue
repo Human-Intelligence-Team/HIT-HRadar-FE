@@ -19,7 +19,7 @@
 import { ref, onMounted, defineProps, defineEmits } from 'vue';
 import { fetchApprovalDocumentTypes } from '@/api/approvalApi';
 
-const props = defineProps({
+defineProps({
   modelValue: {
     type: String,
     default: '',
@@ -34,17 +34,37 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(['update:modelValue']);
+defineEmits(['update:modelValue']);
 
 const dynamicDocumentTypes = ref([]);
 
 onMounted(async () => {
   try {
     const response = await fetchApprovalDocumentTypes();
-    dynamicDocumentTypes.value = response.data.data.map(type => ({ value: type.docType, text: type.name }));
+    const fetchedTypes = response.data.data.map(type => ({ value: type.docType, text: type.name }));
+    
+    // Ensure standard types are present
+    const standardTypes = [
+      { value: 'LEAVE_REQUEST', text: '휴가 신청' },
+      { value: 'LEAVE_GRANT', text: '연차 등록' }
+    ];
+
+    // Combine fetched and standard (avoid duplicates)
+    const combined = [...fetchedTypes];
+    standardTypes.forEach(std => {
+      if (!combined.some(t => t.value === std.value)) {
+        combined.push(std);
+      }
+    });
+
+    dynamicDocumentTypes.value = combined;
   } catch (error) {
     console.error('결재 문서 유형을 불러오는 데 실패했습니다:', error);
-    // Optionally provide a fallback or alert the user
+    // Fallback to standard types on error
+    dynamicDocumentTypes.value = [
+      { value: 'LEAVE_REQUEST', text: '휴가 신청' },
+      { value: 'LEAVE_GRANT', text: '연차 부여' }
+    ];
   }
 });
 </script>

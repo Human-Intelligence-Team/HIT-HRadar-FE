@@ -1,22 +1,37 @@
 <template>
-  <section class="page-container">
-    <div class="page-header">
-      <div class="header-content">
-        <h1 class="title">직위 관리</h1>
-        <p class="subtitle">회사의 직위 체계와 서열(Rank)을 효율적으로 관리하세요.</p>
+  <section>
+    <div class="section-title">
+      <div>
+        <h1>직위 관리</h1>
+        <div class="sub">회사의 직위 체계와 서열(Rank)을 효율적으로 관리하세요.</div>
       </div>
     </div>
 
-    <div v-if="loading" class="loading-container">
-       <div class="loader"></div>
-       <p>데이터를 불러오는 중입니다...</p>
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <div class="search-box">
+        <input 
+          type="text" 
+          v-model="searchQuery" 
+          placeholder="직위명 검색" 
+          class="input search-input"
+        />
+        <button class="btn primary" @click="loadPositions">검색</button>
+      </div>
+      
+      <div class="action-buttons">
+        <button class="btn primary outline" @click="openModal()">
+          <i class="pi pi-plus"></i> 새 직위 등록
+        </button>
+      </div>
     </div>
+
+    <div v-if="loading" class="loading-state">데이터를 불러오는 중입니다...</div>
     
     <div v-else class="content-wrapper">
       <PositionTable 
-        :positions="positions" 
+        :positions="filteredPositions" 
         :is-admin="true"
-        @add="openModal()" 
         @edit="openModal" 
         @delete="handleDelete" 
       />
@@ -35,7 +50,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import PositionTable from '@/components/personnel/PositionTable.vue'
 import PositionFormModal from '@/components/personnel/PositionFormModal.vue'
 import { 
@@ -51,10 +66,18 @@ const submitting = ref(false)
 const showModal = ref(false)
 const isEdit = ref(false)
 const currentId = ref(null)
+const searchQuery = ref('')
 
 const form = ref({
   name: '',
-  rank: 0
+  rank: 1
+})
+
+const filteredPositions = computed(() => {
+  if (!searchQuery.value) return positions.value
+  return positions.value.filter(pos => 
+    pos.name.toLowerCase().includes(searchQuery.value.toLowerCase())
+  )
 })
 
 const loadPositions = async () => {
@@ -82,7 +105,7 @@ const openModal = (pos = null) => {
   } else {
     isEdit.value = false
     currentId.value = null
-    form.value = { name: '', rank: 0 }
+    form.value = { name: '', rank: 1 }
   }
   showModal.value = true
 }
@@ -122,35 +145,52 @@ const handleDelete = async (id) => {
 </script>
 
 <style scoped>
-.page-container {
-  padding: 0 20px 40px;
-  max-width: 1200px;
+section {
+  max-width: 800px;
   margin: 0 auto;
+  padding-bottom: 40px;
 }
 
-.page-header {
-  margin: 24px 0 32px;
-}
-
-.title {
-  font-size: 28px;
-  font-weight: 700;
-  color: #111827;
-  letter-spacing: -0.02em;
-  margin-bottom: 8px;
-}
-
-.subtitle {
-  color: #6b7280;
-  font-size: 15px;
-}
-
-.loading-container {
+.toolbar {
   display: flex;
-  flex-direction: column;
+  justify-content: space-between;
   align-items: center;
-  justify-content: center;
-  padding: 100px 0;
-  color: #6b7280;
+  margin-bottom: 20px;
+}
+.search-box {
+  display: flex;
+  gap: 10px;
+}
+.search-input {
+  width: 280px;
+}
+
+/* Standardized Input Styling (should be in global but ensuring consistency) */
+.input {
+  padding: 10px 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+  transition: all 0.2s;
+  background: white;
+  height: 42px;
+}
+.input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.loading-state {
+  text-align: center;
+  padding: 80px;
+  color: var(--text-muted);
+  background: var(--card);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+}
+
+.content-wrapper {
+  margin-bottom: 24px;
 }
 </style>

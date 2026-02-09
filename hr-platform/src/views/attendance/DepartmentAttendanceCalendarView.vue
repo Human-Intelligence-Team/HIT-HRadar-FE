@@ -418,6 +418,7 @@ const mapWorkType = (type) => {
 
 <style scoped>
 .department-attendance-view {
+  --active-color: #3b82f6; /* Default fallback */
   padding: 24px;
   background-color: #f1f5f9;
   height: 100%;
@@ -468,8 +469,8 @@ const mapWorkType = (type) => {
 .group-label {
     display: block;
     font-size: 13px;
-    font-weight: 600;
-    color: #64748b;
+    font-weight: 700;
+    color: #334155; /* Darker from #64748b */
     margin-bottom: 8px;
 }
 
@@ -481,6 +482,7 @@ const mapWorkType = (type) => {
     font-size: 14px;
     outline: none;
     background-color: #fff;
+    color: #1e293b; /* Explicit dark color */
 }
 .select-full:focus {
     border-color: #3b82f6;
@@ -608,14 +610,20 @@ const mapWorkType = (type) => {
     gap: 12px;
 }
 
+:deep(.fc-toolbar-title) {
+    color: #1e293b !important;
+    font-weight: 800 !important;
+}
+
 :deep(.fc-button-active) {
   background-color: #e2e8f0 !important;
   color: #1e293b !important;
 }
 
 :deep(.fc-daygrid-day-number) {
-  color: #64748b;
-  font-size: 13px;
+  color: #1e293b; /* Darker from #64748b */
+  font-size: 14px;
+  font-weight: 700;
   text-decoration: none;
 }
 

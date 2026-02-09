@@ -18,6 +18,7 @@ const isCreateModalOpen = ref(false)
 // 모달 오픈
 const isModalOpen = () => {
   isCreateModalOpen.value = !isCreateModalOpen.value
+  searchBtn()
 }
 
 // 상세 이동

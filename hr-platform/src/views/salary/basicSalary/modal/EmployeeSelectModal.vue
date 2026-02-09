@@ -272,7 +272,7 @@ onMounted(() => {
                   />
                 </th>
                 <th style="width: 20%">부서</th>
-                <th style="width: 20%">직급</th>
+                <th style="width: 20%">직위</th>
                 <th style="width: 20%">사번</th>
                 <th style="width: 30%">이름</th>
               </tr>

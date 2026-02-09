@@ -35,7 +35,8 @@
           <!-- 아바타 -->
           <td class="text-center">
              <div class="avatar-circle">
-               <i class="pi pi-user"></i>
+               <img v-if="emp.image" :src="resolveFileUrl(emp.image)" alt="Profile" class="profile-img" />
+               <i v-else class="pi pi-user"></i>
              </div>
           </td>
           
@@ -113,6 +114,7 @@
 </template>
 
 <script setup>
+import { resolveFileUrl } from '@/utils/fileUrl'
 defineProps({
   employees: {
     type: Array,
@@ -188,13 +190,6 @@ const getStatusLabel = (status) => {
   cursor: pointer;
 }
 
-.divider-vertical {
-  width: 1px;
-  height: 24px;
-  background: #e2e8f0;
-  margin: 0 4px;
-}
-
 /* 아바타 */
 .avatar-circle {
   width: 36px; height: 36px;
@@ -205,6 +200,13 @@ const getStatusLabel = (status) => {
   align-items: center;
   justify-content: center;
   margin: 0 auto;
+  overflow: hidden;
+}
+
+.profile-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 /* 사원 정보 */
@@ -264,7 +266,11 @@ const getStatusLabel = (status) => {
   transition: all 0.2s ease;
   white-space: nowrap;
 }
-/*.btn-action span { ... }  Removed hacks */
+.btn-action span {
+  display: inline-block;
+  line-height: 1; /* Ensure vertical centering */
+  padding-top: 1px; /* Optical adjustment */
+}
 
 .btn-action.edit {
   color: #3b82f6;
@@ -303,10 +309,6 @@ const getStatusLabel = (status) => {
   margin-right: 0;
 }
 
-.empty-cell {
-  text-align: center;
-  padding: 60px;
-}
 .roles-tags { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; }
 .role-tag { font-size: 11px; background: #f1f5f9; color: #475569; padding: 2px 6px; border-radius: 4px; border: 1px solid #e2e8f0; }
 
@@ -321,11 +323,4 @@ const getStatusLabel = (status) => {
   border-color: #8b5cf6;
 }
 
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  color: #94a3b8;
-  font-size: 14px;
-}
 </style>

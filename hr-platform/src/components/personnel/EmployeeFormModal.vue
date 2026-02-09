@@ -97,9 +97,17 @@
           <div class="form-group" v-if="isEditMode || isViewMode">
             <label for="employmentType">고용 형태 (상태)</label>
             <ModernSelect 
+              v-if="isEditMode"
               v-model="form.employmentType" 
               :options="statusOptions"
               :class="['status-select', getStatusClass(form.employmentType)]"
+            />
+            <input 
+              v-else
+              type="text"
+              class="input"
+              :value="statusOptions.find(o => o.value === form.employmentType)?.label || form.employmentType"
+              disabled
             />
           </div>
 

@@ -18,6 +18,9 @@
   /* transition */
   --transition-fast: .15s ease;
   --transition-base: .2s ease;
+
+  /* fonts */
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 }
 
 /* =====================================================
@@ -27,28 +30,28 @@
   --header-icon: #eaf0ff;
   --bg: #0b1220;
   --bg-gradient:
-    radial-gradient(1200px 600px at 10% -10%, rgba(79,124,255,.25), transparent 60%),
-    radial-gradient(900px 500px at 90% 10%, rgba(45,212,191,.18), transparent 55%);
+    radial-gradient(1200px 600px at 10% -10%, rgba(79, 124, 255, .25), transparent 60%),
+    radial-gradient(900px 500px at 90% 10%, rgba(45, 212, 191, .18), transparent 55%);
 
   --panel: #0f1a30;
   --card: #121f3a;
-  --overlay: rgba(0,0,0,.55);
+  --overlay: rgba(0, 0, 0, .55);
 
   --text-main: #eaf0ff;
   --text-sub: #9fb0d0;
   --text-muted: #7b8bb3;
 
-  --border: rgba(255,255,255,.08);
+  --border: rgba(255, 255, 255, .08);
 
   --primary: #4f7cff;
-  --primary-soft: rgba(79,124,255,.18);
+  --primary-soft: rgba(79, 124, 255, .18);
 
   --good: #2dd4bf;
   --warn: #fbbf24;
   --bad: #fb7185;
 
-  --shadow-lg: 0 18px 40px rgba(0,0,0,.45);
-  --shadow-md: 0 10px 30px rgba(0,0,0,.35);
+  --shadow-lg: 0 18px 40px rgba(0, 0, 0, .45);
+  --shadow-md: 0 10px 30px rgba(0, 0, 0, .35);
 }
 
 /* =====================================================
@@ -62,13 +65,13 @@
 
   --panel: #ffffff;
   --card: #ffffff;
-  --overlay: rgba(15,23,42,.35);
+  --overlay: rgba(15, 23, 42, .35);
 
   --text-main: #0f172a;
   --text-sub: #475569;
   --text-muted: #64748b;
 
-  --border: rgba(15,23,42,.12);
+  --border: rgba(15, 23, 42, .12);
 
   --primary: #2563eb;
   --primary-soft: #eef2ff;
@@ -77,6 +80,6 @@
   --warn: #f59e0b;
   --bad: #ef4444;
 
-  --shadow-lg: 0 18px 40px rgba(15,23,42,.18);
-  --shadow-md: 0 10px 25px rgba(15,23,42,.12);
+  --shadow-lg: 0 18px 40px rgba(15, 23, 42, .18);
+  --shadow-md: 0 10px 25px rgba(15, 23, 42, .12);
 }

@@ -35,7 +35,7 @@
         <div class="profile-header">
           <div class="avatar-area">
             <div class="avatar-lg">
-              <img v-if="employee.image" :src="employee.image" alt="Profile" />
+              <img v-if="employee.image" :src="resolveFileUrl(employee.image)" alt="Profile" />
               <i v-else class="pi pi-user"></i>
             </div>
             
@@ -59,8 +59,8 @@
               <span v-if="employee.positionName" class="badge position">{{ employee.positionName }}</span>
               <span v-if="employee.deptName" class="badge dept">{{ employee.deptName }}</span>
               <span class="badge role">{{ roleMap[employee.role] || employee.role || '일반 사용자' }}</span>
-              <span v-if="!isEditMode" :class="['badge status', employee.status === '재직' ? 'active' : 'inactive']">
-                {{ employee.status || '상태미정' }}
+              <span v-if="!isEditMode" :class="['badge status', getStatusClass(employee.employmentType)]">
+                {{ employmentTypeMap[employee.employmentType] || employee.employmentType || '상태미정' }}
               </span>
               <ModernSelect 
                 v-else 
@@ -176,6 +176,7 @@
 <script setup>
 import { ref, onMounted, computed, reactive } from 'vue'
 import { fetchEmployeeDetail, updateEmployeeProfile, uploadEmployeeProfileImage } from '@/api/employeeApi'
+import { resolveFileUrl } from '@/utils/fileUrl'
 import { changeMyPassword } from '@/api/userAccount'
 import { useAuthStore } from '@/stores/authStore'
 
@@ -198,6 +199,12 @@ const statusOptions = [
   { label: '휴직 (LEAVE)', value: 'LEAVE' },
   { label: '퇴사 (RESIGNED)', value: 'RESIGNED' }
 ]
+
+const employmentTypeMap = {
+  'WORKING': '재직',
+  'LEAVE': '휴직',
+  'RESIGNED': '퇴사'
+}
 
 const getStatusClass = (status) => {
   if (status === 'WORKING') return 'status-working'
@@ -293,6 +300,7 @@ const handleFileChange = async (event) => {
             // 이미지 즉시 업데이트
             const newUrl = res.data.data
             employee.value.image = newUrl
+            form.image = newUrl // Update form as well
             
             // AuthStore 정보 갱신 (헤더 등 전역 반영)
             if (authStore.user) {
@@ -509,8 +517,9 @@ onMounted(loadData)
     color: #4e5968;
 }
 .badge.position { background: #e8f3ff; color: #3182f6; }
-.badge.status.active { color: #3182f6; background: transparent; padding: 0; }
-.badge.status.active:before { content: '● '; }
+.badge.status.status-working { background: #dcfce7; color: #15803d; }
+.badge.status.status-leave { background: #fef9c3; color: #a16207; }
+.badge.status.status-resigned { background: #fee2e2; color: #b91c1c; }
 
 /* Colored Status Select */
 .status-select { min-width: 160px; }
@@ -646,12 +655,6 @@ onMounted(loadData)
     padding: 8px 12px;
     border-radius: 8px;
     transition: all 0.2s;
-}
-.input.auto-expand {
-    resize: vertical; /* Allow manual resize if needed, though autoResize handles it */
-    overflow: hidden;
-    min-height: 80px; /* Increased min height for note */
-    display: block;
 }
 .input::placeholder { color: #b1b8c0; font-weight: 400; }
 .input:focus { 
