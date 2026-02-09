@@ -60,6 +60,7 @@
         >
           <input
             type="radio"
+            class="custom-check"
             name="evaluator"
             :value="m.empId"
             v-model="evaluatorId"
@@ -82,6 +83,7 @@
         >
           <input
             type="checkbox"
+            class="custom-check"
             :value="m.empId"
             v-model="evaluateeIds"
             :disabled="isAlreadyAssigned(m.empId)"
@@ -390,6 +392,7 @@ const submitAssignments = async () => {
   color: #ef4444;
 }
 
+
 /* =====================
    ACTIONS
 ===================== */
@@ -420,5 +423,14 @@ const submitAssignments = async () => {
   box-shadow: 0 12px 24px rgba(79,70,229,.35);
 }
 
+.custom-check {
+  cursor: pointer;
+  width: 16px !important;   /* 원하는 사이즈 고정 */
+  height: 16px !important;
+  margin: 0;
+  accent-color: #6366f1;    /* 포인트 컬러 */
+  flex-shrink: 0;           /* 레이아웃에서 찌그러짐 방지 */
+  appearance: auto;         /* 브라우저 기본 형태 유지 */
+}
 
 </style>
