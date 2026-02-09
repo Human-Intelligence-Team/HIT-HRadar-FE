@@ -82,3 +82,17 @@ select, input {
   font-weight: bold;
   font-size: 13px;
 }
+
+.content-empty-state {
+  display: flex;
+  flex-direction: column;  /* 아이콘과 텍스트를 세로로 나열 */
+  align-items: center;     /* 내부 요소 가로 중앙 */
+  text-align: center;
+}
+
+.content-empty-state .empty-content{
+  padding-top: 50px;
+}
+.empty-icon {
+  margin-bottom: 12px;     /* 아이콘과 글자 사이 간격 */
+}

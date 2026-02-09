@@ -143,17 +143,21 @@ const removeConfirmed = (empId) => {
 const resetForm = () => {
   searchData.deptId = ''
   searchData.employeeName = ''
+  selectedList.value = []
+  isAllChecked.value = false
 }
 
 // 사원 조회
 const getEmpList = async () => {
+
+  selectedList.value = []
+  isAllChecked.value = false
 
   let payload = {
     deptId : searchData.deptId
     , employeeName : searchData.employeeName
   }
 
-  console.log("payload : " , payload)
   submitting.value = true
   try {
    const result = await fetchEmployees(payload)
@@ -162,7 +166,6 @@ const getEmpList = async () => {
     if (data.success) {
       employees.value = data.data.employees
 
-      console.log( employees.value)
     }
   } catch (e) {
     errorMessage.value = e.message || '컨텐츠 조회 중 오류 발생'
@@ -232,73 +235,84 @@ onMounted(() => {
                      placeholder="사원명을 입력해주세요."
                      size="45"
                      v-model="searchData.employeeName"
+                     @keyup.enter="getEmpList()"
               />
             </div>
 
             <div class="search-btn">
               <button class="btn reset" type="reset" @click="resetForm()">초기화</button>
-              <button class="btn primary search" type="button" @click="getEmpList()">검색</button>
-            </div>
-          </div>
+              <button class="btn primary search"
+                      type="button"
+                      @click="getEmpList()"
 
-          <div class="tag-box">
-            <div
-              class="tag"
-              v-for="item in confirmedList"
-              :key="item.empId"
-            >
-              <span>{{ item.name }}</span>
-              <span
-                style="cursor:pointer; margin-left:6px"
-                @click="removeConfirmed(item.empId)"
               >
-              ✕
-            </span>
+                검색
+              </button>
             </div>
-
           </div>
 
-
-          <div class="search-btn">
-            <button class="btn" type="button" @click="selectEmployee()">선택</button>
-          </div>
-          <table class="table">
-            <thead class="tbl-hd">
-              <tr>
-                <th style="width: 10%">
-                  <input type="checkbox"
-                         v-model="isAllChecked"
-                         @change="toggleAll"
+          <div class="table-scroll-container">
+              <table class="table">
+              <thead class="tbl-hd">
+                <tr>
+                  <th style="width: 10%">
+                    <input type="checkbox"
+                           v-model="isAllChecked"
+                           @change="toggleAll"
+                           :disabled="employees.length === 0 || employees.every(emp => confirmedList.some(c => c.empId === emp.empId))"
+                    />
+                  </th>
+                  <th style="width: 20%">부서</th>
+                  <th style="width: 20%">직위</th>
+                  <th style="width: 20%">사번</th>
+                  <th style="width: 30%">이름</th>
+                </tr>
+              </thead>
+              <tbody class="tbl-bd">
+              <tr
+                v-for="item in employees"
+                :key="item.empId"
+                :class="{ disabledRow: confirmedList.some(c => c.empId === item.empId) }"
+                @click="toggleOne(item)"
+                style="cursor: pointer;"
+              >
+                <th>
+                  <input
+                    type="checkbox"
+                    :checked="selectedList.some(sel => sel.empId === item.empId)"
+                    :disabled="confirmedList.some(c => c.empId === item.empId)"
+                    @click.stop
+                    @change="toggleOne(item)"
                   />
                 </th>
-                <th style="width: 20%">부서</th>
-                <th style="width: 20%">직위</th>
-                <th style="width: 20%">사번</th>
-                <th style="width: 30%">이름</th>
+                <th>{{ item.deptName}}</th>
+                <th>{{ item.positionName}}</th>
+                <th>{{ item.employeeNo }}</th>
+                <th>{{ item.name }}</th>
               </tr>
-            </thead>
-            <tbody class="tbl-bd">
-            <tr
-              v-for="item in employees"
-              :key="item.empId"
-              :class="{ disabledRow: confirmedList.some(c => c.empId === item.empId) }"
-            >
-              <th>
-                <input
-                  type="checkbox"
-                  :checked="selectedList.some(sel => sel.empId === item.empId)"
-                  :disabled="confirmedList.some(c => c.empId === item.empId)"
-                  @change="toggleOne(item)"
-                />
-              </th>
-              <th>{{ item.deptName}}</th>
-              <th>{{ item.positionName}}</th>
-              <th>{{ item.employeeNo }}</th>
-              <th>{{ item.name }}</th>
-            </tr>
 
-            </tbody>
-          </table>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="search-btn">
+          <button class="btn" type="button" @click="selectEmployee()">선택</button>
+        </div>
+        <div class="tag-box">
+          <div
+            class="tag"
+            v-for="item in confirmedList"
+            :key="item.empId"
+          >
+            <span>{{ item.name }}</span>
+            <span
+              style="cursor:pointer; margin-left:6px"
+              @click="removeConfirmed(item.empId)"
+            >
+              ✕
+            </span>
+          </div>
+
         </div>
 
         <div class="modal-footer">
@@ -416,10 +430,15 @@ onMounted(() => {
   margin: 10px 3px;
 }
 .tag-box {
-  min-height: 100px;
-  text-align: left; /* 왼쪽 정렬 */
-  vertical-align: top; /* 세로 가운데 정렬 */
-  padding-left: 8px;
+  min-height: 80px;      /* 최소 높이 */
+  max-height: 150px;     /* 스크롤이 생길 최대 높이 (사원 선택창보다 작게 설정 권장) */
+  overflow-y: auto;      /* 내용이 넘치면 스크롤 생성 */
+  padding: 8px;
+  margin: 0 20px 10px 20px; /* 좌우 여백을 검색창과 통일 */
+  border: 1px solid #eee;   /* 박스 구분선 */
+  border-radius: 8px;
+  background-color: #fafafa; /* 테이블과 구분되는 살짝 회색 배경 */
+  text-align: left;
 }
 
 .modal-search .search-section .select {
@@ -435,6 +454,17 @@ onMounted(() => {
 }
 .disabledRow input[type='checkbox'] {
   cursor: not-allowed;
+}
+
+.table-scroll-container {
+  max-height: 500px; /* 원하는 리스트 높이로 조절 */
+  overflow-y: auto;
+  border-bottom: 1px solid #eee;
+}
+
+.search-btn {
+  margin-right: 10px;
+  margin-bottom: 10px;
 }
 
 </style>

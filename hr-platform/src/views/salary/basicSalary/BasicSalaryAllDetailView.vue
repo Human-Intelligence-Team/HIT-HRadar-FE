@@ -127,11 +127,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="sub">기본급 상세 조회(인사팀)</div>
-
-  <div class="section-btn">
-    <button class="btn" @click="goListPage()" type="button">목록</button>
-  </div>
+  <div class="sub"><strong>기본급 상세 조회</strong></div>
 
   <div class="grid">
     <div class="card">
@@ -241,6 +237,9 @@ onMounted(() => {
           </div>
         </div>
       </div>
+      <div class="section-btn">
+        <button class="btn" @click="goListPage()" type="button">목록</button>
+      </div>
     </div>
   </div>
 </template>
@@ -249,6 +248,10 @@ onMounted(() => {
 @import '@/views/contents/style/tableCss.css';
 @import '@/views/salary/style/salaryTable.css';
 @import '@/views/salary/style/badge.css';
+
+.grid {
+  margin: 15px;
+}
 .section-btn {
   display: flex;
   justify-content: flex-end;

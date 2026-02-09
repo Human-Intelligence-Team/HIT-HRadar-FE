@@ -7,7 +7,6 @@ import {
   BASIC_OPTIONS,
   formatComma,
   getDateFormatter, getLabel,
-  getToday,
   getYear,
 } from '@/views/salary/js/common.js'
 import { YEAR_OPTIONS } from '@/views/report/script/common.js'
@@ -33,6 +32,7 @@ const goBasicCreate = () => {
     path: '/all/salary/create',
     query: {
       type: 'basic',
+      year: year.value,
     },
   })
 }
@@ -149,25 +149,25 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="sub">기본급 조회(인사팀)</div>
-  <div class="search">
-    <select class="select" v-model="year">
-      <option v-for="item in years" :key="item" :value="item">
-        {{ item }}
-      </option>
-    </select>
-  </div>
+  <div class="sub"><strong>기본급 조회</strong></div>
+
   <div class="card">
     <div class="dashboard-box">
       <div class="dashboard-box-header">
         <div class="dashboard-box-title">
           <span class="title">{{ year }}년 기본급 관리</span>
-          <span class="sub-title">{{ dateData.startDate }} ~ {{ dateData.endDate }}</span>
+          <span class="sub-title">{{ dateData.startDate }} ~ {{ currentYear === year ? dateData.endDate : year + "년12월31일"}}</span>
         </div>
-        <div>
+        <div class="dashboard-select-box">
+          <div class="search">
+            <select class="select" v-model="year">
+              <option v-for="item in years" :key="item" :value="item">
+                {{ item }}
+              </option>
+            </select>
+          </div>
           <button class="btn primary"
                   @click="goBasicCreate()"
-                  v-if="currentYear === year"
           >
             등록하기
           </button>
@@ -189,6 +189,27 @@ onMounted(() => {
     </div>
     <div class="grid">
       <div class="card">
+        <div class="content-empty-state" v-if="!basic || basic.length === 0">
+          <table class="table">
+            <thead class="tbl-hd">
+            <tr>
+              <th style="width: 10%">년도</th>
+              <th style="width: 10%">연봉인상유형</th>
+              <th style="width: 30%">제목</th>
+              <th style="width: 10%">총금액</th>
+              <th style="width: 10%">인원</th>
+              <th style="width: 10%">결재여부</th>
+              <th style="width: 10%">결재일</th>
+              <th style="width: 10%">담당자</th>
+            </tr>
+            </thead>
+          </table>
+          <div class="empty-content">
+            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="empty-icon"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+            <p>등록된 기본급이 없습니다.</p>
+          </div>
+        </div>
+        <div class="table-scroll-container" v-else>
         <table class="table">
           <thead class="tbl-hd">
             <tr>
@@ -229,6 +250,7 @@ onMounted(() => {
           </tbody>
         </table>
       </div>
+      </div>
     </div>
   </div>
 </template>
@@ -257,4 +279,22 @@ onMounted(() => {
   width: 100%;
   height: 180px;
 }
+
+.dashboard-select-box {
+  display: flex;
+  align-items: center; /* 세로 중앙 정렬 */
+  gap: 10px;           /* 셀렉트 박스와 버튼 사이의 간격 */
+}
+
+.dashboard-select-box select {
+  width: 100px;
+  margin-top: 10px;
+}
+
+.table-scroll-container {
+  max-height: 500px; /* 원하는 리스트 높이로 조절 */
+  overflow-y: auto;
+  border-bottom: 1px solid #eee;
+}
+
 </style>

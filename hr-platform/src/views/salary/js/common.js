@@ -45,10 +45,13 @@ export const formatComma = (value, suffix = '') => {
 
 // 기본급
 export const BASIC_OPTIONS = [
+  { value: 'INITIAL', label: '신규 입사' },
   { value: 'REGULAR', label: '정기 인상' },
-  { value: 'PERFORMANCE', label: '성과 인상' },
   { value: 'PROMOTION', label: '승진 인상' },
-  { value: 'SPECIAL', label: '특별 인상' },
+  { value: 'ADJUSTMENT', label: '특별 조정' },
+  /*{ value: 'RETROACTIVE', label: '소급 수정' },*/
+  { value: 'REDUCTION', label: '임금 삭감' },
+  { value: 'FREEZE', label: '급여 동결' },
 ]
 
 // 변동 보상

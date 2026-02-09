@@ -64,7 +64,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="sub">역량강화 리포트 조회(본인)</div>
+  <div class="sub"><strong>역량강화 리포트 이력</strong></div>
 
   <div class="grid">
     <div class="card">
@@ -88,7 +88,22 @@ onMounted(() => {
   </div>
 
   <div class="card">
-    <table class="table">
+    <div class="content-empty-state" v-if="!reports || reports.length === 0">
+      <table class="table">
+        <thead class="tbl-hd">
+        <tr>
+          <th style="width: 10%">년도</th>
+          <th style="width: 10%">회차</th>
+          <th style="width: 30%">제목</th>
+        </tr>
+        </thead>
+      </table>
+      <div class="empty-content">
+        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="empty-icon"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+        <p>등록된 역량강화 리포트가 없습니다.</p>
+      </div>
+    </div>
+    <table class="table" v-else>
       <thead class="tbl-hd">
         <tr>
           <th style="width: 10%">년도</th>

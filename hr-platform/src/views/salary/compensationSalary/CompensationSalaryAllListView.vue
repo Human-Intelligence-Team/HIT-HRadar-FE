@@ -38,6 +38,7 @@ const goCompensationCreate = () => {
     path: '/all/salary/create',
     query: {
       type: 'compensation',
+      year : year.value,
     },
   })
 }
@@ -114,13 +115,9 @@ const goDetailPage = (docId) => {
 </script>
 
 <template>
-  <div class="sub">변동보상 조회(인사팀)</div>
+  <div class="sub"><strong>변동보상 조회</strong></div>
   <div class="search">
-    <select class="select" v-model="year">
-      <option v-for="item in years" :key="item" :value="item">
-        {{ item }}
-      </option>
-    </select>
+
   </div>
   <div class="card">
     <div class="dashboard-box">
@@ -128,11 +125,18 @@ const goDetailPage = (docId) => {
         <div class="dashboard-box-title">
           <span class="title">{{ year }}년 변동보상 관리</span>
           <span class="sub-title">
-            {{ compensationSummary.startDate }} ~ {{ compensationSummary.endDate }}</span
+            {{ year + "년 01월 01일" }} ~ {{  currentYear === year ? compensationSummary.endDate : year + "년12월31일" }}</span
           >
         </div>
-        <div>
-          <button class="btn primary" @click="goCompensationCreate()" v-if="currentYear === year">
+        <div class="dashboard-select-box">
+          <select class="select" v-model="year">
+            <option v-for="item in years" :key="item" :value="item">
+              {{ item }}
+            </option>
+          </select>
+          <button class="btn primary"
+                  @click="goCompensationCreate()"
+          >
             등록하기
           </button>
         </div>
@@ -178,7 +182,30 @@ const goDetailPage = (docId) => {
   </div>
   <div class="card">
     <div class="card-bd">
-      <table class="table">
+      <div class="content-empty-state" v-if="!compensation || compensation.length === 0">
+        <table class="table">
+          <thead class="tbl-hd">
+          <tr>
+            <th style="width: 10%">일자</th>
+            <th style="width: 10%">변동보상유형</th>
+            <th style="width: 20%">제목</th>
+            <th style="width: 10%">총금액</th>
+            <th style="width: 10%">인원</th>
+            <th style="width: 10%">결재여부</th>
+            <th style="width: 10%">비고</th>
+            <th style="width: 10%">결재일</th>
+            <th style="width: 10%">담당자</th>
+          </tr>
+          </thead>
+        </table>
+        <div class="empty-content">
+          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="empty-icon"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+          <p>등록된 변동보상이 없습니다.</p>
+        </div>
+      </div>
+
+      <div class="table-scroll-container" v-else>
+        <table class="table">
         <thead class="tbl-hd">
           <tr>
             <th style="width: 10%">일자</th>
@@ -220,6 +247,7 @@ const goDetailPage = (docId) => {
         </tbody>
       </table>
     </div>
+    </div>
   </div>
 </template>
 
@@ -241,4 +269,18 @@ const goDetailPage = (docId) => {
 .search select {
   width: 10%;
 }
+.dashboard-select-box {
+  display: flex;
+  align-items: center; /* 세로 중앙 정렬 */
+  gap: 10px;           /* 셀렉트 박스와 버튼 사이의 간격 */
+}
+.table-scroll-container {
+  max-height: 500px; /* 원하는 리스트 높이로 조절 */
+  overflow-y: auto;
+  border-bottom: 1px solid #eee;
+}
+.dashboard-select-box select {
+  width: 100px;
+}
+
 </style>

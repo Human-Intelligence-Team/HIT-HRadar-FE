@@ -33,7 +33,6 @@ const getTagList = async () => {
     let result = await fetchTags(payload)
     let data = result.data
 
-    console.log(data)
     if (data.success) {
       tags.value = data.data.tags
       tagCount.value = data.data.tags.length
@@ -179,6 +178,7 @@ onMounted(() => {
               placeholder="태그명을 입력해주세요."
               size="45"
               v-model="tagData.tagCreateName"
+
             />
           </div>
           <div class="search-btn">
@@ -201,6 +201,7 @@ onMounted(() => {
             placeholder="태그명을 입력해주세요."
             size="45"
             v-model="tagData.tagFetchName"
+            @keyup.enter="getTagList()"
           />
         </div>
 
@@ -212,7 +213,22 @@ onMounted(() => {
 
       <div class="modal-body">
         <span class="total-span">총 {{ tagCount }} 개</span>
-        <table class="table">
+        <div class="content-empty-state" v-if="!tags || tags.length === 0">
+          <table class="table">
+            <thead class="tbl-hd">
+            <tr>
+              <th style="width: 40%">태그명</th>
+              <th style="width: 40%">사용 개수</th>
+              <th style="width: 20%"></th>
+            </tr>
+            </thead>
+          </table>
+          <div class="empty-content">
+            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="empty-icon"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+            <p>등록된 태그가 없습니다.</p>
+          </div>
+        </div>
+        <table class="table" v-else>
           <thead class="tbl-hd">
             <tr>
               <th style="width: 40%">태그명</th>
@@ -282,5 +298,9 @@ span {
 .tbl-bd td {
   text-align: center;
   vertical-align: middle;
+}
+
+input {
+  font-size: 13px;
 }
 </style>
