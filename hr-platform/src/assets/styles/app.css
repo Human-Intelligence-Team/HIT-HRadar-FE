@@ -247,6 +247,11 @@
   padding: 10px 12px;
   outline: none;
 }
+/* Chat input inside flex row */
+.chat-input {
+  flex: 1 1 auto;
+  min-width: 0;
+}
 
 .textarea {
   min-height: 120px;
@@ -536,4 +541,8 @@
   gap: 10px;
   padding: 12px 14px;
   border-top: 1px solid var(--border);
+}
+.modal-foot .btn {
+  flex: 0 0 auto;
+  white-space: nowrap;
 }
