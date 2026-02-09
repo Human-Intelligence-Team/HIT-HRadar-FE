@@ -78,6 +78,10 @@ const props = defineProps({
   allowDeptSelection: {
     type: Boolean,
     default: false,
+  },
+  valueField: {
+    type: String,
+    default: 'accId', // 'accId' or 'empId'
   }
 });
 
@@ -117,7 +121,14 @@ watch(() => props.modelValue, (newVal) => {
   // This would require an additional API call (e.g., fetchUserAccountDetail for each ID).
   // For simplicity, if modelValue has values, we'll try to represent them as { accId: id, name: `User ${id}` }
   if (newVal && newVal.length > 0 && selectedEmployees.value.length === 0) {
-    selectedEmployees.value = newVal.map(id => ({ accId: id, name: `User ${id}` }));
+    // Note: This naive reconstruction might be issues if valueField is empId but we map to accId props
+    // Ideally we re-fetch users. For now, we trust the user selects them interactively.
+    selectedEmployees.value = newVal.map(id => {
+        if (props.valueField === 'empId') {
+             return { empId: id, accId: id, name: `Employee ${id}` } // Placeholder
+        }
+        return { accId: id, name: `User ${id}` }
+    });
   }
 }, { immediate: true });
 
@@ -136,8 +147,9 @@ const fetchEmployeesByDepartment = async (deptId) => {
     const response = await fetchUserAccounts({ deptId: deptId });
     const userList = response.data.data.accounts || [];
     allEmployeesInDept.value = userList.map(user => ({
-      accId: user.accId || user.employeeId,
-      name: user.name || user.employeeName,
+      accId: user.accId,
+      empId: user.empId, // Store empId too
+      name: user.name,
     }));
   } catch (error) {
     console.error(`부서 ID ${deptId}의 사원 목록을 불러오는 데 실패했습니다:`, error);
@@ -154,6 +166,7 @@ const handleEmployeeSelect = () => {
     return;
   }
 
+  // tempSelectedEmployeeId is bound to the select's value, which uses item.accId
   const employee = allEmployeesInDept.value.find(e => e.accId === tempSelectedEmployeeId.value);
   if (employee) {
     selectEmployee(employee);
@@ -202,7 +215,9 @@ const removeEmployee = (employeeToRemove) => {
 };
 
 const emitSelectedEmployeeIds = () => {
-  const ids = selectedEmployees.value.map((employee) => employee.accId);
+  const ids = selectedEmployees.value.map((employee) => {
+      return props.valueField === 'empId' ? employee.empId : employee.accId;
+  });
   emit('update:modelValue', ids);
 };
 
@@ -259,72 +274,7 @@ onMounted(() => {
   box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
 }
 
-.btn-search {
-  padding: 10px 15px;
-  background-color: #007bff;
-  color: #ffffff;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 600;
-  transition: background-color 0.2s ease;
-}
 
-.btn-search:hover {
-  background-color: #0056b3;
-}
-
-.btn-dept-select {
-  margin-top: 8px;
-  width: 100%;
-  padding: 8px;
-  background-color: #f0f0f0;
-  border: 1px solid #dcdcdc;
-  border-radius: 6px;
-  font-size: 12px;
-  color: #555;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.btn-dept-select:hover {
-  background-color: #e0e0e0;
-  color: #333;
-}
-
-.employee-results-dropdown {
-  position: absolute;
-  /* Adjust top dynamically if needed, or place it after the selector-group */
-  /* For now, assuming it appears below the whole group for simplicity */
-  top: calc(100% + 5px); /* Position below the container */
-  left: 0;
-  right: 0;
-  background-color: #ffffff;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-  max-height: 200px;
-  overflow-y: auto;
-  z-index: 100;
-}
-
-.results-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.result-item {
-  padding: 10px 15px;
-  cursor: pointer;
-  font-size: 14px;
-  color: #333;
-}
-
-.result-item:hover {
-  background-color: #f0f8ff;
-}
 
 .selected-tags {
   display: flex;

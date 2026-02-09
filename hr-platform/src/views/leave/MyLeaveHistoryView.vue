@@ -191,6 +191,7 @@ onMounted(reloadData);
 .user-details h2 {
   font-size: 1.5rem;
   font-weight: 700;
+  color: #111827;
 }
 .user-details p {
   font-size: 1rem;
@@ -203,10 +204,10 @@ onMounted(reloadData);
   grid-template-columns: repeat(3, 1fr);
   gap: 1rem;
   margin-bottom: 2rem;
-  border: 2px solid #e5e7eb;
+  border: 1px solid #e5e7eb;
   border-radius: 16px;
   padding: 1.25rem;
-  background-color: #fff;
+  background-color: #ffffff;
 }
 
 .stats-header {
@@ -221,18 +222,17 @@ onMounted(reloadData);
 }
 
 .stat-card {
-  background: #f8f9fa; /* Slight contrast against white container */
+  background: #f8f9fa; 
   border-radius: 12px;
   padding: 1.25rem;
   text-align: center;
-  /* box-shadow removed to look flatter inside border, or keep it subtle */
   border: 1px solid #f3f4f6;
 }
 
 .stat-value {
   font-size: 2rem;
   font-weight: 700;
-  color: #212529;
+  color: #111827;
 }
 .stat-label {
   font-size: 0.9rem;
@@ -265,14 +265,16 @@ onMounted(reloadData);
 }
 
 .history-card {
-  background: #fff;
+  background: #ffffff;
   border-radius: 12px;
   padding: 1.5rem;
   box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  border: 1px solid #e5e7eb;
 }
 .history-card h2 {
     font-size: 1.25rem;
-    font-weight: 600;
+    font-weight: 700; /* Increased from 600 */
+    color: #111827; /* Darker navy */
     margin-bottom: 1.5rem;
 }
 
@@ -292,10 +294,12 @@ onMounted(reloadData);
   border-bottom: 1px solid #e9ecef;
   font-size: 0.9rem;
   vertical-align: middle;
+  color: #111827; /* Darker from #1f2937 */
 }
 .leave-table th {
-  font-weight: 600;
+  font-weight: 700; /* Increased from 600 */
   background-color: #f8f9fa;
+  color: #111827; /* Darker from #4b5563 */
 }
 .reason-cell {
     max-width: 200px;

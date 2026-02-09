@@ -278,7 +278,7 @@ onMounted(() => {
 
 /* Filter Section */
 .filter-card {
-  background: #fff;
+  background: #ffffff;
   border-radius: 12px;
   padding: 1.5rem;
   margin-bottom: 2rem;

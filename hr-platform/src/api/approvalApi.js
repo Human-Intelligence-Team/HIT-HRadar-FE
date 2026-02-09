@@ -103,3 +103,7 @@ export const fetchApprovalDocumentTypeDetail = (typeId) => {
 export const fetchApprovalAttendanceCategories = () => {
   return api.get('/api/v1/approval-types/categories');
 }
+
+export const fetchManagementDocumentTypes = () => {
+  return api.get('/api/v1/approval-types/manage');
+};
