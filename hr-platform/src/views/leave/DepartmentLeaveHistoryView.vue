@@ -199,7 +199,7 @@ const fetchData = async () => {
         const [leavesRes, policiesRes, deptsRes] = await Promise.all([
             getDepartmentLeaves(),
             getLeavePolicies(authStore.user?.companyId),
-            getAllDepartmentsByCompany()
+            getAllDepartmentsByCompany(authStore.user?.companyId)
         ]);
 
         if (leavesRes.data && leavesRes.data.success) {
