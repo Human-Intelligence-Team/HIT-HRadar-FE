@@ -1,6 +1,6 @@
 import {fetchDepts} from "@/api/deptApii.js";
 import {fetchPositions} from "@/api/positionApi.js";
-import { fetchMyCompany } from '@/api/companyApi.js'
+
 
 /* 이번 년도 기준 - 10년*/
 export const YEAR_OPTIONS = async () => {
