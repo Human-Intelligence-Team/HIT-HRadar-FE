@@ -77,7 +77,6 @@
 </template>
 
 <script setup>
-console.log('GoalListView setup 실행됨')
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import BaseCard from '@/components/common/BaseCard.vue'

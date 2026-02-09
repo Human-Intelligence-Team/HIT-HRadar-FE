@@ -92,9 +92,13 @@ onMounted(() => {
         </tr>
       </thead>
       <tbody class="tbl-bd">
-        <tr v-for="item in salaries" :key="item.docId" :value="item.docId">
+        <tr v-for="item in salaries"
+            :key="item.docId"
+            :value="item.docId"
+            @click="goDetailPage(item.empId, item.year)"
+        >
           <td>{{ item.year }}</td>
-          <td @click="goDetailPage(item.empId, item.year)">{{ item.title }}</td>
+          <td>{{ item.title }}</td>
           <td>{{ item.deptName }}</td>
           <td>{{ item.positionName }}</td>
           <td>{{ item.salaryIncreaseType }}</td>

@@ -32,7 +32,6 @@ const getContentDetail = async () => {
     const result = await fetchContentDetail(contentId)
     let data = result.data
     let contents = result.data.data.content
-    console.log("contents " + contents.title)
     if (data.success) {
       content.title = contents.title
       content.typeName = contents.typeName

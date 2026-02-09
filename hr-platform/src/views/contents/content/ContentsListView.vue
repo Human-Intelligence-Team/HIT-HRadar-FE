@@ -56,7 +56,6 @@ const getCustomCodeList = async () => {
     let data = result.data
 
     if (data.success) {
-      console.log("dddddd --" )
       types.value = data.data.typeCodes
       levels.value = data.data.levelCodes
     }
@@ -87,7 +86,6 @@ const searchContent = async (params) => {
     const result = await fetchContents(params)
     const data = result.data
 
-    console.log("contents: " +data.data.contents)
     if (data.success) {
       // 저장
       contents.value = data.data.contents
@@ -203,9 +201,10 @@ onMounted(() => {
             v-for="item in contents"
             :key="item.contentId"
             :value="item.contentId"
+            @click="goDetailPage(item.contentId)"
           >
             <tr>
-              <td  @click="goDetailPage(item.contentId)">
+              <td>
                 {{ item.title }}
               </td>
               <td>{{ item.typeName }}</td>
@@ -251,4 +250,5 @@ onMounted(() => {
   padding: 15px;
   gap: 10px;
 }
+
 </style>

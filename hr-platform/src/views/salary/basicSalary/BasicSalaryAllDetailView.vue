@@ -173,7 +173,9 @@ onMounted(() => {
                 <th style="width: 10%">인상률(%)</th>
                 <th style="width: 10%">인상금액</th>
               </tr>
-              <tr v-for="(item, index) in basic" :key="index">
+              <tr v-for="(item, index) in basic"
+                  :key="index"
+              >
                 <td>{{ item.year }}</td>
                 <td>{{ getLabel(BASIC_OPTIONS, item.salaryIncreaseType) }}</td>
                 <td>{{ item.prevSalary == null ? 0 : formatComma(item.prevSalary) }}</td>
@@ -217,7 +219,9 @@ onMounted(() => {
                 <th style="width: 10%">금액</th>
                 <th style="width: 10%">퍼센트(%)</th>
               </tr>
-              <tr v-for="(item, index) in compensation" :key="index">
+              <tr v-for="(item, index) in compensation"
+                  :key="index"
+              >
                 <template v-if="item">
                   <td>{{ item.year }}</td>
                   <td>{{ item.title }}</td>
