@@ -9,7 +9,6 @@ import {
 } from '@/views/report/script/common.js'
 import {
   APPROVAL_OPTIONS,
-  BASIC_OPTIONS,
   COMPENSATION_OPTIONS,
   formatComma,
   getLabel,
@@ -84,8 +83,9 @@ const searchReport = async () => {
 
     if (data.success) {
       salaries.value = data.data.compensationSalaries
-      let approval = data.data.salaryApproval
 
+
+      let approval = data.data.salaryApproval
       salaryApproval.title = approval.title
       salaryApproval.compensationType = approval.compensationType
       salaryApproval.remark = approval.remark
@@ -118,11 +118,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="sub">변동보상 사원 조회</div>
-
-  <div class="section-btn">
-    <button class="btn" @click="goListPage()" type="button">목록</button>
-  </div>
+  <div class="sub"><strong>변동보상 사원 조회</strong></div>
 
   <div class="grid">
     <div class="card">
@@ -204,12 +200,22 @@ onMounted(() => {
       <div class="card-head">
         <div class="search-section">
           <div class="label">사번</div>
-          <input class="input" type="text" v-model="searchData.employeeNo" placeholder="사번" />
+          <input class="input"
+                 type="text"
+                 v-model="searchData.employeeNo"
+                 placeholder="사번"
+                 @keyup.enter="searchReport"
+          />
         </div>
 
         <div class="search-section">
           <div class="label">사원명</div>
-          <input class="input" type="text" v-model="searchData.employeeName" placeholder="사원명" />
+          <input class="input"
+                 type="text"
+                 v-model="searchData.employeeName"
+                 placeholder="사원명"
+                 @keyup.enter="searchReport"
+          />
         </div>
       </div>
     </div>
@@ -217,7 +223,27 @@ onMounted(() => {
 
   <div class="card">
     <div class="card-bd">
-      <table class="table">
+      <div class="content-empty-state" v-if="!salaries || salaries.length === 0">
+        <table class="table">
+          <thead class="tbl-hd">
+          <tr>
+            <th style="width: 10%">재직상태</th>
+            <th style="width: 10%">부서</th>
+            <th style="width: 10%">직위</th>
+            <th style="width: 10%">사번</th>
+            <th style="width: 10%">사원명</th>
+            <th style="width: 10%">변동보상 유형</th>
+            <th style="width: 20%">비고</th>
+          </tr>
+          </thead>
+        </table>
+        <div class="empty-content">
+          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="empty-icon"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+          <p>등록된 기본급이 없습니다.</p>
+        </div>
+      </div>
+      <div class="table-scroll-container" v-else>
+        <table class="table">
         <thead class="tbl-hd">
           <tr>
             <th style="width: 10%">재직상태</th>
@@ -230,7 +256,8 @@ onMounted(() => {
           </tr>
         </thead>
         <tbody class="tbl-bd">
-          <tr v-for="item in salaries" :key="item.docId">
+          <tr v-for="item in salaries"
+              :key="item.docId">
             <td>{{ getLabel(LEAVE_STATUS_OPTIONS, item.employmentType) }}</td>
             <td>{{ item.deptName }}</td>
             <td>{{ item.positionName }}</td>
@@ -247,6 +274,10 @@ onMounted(() => {
           </tr>
         </tbody>
       </table>
+    </div>
+    </div>
+    <div class="section-btn">
+      <button class="btn" @click="goListPage()" type="button">목록</button>
     </div>
   </div>
 </template>
@@ -296,5 +327,13 @@ onMounted(() => {
   color: #444;
   display: flex;
   align-items: center;
+}
+.table-scroll-container {
+  max-height: 500px; /* 원하는 리스트 높이로 조절 */
+  overflow-y: auto;
+  border-bottom: 1px solid #eee;
+}
+input {
+  font-size: 13px;
 }
 </style>

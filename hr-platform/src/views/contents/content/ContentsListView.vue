@@ -120,14 +120,19 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="sub">학습컨텐츠 조회</div>
+  <div class="sub"><strong>학습컨텐츠 조회</strong></div>
 
   <div class="grid">
     <div class="card">
       <div class="card-head">
         <div class="search-section">
           <span class="label">컨텐츠 명</span>
-          <input class="input" type="text" placeholder="컨텐츠 명" v-model="searchData.title" />
+          <input class="input"
+                 type="text"
+                 placeholder="컨텐츠 명"
+                 v-model="searchData.title"
+                 @keyup.enter="searchBtn"
+          />
         </div>
 
         <div class="search-section">
@@ -169,7 +174,12 @@ onMounted(() => {
 
         <div class="search-section">
           <div class="label">태그</div>
-          <input class="input" type="text" v-model="searchData.tag" />
+          <input class="input"
+                 type="text"
+                 v-model="searchData.tag"
+                 placeholder="태그"
+                 @keyup.enter="searchBtn"
+          />
         </div>
 
       </div>
@@ -186,8 +196,9 @@ onMounted(() => {
       </div>
 
       <div class="card-bd">
-        <table class="table">
-          <thead class="tbl-hd">
+        <div class="content-empty-state" v-if="!contents || contents.length === 0">
+          <table class="table">
+            <thead class="tbl-hd">
             <tr>
               <th style="width: 30%">콘텐츠 명</th>
               <th style="width: 30%">유형</th>
@@ -195,42 +206,61 @@ onMounted(() => {
               <th style="width: 10%">학습시간</th>
               <th style="width: 30%">태그</th>
             </tr>
-          </thead>
-          <tbody
-            class="tbl-bd"
-            v-for="item in contents"
-            :key="item.contentId"
-            :value="item.contentId"
-            @click="goDetailPage(item.contentId)"
-          >
-            <tr>
-              <td>
-                {{ item.title }}
-              </td>
-              <td>{{ item.typeName }}</td>
-              <td>{{ item.levelName }}</td>
-              <td>{{ item.learningTime }}</td>
-              <td>
-                <div class="tag-container">
-                  <span
-                    v-for="tag in item.tags"
-                    :key="tag.tagId || tag.id"
-                    class="tag-item"
-                  >
-                    #{{ tag.tagName }}
-                  </span>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+            </thead>
+          </table>
+          <div class="empty-content">
+            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="empty-icon"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+            <p>등록된 학습 컨텐츠가 없습니다.</p>
+          </div>
+        </div>
+        <div class="table-scroll-container" v-else>
+          <table class="table">
+            <thead class="tbl-hd">
+              <tr>
+                <th style="width: 30%">콘텐츠 명</th>
+                <th style="width: 30%">유형</th>
+                <th style="width: 10%">난이도</th>
+                <th style="width: 10%">학습시간</th>
+                <th style="width: 30%">태그</th>
+              </tr>
+            </thead>
+            <tbody
+              class="tbl-bd"
+              v-for="item in contents"
+              :key="item.contentId"
+              :value="item.contentId"
+              @click="goDetailPage(item.contentId)"
+            >
+              <tr>
+                <td>
+                  {{ item.title }}
+                </td>
+                <td>{{ item.typeName }}</td>
+                <td>{{ item.levelName }}</td>
+                <td>{{ item.learningTime }}</td>
+                <td>
+                  <div class="tag-container">
+                    <span
+                      v-for="tag in item.tags"
+                      :key="tag.tagId || tag.id"
+                      class="tag-item"
+                    >
+                      #{{ tag.tagName }}
+                    </span>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="section-btn">
+        <button class="btn primary" @click="goCreatePage()" type="button">등록</button>
       </div>
     </div>
   </div>
 
-  <div class="section-btn">
-    <button class="btn primary" @click="goCreatePage()" type="button">등록</button>
-  </div>
+
 
   <TagModalView v-if="isTagModalOpen" @close="isModalOpen" />
 </template>
@@ -249,6 +279,16 @@ onMounted(() => {
   justify-content: flex-end;
   padding: 15px;
   gap: 10px;
+}
+
+.table-scroll-container {
+  max-height: 500px; /* 원하는 리스트 높이로 조절 */
+  overflow-y: auto;
+  border-bottom: 1px solid #eee;
+}
+
+input {
+  font-size: 13px;
 }
 
 </style>

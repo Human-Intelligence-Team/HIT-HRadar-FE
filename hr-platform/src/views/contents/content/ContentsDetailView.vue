@@ -98,7 +98,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="sub">학습컨텐츠 상세</div>
+  <div class="sub"><strong>학습컨텐츠 상세</strong></div>
 
   <div class="card">
     <div class="card-bd">

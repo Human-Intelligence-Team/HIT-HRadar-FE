@@ -130,11 +130,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="sub">사원별 관리</div>
-
-  <div class="section-btn">
-    <button class="btn" @click="goListPage()" type="button">목록</button>
-  </div>
+  <div class="sub"><strong>사원별 관리</strong></div>
 
   <div class="grid">
     <div class="card">
@@ -211,6 +207,7 @@ onMounted(() => {
                type="text"
                v-model="searchData.employeeNo"
                placeholder="사번"
+               @keyup.enter="searchBtn"
         />
       </div>
 
@@ -220,12 +217,32 @@ onMounted(() => {
                type="text"
                v-model="searchData.employeeName"
                placeholder="사원명"
+               @keyup.enter="searchBtn"
         />
       </div>
     </div>
   </div>
 
   <div class="card">
+    <div class="content-empty-state" v-if="!basicSalaries || basicSalaries.length === 0">
+      <table class="table">
+        <thead class="tbl-hd">
+        <tr>
+          <th style="width: 10%">재직상태</th>
+          <th style="width: 10%">부서</th>
+          <th style="width: 10%">직위</th>
+          <th style="width: 10%">사번</th>
+          <th style="width: 20%">사원명</th>
+          <th style="width: 20%">인상사유</th>
+        </tr>
+        </thead>
+      </table>
+      <div class="empty-content">
+        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="empty-icon"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+        <p>등록된 결재대상이 없습니다.</p>
+      </div>
+    </div>
+    <div class="table-scroll-container" v-else>
     <table class="table">
       <thead class="tbl-hd">
         <tr>
@@ -261,12 +278,22 @@ onMounted(() => {
 
       </tbody>
     </table>
+    </div>
+    <div class="section-btn">
+      <button class="btn" @click="goListPage()" type="button">목록</button>
+    </div>
   </div>
+
 </template>
 
 <style scoped>
 @import '@/assets/styles/searchBox.css';
 @import '@/views/salary/style/badge.css';
+
+.card {
+  margin-left: 15px;
+  margin-right: 15px;
+}
 
 .section-btn {
   display: flex;
@@ -310,5 +337,13 @@ onMounted(() => {
   color: #444;
   display: flex;
   align-items: center;
+}
+.table-scroll-container {
+  max-height: 500px; /* 원하는 리스트 높이로 조절 */
+  overflow-y: auto;
+  border-bottom: 1px solid #eee;
+}
+input {
+  font-size: 13px;
 }
 </style>

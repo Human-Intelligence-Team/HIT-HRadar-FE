@@ -10,6 +10,8 @@ const submitting = ref(false)
 const errorMessage = ref('')
 
 const page = route.query.type
+const year = route.query.year
+const quarter = route.query.quarter
 const detailId = route.params.competencyReportId
 const detailData = reactive({
   title: '',
@@ -25,13 +27,13 @@ const detailData = reactive({
 // 목록이동
 const goListPage = () => {
   // 1. 현재 라우트에서 최신 값을 직접 가져옵니다.
-
   if (page === 'all') {
     router.push({
       path: '/all/competency/report/employee',
       query: {
-        year: 2025,
-        quarter: 'Q1',
+        type: 'all',
+        year: year,
+        quarter: quarter,
       },
     })
   } else if (page === 'me') {
@@ -73,15 +75,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="sub">역량강화 리포트</div>
-
-  <div class="section-btn">
-    <div>
-      <!--      <button class="btn primary">PDF 다운로드</button>-->
-      <button class="btn" @click="goListPage()" type="button">목록</button>
-    </div>
-  </div>
-
+  <div class="sub"><strong>역량강화 리포트</strong></div>
   <div class="content">
     <div class="card">
       <div class="section-title">
@@ -144,6 +138,12 @@ onMounted(() => {
 
         <div class="hint">* 추천 프로그램은 회사 내 학습 콘텐츠를 기반으로 생성되었습니다.</div>
       </div>
+    </div>
+  </div>
+  <div class="section-btn">
+    <div>
+      <!--      <button class="btn primary">PDF 다운로드</button>-->
+      <button class="btn" @click="goListPage()" type="button">목록</button>
     </div>
   </div>
 </template>

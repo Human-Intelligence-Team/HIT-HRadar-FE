@@ -72,7 +72,7 @@ const loadPositionOptions = async () => {
   try {
     pointOptions.value = await fetchPositionOptions()
   } catch (e) {
-    errorMessage.value = e.message || '부서 조회 중 오류 발생'
+    errorMessage.value = e.message || '직위 조회 중 오류 발생'
     alert(errorMessage.value)
   }
 }
@@ -108,11 +108,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="sub">역량강화 리포트 사원별 조회(인사팀)</div>
-
-  <div class="section-btn">
-    <button class="btn" @click="goListPage()" type="button">목록</button>
-  </div>
+  <div class="sub"><strong>역량강화 리포트 사원별 조회</strong></div>
 
   <div class="grid">
     <div class="card">
@@ -139,7 +135,12 @@ onMounted(() => {
 
         <div class="search-section">
           <div class="label">사번</div>
-          <input class="input" type="text" v-model="searchData.employeeNo" placeholder="사번" />
+          <input class="input"
+                 type="text"
+                 v-model="searchData.employeeNo"
+                 placeholder="사번"
+                 @keyup.enter="searchBtn"
+          />
         </div>
 
         <div class="search-btn">
@@ -150,14 +151,38 @@ onMounted(() => {
       <div class="card-head">
         <div class="search-section">
           <div class="label">사원명</div>
-          <input class="input" type="text" v-model="searchData.employeeName" placeholder="사원명" />
+          <input class="input"
+                 type="text"
+                 v-model="searchData.employeeName"
+                 placeholder="사원명"
+                 @keyup.enter="searchBtn"
+          />
         </div>
       </div>
     </div>
   </div>
 
   <div class="card">
-    <table class="table">
+    <div class="content-empty-state" v-if="!reports || reports.length === 0">
+      <table class="table">
+        <thead class="tbl-hd">
+        <tr>
+          <th style="width: 10%">년도</th>
+          <th style="width: 10%">회차</th>
+          <th style="width: 10%">부서</th>
+          <th style="width: 10%">직위</th>
+          <th style="width: 10%">사번</th>
+          <th style="width: 10%">사원명</th>
+          <th style="width: 30%">제목</th>
+        </tr>
+        </thead>
+      </table>
+      <div class="empty-content">
+        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="empty-icon"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+        <p>등록된 역량강화 리포트가 없습니다.</p>
+      </div>
+    </div>
+    <table class="table" v-else>
       <thead class="tbl-hd">
         <tr>
           <th style="width: 10%">년도</th>
@@ -190,6 +215,9 @@ onMounted(() => {
       </tbody>
     </table>
   </div>
+  <div class="section-btn">
+    <button class="btn" @click="goListPage()" type="button">목록</button>
+  </div>
 </template>
 
 <style scoped>
@@ -199,5 +227,9 @@ onMounted(() => {
   justify-content: flex-end;
   padding-top: 10px;
   padding-right: 10px;
+}
+
+input {
+  font-size: 13px;
 }
 </style>
