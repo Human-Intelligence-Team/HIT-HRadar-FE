@@ -283,14 +283,15 @@ watch([selectedDate, selectedDepartmentId], () => {
 }
 
 .table-container {
-  overflow-x: auto;
+  overflow: auto; /* Enable both horizontal and vertical scrolling */
   flex-grow: 1;
   min-height: 0;
 }
 
 .attendance-table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate; /* Required for sticky header border to look right in some browsers, or keep collapse */
+  border-spacing: 0;
 }
 
 .attendance-table th, .attendance-table td {
@@ -298,13 +299,17 @@ watch([selectedDate, selectedDepartmentId], () => {
   text-align: left;
   border-bottom: 1px solid #f3f4f6;
   font-size: 13px;
-  color: #1e293b; /* Darker from #374151 */
+  color: #1e293b;
 }
 
 .attendance-table th {
   background-color: #f9fafb;
   font-weight: 700;
-  color: #1e293b; /* Darker from #4b5563 */
+  color: #1e293b;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  border-bottom: 2px solid #e5e7eb; /* Stronger border for header */
 }
 
 .attendance-table tbody tr:last-child td {
