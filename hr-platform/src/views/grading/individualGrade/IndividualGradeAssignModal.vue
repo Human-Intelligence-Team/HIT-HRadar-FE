@@ -1,74 +1,76 @@
 <template>
-  <div class="modal-backdrop">
-    <div class="modal-card">
-      <!-- ===== Header ===== -->
-      <div class="modal-header">
-        <div>
-          <h3 class="modal-title">
-            {{ isEdit ? '이의제기 승인 · 등급 수정' : ' 등급 부여' }}
-          </h3>
-          <p class="subtitle">
-            {{ employee?.name }} (EMP#{{ employee?.empId }})
-          </p>
+  <Teleport to="body">
+    <div class="modal-backdrop">
+      <div class="modal-card">
+        <!-- ===== Header ===== -->
+        <div class="modal-header">
+          <div>
+            <h3 class="modal-title">
+              {{ isEdit ? '이의제기 승인 · 등급 수정' : ' 등급 부여' }}
+            </h3>
+            <p class="subtitle">
+              {{ employee?.name }} (EMP#{{ employee?.empId }})
+            </p>
+          </div>
+          <button class="btn-close" @click="$emit('close')">✕</button>
         </div>
-        <button class="btn-close" @click="$emit('close')">✕</button>
+
+        <!-- ===== Body ===== -->
+        <div class="modal-body">
+          <!-- Grade -->
+          <div class="field">
+            <label>등급</label>
+            <select v-model="form.gradeId" class="select">
+              <option disabled :value="null">등급을 선택하세요</option>
+              <option
+                v-for="g in grades"
+                :key="g.gradeId"
+                :value="g.gradeId"
+              >
+                {{ g.gradeName }}
+              </option>
+            </select>
+          </div>
+
+          <!-- Reason -->
+          <div class="field">
+            <label>등급 부여 사유</label>
+            <textarea
+              rows="3"
+              v-model="form.gradeReason"
+              class="textarea"
+              placeholder="이의제기 내용을 반영하여 등급 부여 사유를 입력하세요"
+            />
+          </div>
+
+          <!-- Rule Error -->
+          <div v-if="ruleError" class="rule-error">
+            {{ ruleError }}
+          </div>
+
+          <!-- Hint -->
+          <div class="hint">
+             등급과 사유는 필수이며,<br />
+            등급 배분 규칙을 초과할 수 없습니다.
+          </div>
+        </div>
+
+        <!-- ===== Footer ===== -->
+        <div class="modal-footer">
+          <button class="btn ghost" @click="$emit('close')">취소</button>
+
+          <button class="btn ghost" @click="save">
+            저장
+          </button>
+
+          <button class="btn primary" @click="submit">
+            제출
+          </button>
+        </div>
+
       </div>
-
-      <!-- ===== Body ===== -->
-      <div class="modal-body">
-        <!-- Grade -->
-        <div class="field">
-          <label>등급</label>
-          <select v-model="form.gradeId" class="select">
-            <option disabled :value="null">등급을 선택하세요</option>
-            <option
-              v-for="g in grades"
-              :key="g.gradeId"
-              :value="g.gradeId"
-            >
-              {{ g.gradeName }}
-            </option>
-          </select>
-        </div>
-
-        <!-- Reason -->
-        <div class="field">
-          <label>등급 부여 사유</label>
-          <textarea
-            rows="3"
-            v-model="form.gradeReason"
-            class="textarea"
-            placeholder="이의제기 내용을 반영하여 등급 부여 사유를 입력하세요"
-          />
-        </div>
-
-        <!-- Rule Error -->
-        <div v-if="ruleError" class="rule-error">
-          {{ ruleError }}
-        </div>
-
-        <!-- Hint -->
-        <div class="hint">
-           등급과 사유는 필수이며,<br />
-          등급 배분 규칙을 초과할 수 없습니다.
-        </div>
-      </div>
-
-      <!-- ===== Footer ===== -->
-      <div class="modal-footer">
-        <button class="btn ghost" @click="$emit('close')">취소</button>
-
-        <button class="btn ghost" @click="save">
-          저장
-        </button>
-
-        <button class="btn primary" @click="submit">
-          제출
-        </button>
-      </div>
-
     </div>
-  </div>
+  </Teleport>
 </template>
 
 <script setup>
@@ -186,7 +188,7 @@ const save = () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 200;
+  z-index: 2000;
 }
 
 .modal-card {

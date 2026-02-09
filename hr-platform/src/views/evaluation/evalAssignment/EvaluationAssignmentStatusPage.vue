@@ -123,15 +123,35 @@ const assignments = ref([])
 const selectedDepartmentId = ref(null)
 
 /* ================= init ================= */
+const deptCounts = ref({})
+
+/* ================= init ================= */
 const loadDepartments = async () => {
   const res = await getAllDepartmentsByCompany()
   departments.value = res.data.data.departments
+
+  // Load counts for all departments
+  // Note: inefficient for many departments, but necessary as per requirement without backend support
+  const promises = departments.value.map(async (d) => {
+    try {
+      const res = await fetchDeptEvaluationAssignmentDetails(d.deptId)
+      const list = res.data.data ?? []
+      // Filter for valid assignments (evaluator + evaluatee)
+      const validCount = list.filter(a => a.evaluatorId && a.evaluateeId).length
+      deptCounts.value[d.deptId] = validCount
+    } catch (e) {
+      console.error(e)
+      deptCounts.value[d.deptId] = 0
+    }
+  })
+  await Promise.all(promises)
 }
 loadDepartments()
 
 /* ================= handlers ================= */
 const selectDepartment = async (deptId) => {
   selectedDepartmentId.value = deptId
+  // Reset lists
   employees.value = []
   assignments.value = []
 
@@ -142,6 +162,10 @@ const selectDepartment = async (deptId) => {
 
   employees.value = empRes.data.data.employees
   assignments.value = assignRes.data.data ?? []
+  
+  // Update count for selected dept to ensure accuracy
+  const validCount = assignments.value.filter(a => a.evaluatorId && a.evaluateeId).length
+  deptCounts.value[deptId] = validCount
 }
 
 /* ================= computed ================= */
@@ -168,8 +192,8 @@ const unassignedCount = computed(() =>
   employees.value.length - assignedCount.value
 )
 
-const deptAssignmentsCount = (deptId) =>
-  realAssignments.value.filter(a => a.deptId === deptId).length
+// Now uses the pre-fetched state
+const deptAssignmentsCount = (deptId) => deptCounts.value[deptId] ?? 0
 </script>
 
 
@@ -398,6 +422,23 @@ const deptAssignmentsCount = (deptId) =>
   display: flex;
   flex-direction: column;
   gap: 10px;
+  max-height: 250px;
+  overflow-y: auto;
+  padding-right: 6px;
+}
+
+.assignment-detail::-webkit-scrollbar {
+  width: 5px;
+}
+.assignment-detail::-webkit-scrollbar-track {
+  background: transparent;
+}
+.assignment-detail::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1;
+  border-radius: 4px;
+}
+.assignment-detail::-webkit-scrollbar-thumb:hover {
+  background-color: #94a3b8;
 }
 
 /* =========================

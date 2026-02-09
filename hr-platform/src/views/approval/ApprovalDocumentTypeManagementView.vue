@@ -13,15 +13,16 @@
         <thead>
           <tr>
             <th>ID</th>
-            <th>유형 값 (Value)</th>
-            <th>유형명 (Text)</th>
-            <th>시스템 자동화 커넥터 (Automation Connector)</th>
-            <th>액션</th>
+            <th>카테고리</th>
+            <th>유형명</th>
+            <th>시스템 연동</th>
+            <th>사용 여부</th>
+            <th>관리</th>
           </tr>
         </thead>
         <tbody>
           <tr v-if="documentTypes.length === 0">
-            <td colspan="4" class="no-data">등록된 문서 유형이 없습니다.</td>
+            <td colspan="6" class="no-data">등록된 문서 유형이 없습니다.</td>
           </tr>
           <tr v-for="(type, index) in documentTypes" :key="type.typeId">
             <td>{{ index + 1 }}</td>
@@ -29,7 +30,7 @@
             <td>{{ type.name }}</td>
             <td>
                 <span :class="['category-badge', type.attendanceCategory.toLowerCase()]">
-                    {{ type.attendanceCategory }}
+                    {{ mapCategoryName(type.attendanceCategory) }}
                 </span>
             </td>
             <td>
@@ -46,7 +47,7 @@
       <div class="modal-content">
         <h3>{{ isEditing ? '문서 유형 수정' : '새 문서 유형 등록' }}</h3>
         <div class="form-group">
-          <label for="docType">유형 값 (고유 ID)</label>
+          <label for="docType">카테고리 (고유 ID)</label>
           <input type="text" id="docType" v-model="form.docType" class="input-field" :disabled="isEditing" placeholder="예: VACATION_REQUEST" />
         </div>
         <div class="form-group">
@@ -54,7 +55,7 @@
           <input type="text" id="name" v-model="form.name" class="input-field" placeholder="예: 휴가 신청" />
         </div>
         <div class="form-group">
-            <label for="attendanceCategory">자동화 서비스 커넥터 설정</label>
+            <label for="attendanceCategory">시스템 연동</label>
             <select id="attendanceCategory" v-model="form.attendanceCategory" class="input-field select-field">
                 <option v-for="cat in categories" :key="cat" :value="cat">
                     {{ mapCategoryName(cat) }}
@@ -137,13 +138,13 @@ const fetchCategories = async () => {
 const mapCategoryName = (cat) => {
     const mapper = {
         'NONE': '연동 없음',
-        'WORK_OFFICE': '내근/출근 커넥터',
-        'WORK_REMOTE': '재택근무 커넥터',
-        'WORK_FIELD': '외근 커넥터',
-        'WORK_TRIP': '출장 커넥터',
-        'VACATION': '연차/휴가 커넥터',
-        'LEAVE_SICK': '병가 커넥터',
-        'OVERTIME': '초과근무 커넥터'
+        'WORK_OFFICE': '내근/출근',
+        'WORK_REMOTE': '재택근무',
+        'WORK_FIELD': '외근',
+        'WORK_TRIP': '출장',
+        'VACATION': '휴가',
+        'LEAVE_SICK': '병가',
+        'OVERTIME': '초과근무'
     };
     return mapper[cat] || cat;
 }
@@ -174,7 +175,7 @@ const openEditModal = async (type) => {
 
 const saveDocumentType = async () => {
   if (!form.value.docType.trim() || !form.value.name.trim()) {
-    alert('유형 값과 유형명을 모두 입력해주세요.');
+    alert('카테고리와 유형명을 모두 입력해주세요.');
     return;
   }
 

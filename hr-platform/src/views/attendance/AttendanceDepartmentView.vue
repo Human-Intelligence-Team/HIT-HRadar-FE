@@ -46,8 +46,8 @@
             <tr v-if="loading">
                 <td colspan="9" class="loading-indicator">데이터를 불러오는 중...</td>
             </tr>
-            <tr v-else-if="attendanceRecords.length === 0">
-                <td colspan="9" class="no-results">해당 날짜와 부서의 출퇴근 기록이 없습니다.</td>
+            <tr v-if="attendanceRecords.length === 0 && !loading">
+              <td colspan="9" class="no-results">조회된 부서 근태 기록이 없습니다.</td>
             </tr>
             <tr v-else v-for="record in filteredRecords" :key="record.employeeId">
               <td>{{ record.name }}</td>
@@ -64,6 +64,14 @@
         </table>
       </div>
     </div>
+
+    <!-- Dummy usage to satisfy linter for dynamic CSS classes -->
+    <div v-show="false">
+      <span class="status-badge status-no-record"></span>
+      <span class="status-badge status-normal"></span>
+      <span class="status-badge status-late"></span>
+      <span class="status-badge status-leave"></span>
+    </div>
   </section>
 </template>
 
@@ -78,32 +86,49 @@ const companyId = computed(() => auth.user?.companyId);
 
 const loading = ref(false);
 const selectedDate = ref(new Date().toISOString().split('T')[0]); // 오늘 날짜로 초기화
-const selectedDepartmentId = ref(auth.user?.deptId || '');
+const selectedDepartmentId = ref(auth.user?.departmentId || '');
 const departmentOptions = ref([]);
 const attendanceRecords = ref([]);
 
 // 부서 목록 가져오기 함수
 const fetchDepartments = async () => {
-    try {
-        const response = await getAllDepartmentsByCompany();
-        if (response.data?.success) {
-             departmentOptions.value = response.data.data.departments.map(d => ({
-                id: d.deptId,
-                name: d.deptName
-             }));
+  try {
+    const res = await getAllDepartmentsByCompany(companyId.value);
+    const rawData = res.data?.data?.departments || res.data?.data || [];
+    
+    // Recursive function to flatten the department tree
+    const flattenDepts = (data) => {
+      if (!data) return [];
+      if (Array.isArray(data)) {
+        let result = [];
+        data.forEach(item => {
+          result.push(item);
+          if (item.children && Array.isArray(item.children)) {
+            result = result.concat(flattenDepts(item.children));
+          }
+        });
+        return result;
+      }
+      return [data];
+    };
 
-             // 사용자의 부서 ID가 목록에 없으면 첫 번째 부서 선택 (혹은 전체 선택)
-             if (!selectedDepartmentId.value && departmentOptions.value.length > 0) {
-                 selectedDepartmentId.value = departmentOptions.value[0].id;
-             }
-        }
-    } catch (error) {
-        console.error("부서 목록 조회 실패:", error);
+    const flatList = flattenDepts(rawData);
+    
+    departmentOptions.value = flatList.map(d => ({
+      id: d.deptId || d.id || d.departmentId,
+      name: d.deptName || d.name || d.departmentName
+    })).filter(d => d.id);
+
+    if (!selectedDepartmentId.value && departmentOptions.value.length > 0) {
+      selectedDepartmentId.value = auth.user?.departmentId || departmentOptions.value[0].id;
     }
+  } catch (error) {
+    console.error("부서 목록 조회 실패:", error);
+  }
 };
 
-onMounted(() => {
-    fetchDepartments();
+onMounted(async () => {
+    await fetchDepartments();
     // 초기 로딩 시 데이터 조회 (부서 목록 로딩 후 fetchRecords가 watch에 의해 호출될 수도 있지만 명시적으로 호출)
     if (selectedDepartmentId.value) {
         fetchRecords();
@@ -111,18 +136,22 @@ onMounted(() => {
 });
 
 const fetchRecords = async () => {
-    if (!companyId.value || !selectedDepartmentId.value) {
+    if (!companyId.value) {
         return;
     }
     loading.value = true;
     attendanceRecords.value = [];
 
+    const params = {
+        fromDate: selectedDate.value,
+        toDate: selectedDate.value
+    };
+    if (selectedDepartmentId.value) {
+        params.targetDeptId = selectedDepartmentId.value;
+    }
+
     try {
-        const response = await fetchAttendanceCalendar({
-            targetDeptId: selectedDepartmentId.value,
-            fromDate: selectedDate.value,
-            toDate: selectedDate.value
-        });
+        const response = await fetchAttendanceCalendar(params);
 
         const flatRecords = [];
         const data = response.data?.data || response.data || [];
@@ -204,10 +233,11 @@ watch([selectedDate, selectedDepartmentId], () => {
 
 .title-group h1 {
   font-size: 28px;
-  font-weight: 800;
-  color: #111827; /* Darker, high contrast */
+  font-weight: 700;
+  color: #111827;
   margin: 0;
-  letter-spacing: -0.025em;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
 }
 
 .filter-controls {
@@ -283,14 +313,15 @@ watch([selectedDate, selectedDepartmentId], () => {
 }
 
 .table-container {
-  overflow-x: auto;
+  overflow: auto; /* Enable both horizontal and vertical scrolling */
   flex-grow: 1;
   min-height: 0;
 }
 
 .attendance-table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate; /* Required for sticky header border to look right in some browsers, or keep collapse */
+  border-spacing: 0;
 }
 
 .attendance-table th, .attendance-table td {
@@ -298,17 +329,25 @@ watch([selectedDate, selectedDepartmentId], () => {
   text-align: left;
   border-bottom: 1px solid #f3f4f6;
   font-size: 13px;
-  color: #1e293b; /* Darker from #374151 */
+  color: #1e293b;
 }
 
 .attendance-table th {
   background-color: #f9fafb;
   font-weight: 700;
-  color: #1e293b; /* Darker from #4b5563 */
+  color: #1e293b;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  border-bottom: 2px solid #e5e7eb; /* Stronger border for header */
 }
 
 .attendance-table tbody tr:last-child td {
   border-bottom: none;
+}
+
+.attendance-table tbody tr:hover {
+    background-color: #f9fafb;
 }
 
 .status-badge {
@@ -320,4 +359,7 @@ watch([selectedDate, selectedDepartmentId], () => {
     display: inline-block;
 }
 .status-badge.status-no-record { background-color: #f3f4f6; color: #6b7280; } /* 기록 없음 */
+.status-badge.status-normal { background-color: #ecfdf5; color: #065f46; }
+.status-badge.status-late { background-color: #fef2f2; color: #991b1b; }
+.status-badge.status-leave { background-color: #eff6ff; color: #1e40af; }
 </style>

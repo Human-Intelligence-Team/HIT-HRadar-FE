@@ -1,61 +1,63 @@
 <template>
-  <div class="modal-backdrop">
-    <div class="modal-card">
+  <Teleport to="body">
+    <div class="modal-backdrop">
+      <div class="modal-card">
 
-      <!-- Header -->
-      <div class="modal-header">
-        <div>
-          <h3 class="modal-title">
-            {{ isEdit ? '부서 등급 수정' : '부서 등급 부여' }}
-          </h3>
-          <p class="subtitle">{{ department.departmentName }}</p>
-        </div>
-        <button class="btn-close" @click="$emit('close')">✕</button>
-      </div>
-
-      <!-- Body -->
-      <div class="modal-body">
-
-        <!-- 등급 선택 -->
-        <div class="field">
-          <label>등급</label>
-          <select v-model="form.gradeId" class="select">
-            <option disabled value="">등급을 선택하세요</option>
-            <option
-              v-for="grade in grades"
-              :key="grade.gradeId"
-              :value="grade.gradeId"
-            >
-              {{ grade.gradeName }}
-            </option>
-          </select>
+        <!-- Header -->
+        <div class="modal-header">
+          <div>
+            <h3 class="modal-title">
+              {{ isEdit ? '부서 등급 수정' : '부서 등급 부여' }}
+            </h3>
+            <p class="subtitle">{{ department.departmentName }}</p>
+          </div>
+          <button class="btn-close" @click="$emit('close')">✕</button>
         </div>
 
-        <!-- 사유 -->
-        <div class="field">
-          <label>부여 사유</label>
-          <textarea
-            rows="3"
-            v-model="form.gradeReason"
-            class="textarea"
-            placeholder="등급 부여 사유를 입력하세요"
-          />
+        <!-- Body -->
+        <div class="modal-body">
+
+          <!-- 등급 선택 -->
+          <div class="field">
+            <label>등급</label>
+            <select v-model="form.gradeId" class="select">
+              <option disabled value="">등급을 선택하세요</option>
+              <option
+                v-for="grade in grades"
+                :key="grade.gradeId"
+                :value="grade.gradeId"
+              >
+                {{ grade.gradeName }}
+              </option>
+            </select>
+          </div>
+
+          <!-- 사유 -->
+          <div class="field">
+            <label>부여 사유</label>
+            <textarea
+              rows="3"
+              v-model="form.gradeReason"
+              class="textarea"
+              placeholder="등급 부여 사유를 입력하세요"
+            />
+          </div>
+
+        </div>
+
+        <!-- Footer -->
+        <div class="modal-footer">
+          <button class="btn ghost" @click="$emit('close')">취소</button>
+
+          <button class="btn ghost" @click="saveOnly">
+            저장
+          </button>
+
         </div>
 
       </div>
-
-      <!-- Footer -->
-      <div class="modal-footer">
-        <button class="btn ghost" @click="$emit('close')">취소</button>
-
-        <button class="btn ghost" @click="saveOnly">
-          저장
-        </button>
-
-      </div>
-
     </div>
-  </div>
+  </Teleport>
 </template>
 
 
@@ -142,7 +144,7 @@ const saveOnly = async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 200;
+  z-index: 2000;
 }
 
 /* ===== Modal Card ===== */

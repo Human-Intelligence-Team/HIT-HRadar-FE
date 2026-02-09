@@ -12,10 +12,10 @@
           :class="['status-card', tab.id, { active: currentTab === tab.id }]"
           @click="currentTab = tab.id"
         >
-          <div class="card-content">
+          <span class="card-content">
             <span class="card-count">{{ counts[tab.id] }}</span>
             <span class="card-label">{{ tab.name }}</span>
-          </div>
+          </span>
         </button>
       </div>
 
@@ -26,19 +26,19 @@
         <table v-else class="table">
           <thead>
             <tr>
-              <th width="20%">ID</th>
-              <th width="20%">문서 제목</th>
-              <th width="20%">문서 유형</th>
-              <th width="20%">결재 상태</th>
-              <th width="20%">제출 일시</th>
+              <th class="col-id">ID</th>
+              <th class="col-title">문서 제목</th>
+              <th class="col-type">문서 유형</th>
+              <th class="col-status">결재 상태</th>
+              <th class="col-date">제출 일시</th>
             </tr>
           </thead>
           <tbody>
             <tr v-if="documents.length === 0">
               <td colspan="5" class="no-data">조회된 문서가 없습니다.</td>
             </tr>
-            <tr v-for="doc in documents" :key="doc.docId" @click="goToDetail(doc.docId)">
-              <td class="id-cell">{{ doc.docId }}</td>
+            <tr v-for="(doc, index) in documents" :key="doc.docId" @click="goToDetail(doc.docId)">
+              <td class="id-cell">{{ index + 1 }}</td>
               <td class="title-cell">
                 <span class="doc-title">{{ doc.title }}</span>
               </td>
@@ -154,15 +154,8 @@ const formatDate = (datetime) => {
   });
 };
 
-const getStatusClass = (status) => {
-  switch (status) {
-    case 'APPROVED': return 'approved';
-    case 'REJECTED': return 'rejected';
-    case 'IN_PROGRESS': return 'in-progress';
-    case 'DRAFT': return 'draft';
-    default: return 'default';
-  }
-};
+// getStatusClass was unused and removed
+
 
 onMounted(() => {
   fetchDocuments();
@@ -253,7 +246,6 @@ onMounted(() => {
 .tab-panel.card {
   background: #ffffff;
   border-radius: 20px;
-  padding: 8px; /* Inner padding for table container if needed, or remove */
   padding: 0;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
   border: 1px solid #e5e7eb;
@@ -287,6 +279,10 @@ onMounted(() => {
   border-bottom: 1px solid #e5e7eb;
 }
 
+.col-id, .col-title, .col-type, .col-status, .col-date {
+  width: 20%;
+}
+
 .table td {
   padding: 20px 24px;
   font-size: 15px;
@@ -314,70 +310,9 @@ onMounted(() => {
   font-size: 16px;
 }
 
-.type-badge {
-  font-size: 13px;
-  color: #4b5563;
-  background: #f3f4f6;
-  padding: 6px 10px;
-  border-radius: 8px;
-  font-weight: 500;
-}
-
-.status-badge {
-  font-size: 13px;
-  font-weight: 500;
-  padding: 6px 12px;
-  border-radius: 9999px;
-  display: inline-block;
-}
-
-.status-badge.approved { background: #dcfce7; color: #166534; }
-.status-badge.rejected { background: #fee2e2; color: #991b1b; }
-.status-badge.in-progress { background: #ffedd5; color: #9a3412; }
-.status-badge.draft { background: #ecf5ff; color: #3182f6; }
-.status-badge.default { background: #f3f4f6; color: #4b5563; }
-
 .date-cell {
   color: #6b7280;
   font-size: 14px;
-}
-
-.list-container {
-  display: flex;
-  flex-direction: column;
-}
-
-.doc-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20px 24px;
-  border-bottom: 1px solid #f3f4f6;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  background-color: #fff;
-}
-
-.doc-item:hover {
-  background-color: #f9fafb;
-}
-
-.doc-info {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.doc-id {
-  font-size: 13px;
-  color: #9ca3af;
-  min-width: 40px;
-}
-
-.text-group {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
 }
 
 .doc-title {
@@ -387,35 +322,10 @@ onMounted(() => {
   color: #111827;
 }
 
-.doc-meta {
-  margin: 0;
-  font-size: 13px;
-  color: #6b7280;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.divider {
-  color: #d1d5db;
-}
-
-.doc-status {
-  min-width: 200px;
-  display: flex;
-  justify-content: flex-end;
-}
-
 /* Compact Table Styles */
 .id-cell {
   font-size: 13px;
   color: #9ca3af;
-}
-
-.doc-info-wrapper {
-  display: flex;
-  align-items: center;
-  gap: 10px;
 }
 
 .doc-title {

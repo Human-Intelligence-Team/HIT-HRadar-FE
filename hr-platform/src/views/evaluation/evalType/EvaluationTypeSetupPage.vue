@@ -25,7 +25,7 @@
           </div>
           <div class="pill">
             <span class="dot"></span>
-            <span>{{ companyTypes.length }} types</span>
+            <span>{{ companyTypes.length }}개 유형</span>
           </div>
         </div>
 
@@ -302,22 +302,26 @@ const applyToCycle = async () => {
 .page{
   max-width: 1160px;
   margin: 0 auto;
-  padding: 28px 18px 48px;
+  padding: 40px 24px;
 }
 .section-title {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
+  margin-bottom: 24px;
 }
 .section-title h1 {
-  font-size: 20px;
+  font-size: 24px;
   font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 6px;
 }
+.sub {
+  color: #64748b;
+  font-size: 14px;
+}
+
 .grid{
   display: grid;
   grid-template-columns: 1fr 1.2fr;
-  gap: 18px;
+  gap: 24px;
 }
 @media (max-width: 980px){
   .grid{ grid-template-columns: 1fr; }
@@ -326,88 +330,114 @@ const applyToCycle = async () => {
 /* ===== Card ===== */
 .card{
   background: #fff;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  padding: 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
 }
 .card-head{
   display:flex;
   align-items:flex-start;
   justify-content:space-between;
   gap: 12px;
-  margin-bottom: 12px;
+  margin-bottom: 20px;
 }
-.card h2, .card h3{
-  margin: 0;
-  font-size: 16px;
-  letter-spacing: -0.01em;
+.card h2{
+  margin: 0 0 4px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1e293b;
 }
-.muted{ color:#64748b; }
+.muted{ color:#64748b; font-size: 13px; margin: 0; }
 .small{ font-size:12px; }
-.strong{ font-weight:700; }
+.strong{ font-weight:600; color: #334155; }
 
 /* ===== Pills ===== */
 .pill{
   display:flex;
-  gap:8px;
+  gap:6px;
   align-items:center;
   font-size:12px;
-  padding:6px 10px;
+  font-weight: 500;
+  padding:4px 12px;
   border-radius:999px;
-  background:#f8fafc;
-  border:1px solid #e2e8f0;
+  background:#eff6ff;
+  color: #3b82f6;
+  border:1px solid #dbeafe;
 }
 .dot{
-  width:8px;
-  height:8px;
+  width:6px;
+  height:6px;
   border-radius:50%;
-  background:#22c55e;
+  background:#3b82f6;
 }
 
 /* ===== Type list ===== */
 .type-list{
   display:flex;
   flex-direction:column;
-  gap:8px;
+  gap:10px;
 }
 .type-item{
   display:flex;
   justify-content:space-between;
   align-items:center;
-  padding:10px 12px;
-  border-radius:12px;
+  padding:12px 16px;
+  border-radius: 12px;
   background:#f8fafc;
-  border:1px solid #e2e8f0;
+  border:1px solid #f1f5f9;
+  transition: all 0.2s ease;
+}
+.type-item:hover {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
 .type-name{
   font-weight:500;
+  color: #334155;
+  font-size: 14px;
 }
 
 /* ===== Form ===== */
 .divider{
   height:1px;
-  background:#eef2f7;
-  margin:14px 0;
+  background:#f1f5f9;
+  margin:20px 0;
 }
 .field{
   display:flex;
   flex-direction:column;
   gap:6px;
+  margin-top: 16px;
 }
+.field:first-child { margin-top: 0; }
+
 label{
   font-size:12px;
-  font-weight:700;
-  color:#64748b;
+  font-weight:600;
+  color:#475569;
 }
 input, select{
-  height:40px;
-  padding:0 12px;
-  border-radius:12px;
+  height:42px;
+  padding:0 14px;
+  border-radius:10px;
   border:1px solid #e2e8f0;
+  font-size: 14px;
+  color: #1e293b;
+  transition: all 0.2s;
+  background-color: #fff;
 }
+input:focus, select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
 .form-actions{
   display:flex;
   justify-content:flex-end;
+  margin-top: 16px;
 }
 
 /* ===== Checkbox ===== */
@@ -415,75 +445,102 @@ input, select{
   display:flex;
   flex-direction:column;
   gap:10px;
-  margin-top:12px;
+  margin-top:16px;
 }
 .checkbox-item{
   display:flex;
   gap:10px;
   align-items:center;
-  padding:10px 12px;
+  padding:12px 16px;
   border-radius:12px;
   border:1px solid #e2e8f0;
-  background:#f8fafc;
+  background:#fff;
+  cursor: pointer;
+  transition: all 0.2s;
 }
+.checkbox-item:hover {
+  border-color: #cbd5e1;
+  background: #f8fafc;
+}
+.checkbox-item:has(input:checked) {
+  border-color: #3b82f6;
+  background: #eff6ff;
+}
+
 .checkbox-label{
-  font-weight:600;
+  font-size: 14px;
+  font-weight:500;
+  color: #334155;
+  user-select: none;
+}
+
+.checkbox-item input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: #3b82f6;
+  cursor: pointer;
 }
 
 /* ===== Buttons ===== */
 .actions{
   display:flex;
   justify-content:flex-end;
-  margin-top:16px;
+  margin-top:24px;
 }
 .btn{
   height:40px;
-  padding:0 14px;
-  border-radius:12px;
+  padding:0 16px;
+  border-radius:10px;
   border:1px solid transparent;
   cursor:pointer;
-  font-weight:700;
+  font-weight:600;
+  font-size: 14px;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
-.btn:hover{
-  opacity: 1;
-  filter: none;
-}
-.btn-primary{
-  background: rgb(52, 88, 237);
-  color: #ffffff;
+.btn:active{ transform: translateY(1px); }
 
+.btn-primary{
+  background: #4f46e5;
+  color: #ffffff;
 }
 .btn-primary:hover{
-  background: rgb(17, 61, 248);
+  background: #4338ca;
+  box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2);
 }
 .btn-danger{
   background: #fee2e2;
-  color: #991b1b;
+  color: #ef4444;
   border: 1px solid #fecaca;
 }
-
 .btn-danger:hover{
   background: #fecaca;
-  border-color: #fca5a5;
+  color: #b91c1c;
 }
 .btn-sm{
-  height:32px;
+  height:30px;
+  padding: 0 10px;
   font-size:12px;
+  border-radius: 8px;
 }
 
 /* ===== Empty ===== */
 .empty{
-  padding:14px;
+  padding:32px;
+  text-align: center;
   border-radius:12px;
-  border:1px dashed #e2e8f0;
-  background:#fbfdff;
+  border:1px dashed #cbd5e1;
+  background:#f8fafc;
 }
-.mt{ margin-top:12px; }
+.mt{ margin-top:20px; }
 
 .type-left{
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
+  flex: 1;
 }
 
 .type-actions{
@@ -494,20 +551,22 @@ input, select{
 .edit-input{
   height: 32px;
   padding: 0 10px;
-  border-radius: 8px;
-  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  border: 1px solid #cbd5e1;
   font-size: 13px;
+  width: 100%;
+  max-width: 200px;
 }
 
 .btn-light{
   background: #ffffff;
-  color: #374151;
-  border: 1px solid #e5e7eb;
+  color: #475569;
+  border: 1px solid #e2e8f0;
 }
 .btn-light:hover{
   background: #f8fafc;
-  border-color: #c7d2fe;
-  color: #1e3a8a;
+  color: #1e293b;
+  border-color: #cbd5e1;
 }
 
 </style>

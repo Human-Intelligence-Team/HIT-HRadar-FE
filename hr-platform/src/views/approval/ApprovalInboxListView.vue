@@ -19,14 +19,12 @@
           <tr v-if="documents.length === 0">
             <td colspan="5" class="no-data">조회된 문서가 없습니다.</td>
           </tr>
-          <tr v-for="doc in documents" :key="doc.docId" @click="goToDetail(doc.docId)">
-            <td>{{ doc.docId }}</td>
+          <tr v-for="(doc, index) in documents" :key="doc.docId" @click="goToDetail(doc.docId)">
+            <td>{{ index + 1 }}</td>
             <td>{{ doc.title }}</td>
             <td>{{ doc.docType }}</td>
-            <td>
-              <span :class="['status-badge', doc.status ? doc.status.toLowerCase() : '']">
-                {{ doc.status }}
-              </span>
+            <td class="status-cell">
+              <ApprovalStatusTracker :status="doc.status" />
             </td>
             <td>{{ formatDate(doc.submittedAt) }}</td>
           </tr>
@@ -39,6 +37,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import ApprovalStatusTracker from '@/components/approval/ApprovalStatusTracker.vue';
 import { fetchApprovalTasks } from '@/api/approvalApi';
 
 const router = useRouter();
@@ -136,20 +135,7 @@ onMounted(() => {
   padding: 40px;
 }
 
-/* Status Badge Styles */
-.status-badge {
-  padding: 6px 12px;
-  border-radius: 9999px;
-  font-size: 12px;
-  font-weight: 600;
-  color: #fff;
-  text-transform: uppercase;
-  display: inline-block;
+.status-cell {
+  padding: 12px 15px;
 }
-
-.status-badge.draft { background-color: #ecf5ff; color: #3182f6; }
-.status-badge.in_progress { background-color: #fff7ed; color: #c2410c; }
-.status-badge.approved { background-color: #ecfdf5; color: #047857; }
-.status-badge.rejected { background-color: #fef2f2; color: #b91c1c; }
-.status-badge.withdrawn { background-color: #fffbeb; color: #b45309; } /* Orange/Amber for withdrawn */
 </style>
