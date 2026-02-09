@@ -21,52 +21,95 @@
     <!-- Editor -->
     <div class="form-group">
       <label>내용</label>
-      <div class="editor-toolbar">
-        <select class="toolbar-select" @change="applyFontFamily($event)">
-          <option value="">글꼴</option>
-          <option value="Noto Sans KR">Noto Sans KR</option>
-          <option value="Pretendard">Pretendard</option>
-          <option value="Malgun Gothic">맑은 고딕</option>
-          <option value="Apple SD Gothic Neo">Apple SD Gothic Neo</option>
-        </select>
+      <div class="editor-toolbar compact">
+        <div class="toolbar-group size-group">
+          <label class="size-label" for="font-size-input">크기</label>
+          <input
+            id="font-size-input"
+            type="number"
+            min="8"
+            max="72"
+            step="1"
+            class="toolbar-input"
+            v-model.number="fontSizePx"
+            @change="applyFontSizePx"
+            @keyup.enter="applyFontSizePx"
+            aria-label="글꼴 크기(px)"
+          />
+          <span class="size-suffix">px</span>
+        </div>
 
-        <select class="toolbar-select" @change="applyFontSize($event)">
-          <option value="">크기</option>
-          <option value="2">12px</option>
-          <option value="3">14px</option>
-          <option value="4">16px</option>
-          <option value="5">18px</option>
-          <option value="6">24px</option>
-        </select>
+        <div class="toolbar-group">
+          <button
+            type="button"
+            class="toolbar-btn"
+            :class="{ active: formatState.bold }"
+            @click="exec('bold')"
+            aria-label="굵게"
+          ><b>B</b></button>
+          <button
+            type="button"
+            class="toolbar-btn"
+            :class="{ active: formatState.italic }"
+            @click="exec('italic')"
+            aria-label="기울임"
+          ><i>I</i></button>
+          <button
+            type="button"
+            class="toolbar-btn"
+            :class="{ active: formatState.underline }"
+            @click="exec('underline')"
+            aria-label="밑줄"
+          ><u>U</u></button>
+        </div>
 
-        <button type="button" class="toolbar-btn" @click="exec('bold')"><b>B</b></button>
-        <button type="button" class="toolbar-btn" @click="exec('italic')"><i>I</i></button>
-        <button type="button" class="toolbar-btn" @click="exec('underline')"><u>U</u></button>
+        <div class="toolbar-group">
+          <button
+            type="button"
+            class="toolbar-btn"
+            :class="{ active: formatState.justifyLeft }"
+            @click="exec('justifyleft')"
+            aria-label="왼쪽 정렬"
+          >L</button>
+          <button
+            type="button"
+            class="toolbar-btn"
+            :class="{ active: formatState.justifyCenter }"
+            @click="exec('justifycenter')"
+            aria-label="가운데 정렬"
+          >C</button>
+          <button
+            type="button"
+            class="toolbar-btn"
+            :class="{ active: formatState.justifyRight }"
+            @click="exec('justifyright')"
+            aria-label="오른쪽 정렬"
+          >R</button>
+        </div>
 
-        <button type="button" class="toolbar-btn" @click="exec('justifyleft')">L</button>
-        <button type="button" class="toolbar-btn" @click="exec('justifycenter')">C</button>
-        <button type="button" class="toolbar-btn" @click="exec('justifyright')">R</button>
-
-        <label class="color-label">
+        <label class="color-label compact">
           글자색
           <input type="color" @input="applyColor($event)" />
         </label>
 
-        <label class="color-label">
+        <label class="color-label compact">
           배경색
           <input type="color" @input="applyBgColor($event)" />
         </label>
+      </div>
 
-        <div class="img-resize">
-          <span>이미지</span>
-          <select class="toolbar-select" @change="applyImageWidth($event)">
-            <option value="">크기</option>
-            <option value="25">25%</option>
-            <option value="50">50%</option>
-            <option value="75">75%</option>
-            <option value="100">100%</option>
-          </select>
-        </div>
+      <div v-if="selectedImage" class="image-control-bar">
+        <span class="image-control-title">이미지 크기</span>
+        <input
+          type="range"
+          min="10"
+          max="100"
+          step="5"
+          v-model.number="imageWidthPercent"
+          @input="applyImageWidth"
+          aria-label="이미지 크기 조절"
+        />
+        <span class="image-control-value">{{ imageWidthPercent }}%</span>
       </div>
 
       <div
@@ -75,6 +118,8 @@
         class="editor"
         @input="handleContentInput"
         @click="handleEditorClick"
+        @keyup="syncFormatState"
+        @mouseup="syncFormatState"
         @drop.prevent="handleDrop"
         @dragover.prevent
         @paste="handlePaste"
@@ -117,9 +162,9 @@
       <!-- New Attachments -->
       <div v-if="form.attachments.length" class="file-list">
         <div v-if="form.existingAttachments.length" class="sub-label">새 첨부파일</div>
-        <div v-for="(file, index) in form.attachments" :key="index" class="file-item">
-          <span>{{ file.name }}</span>
-          <button type="button" @click="removeFile(index)" class="btn-remove">✕</button>
+        <div v-for="item in form.attachments" :key="item.id" class="file-item">
+          <span>{{ item.file.name }}</span>
+          <button type="button" @click="removeFile(item.id)" class="btn-remove">✕</button>
         </div>
       </div>
     </div>
@@ -133,7 +178,7 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted, computed } from 'vue'
+import { ref, watch, onMounted, onBeforeUnmount, computed } from 'vue'
 import { useNoticeStore } from '@/stores/noticeStore'
 
 const props = defineProps({
@@ -158,7 +203,7 @@ const form = ref({
   title: '',
   content: '',
   categoryId: '',
-  attachments: [], // For new files to be uploaded
+  attachments: [], // For new files to be uploaded ({ id, file })
   existingAttachments: [], // For files that are already on the notice
   deletedAttachmentIds: [], // Added for tracking deletions
 })
@@ -166,6 +211,16 @@ const form = ref({
 const editorRef = ref(null)
 const fileInputRef = ref(null)
 const selectedImage = ref(null)
+const imageWidthPercent = ref(100)
+const fontSizePx = ref(14)
+const formatState = ref({
+  bold: false,
+  italic: false,
+  underline: false,
+  justifyLeft: false,
+  justifyCenter: false,
+  justifyRight: false,
+})
 
 function processContent(content) {
   if (!content) return ''
@@ -207,15 +262,23 @@ onMounted(() => {
   if(editorRef.value) {
     editorRef.value.innerHTML = processContent(form.value.content)
   }
+  document.addEventListener('selectionchange', syncFormatState)
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('selectionchange', syncFormatState)
 })
 
 function handleContentInput(e) {
   form.value.content = e.target.innerHTML
+  syncFormatState()
 }
 
 function handleEditorClick(e) {
   if (e.target && e.target.tagName === 'IMG') {
     selectedImage.value = e.target
+    const width = (selectedImage.value.style.width || '').replace('%', '')
+    imageWidthPercent.value = Number(width) || 100
   } else {
     selectedImage.value = null
   }
@@ -224,20 +287,25 @@ function handleEditorClick(e) {
 function exec(command, value = null) {
   document.execCommand(command, false, value)
   if (editorRef.value) form.value.content = editorRef.value.innerHTML
+  syncFormatState()
 }
 
-function applyFontFamily(e) {
-  const value = e.target.value
-  if (!value) return
-  exec('fontName', value)
-  e.target.value = ''
-}
-
-function applyFontSize(e) {
-  const value = e.target.value
-  if (!value) return
-  exec('fontSize', value)
-  e.target.value = ''
+function applyFontSizePx() {
+  const value = fontSizePx.value
+  if (!value || value < 8 || value > 72) return
+  document.execCommand('styleWithCSS', false, true)
+  document.execCommand('fontSize', false, '7')
+  const editor = editorRef.value
+  if (!editor) return
+  const fonts = editor.querySelectorAll('font[size="7"]')
+  fonts.forEach((fontEl) => {
+    const span = document.createElement('span')
+    span.style.fontSize = `${value}px`
+    span.innerHTML = fontEl.innerHTML
+    fontEl.replaceWith(span)
+  })
+  if (editorRef.value) form.value.content = editorRef.value.innerHTML
+  syncFormatState()
 }
 
 function applyColor(e) {
@@ -248,13 +316,31 @@ function applyBgColor(e) {
   exec('hiliteColor', e.target.value)
 }
 
-function applyImageWidth(e) {
-  const value = e.target.value
-  if (!value || !selectedImage.value) return
+function syncFormatState() {
+  const el = editorRef.value
+  if (!el) return
+  const selection = document.getSelection()
+  if (!selection || selection.rangeCount === 0) return
+  const anchorNode = selection.anchorNode
+  if (!anchorNode || !el.contains(anchorNode)) return
+
+  formatState.value = {
+    bold: document.queryCommandState('bold'),
+    italic: document.queryCommandState('italic'),
+    underline: document.queryCommandState('underline'),
+    justifyLeft: document.queryCommandState('justifyleft'),
+    justifyCenter: document.queryCommandState('justifycenter'),
+    justifyRight: document.queryCommandState('justifyright'),
+  }
+}
+
+function applyImageWidth() {
+  if (!selectedImage.value) return
+  const value = imageWidthPercent.value
+  if (!value) return
   selectedImage.value.style.width = `${value}%`
   selectedImage.value.style.height = 'auto'
   if (editorRef.value) form.value.content = editorRef.value.innerHTML
-  e.target.value = ''
 }
 function insertImageAtCursor(url) {
   const img = document.createElement('img');
@@ -320,12 +406,19 @@ function triggerFileInput() {
 }
 
 function handleFileUpload(e) {
-  form.value.attachments.push(...e.target.files)
+  const files = Array.from(e.target.files || [])
+  const now = Date.now()
+  files.forEach((file, idx) => {
+    form.value.attachments.push({
+      id: `${now}-${idx}-${Math.random().toString(16).slice(2)}`,
+      file,
+    })
+  })
   e.target.value = '' // Reset file input
 }
 
-function removeFile(index) {
-  form.value.attachments.splice(index, 1)
+function removeFile(id) {
+  form.value.attachments = form.value.attachments.filter((item) => item.id !== id)
 }
 
 function toggleDeleteExisting(id) {
@@ -353,7 +446,7 @@ function handleSubmit() {
     title: form.value.title,
     content: contentToSave,
     categoryId: form.value.categoryId,
-    attachments: form.value.attachments,
+    attachments: form.value.attachments.map((item) => item.file),
     deletedAttachmentIds: form.value.deletedAttachmentIds
   }
   emit('submit', payload)
@@ -414,25 +507,76 @@ function handleSubmit() {
   border-radius: 6px;
   background: var(--panel);
 }
+.editor-toolbar.compact {
+  gap: 6px;
+  padding: 6px;
+  border-radius: 8px;
+  background: var(--bg-soft);
+}
+.toolbar-group {
+  display: inline-flex;
+  gap: 4px;
+  padding: 2px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel);
+}
 .toolbar-btn {
-  padding: 6px 8px;
+  padding: 5px 7px;
   border: 1px solid var(--border);
   border-radius: 6px;
   background: var(--bg-soft);
   cursor: pointer;
   font-size: 12px;
 }
+.toolbar-btn.active {
+  border-color: var(--primary);
+  background: var(--panel);
+  color: var(--text-main);
+  box-shadow: inset 0 0 0 1px var(--primary);
+}
 .toolbar-btn:hover {
   border-color: var(--primary);
 }
 .toolbar-select {
-  padding: 6px 8px;
-  border-radius: 6px;
+  padding: 5px 8px;
+  border-radius: 8px;
   border: 1px solid var(--border);
   background-color: var(--panel);
   color: var(--text-main);
-  height: 32px;
+  height: 30px;
   font-size: 12px;
+}
+.toolbar-input {
+  width: 68px;
+  padding: 5px 8px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--text-main);
+  height: 28px;
+  font-size: 12px;
+  text-align: right;
+}
+.size-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--panel);
+}
+.size-label {
+  font-size: 12px;
+  color: var(--text-sub);
+  font-weight: 600;
+  line-height: 1;
+}
+.size-suffix {
+  font-size: 12px;
+  color: var(--text-sub);
+  line-height: 1;
 }
 .color-label {
   display: inline-flex;
@@ -441,6 +585,12 @@ function handleSubmit() {
   font-size: 12px;
   color: var(--text-sub);
 }
+.color-label.compact {
+  padding: 2px 6px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel);
+}
 .color-label input[type="color"] {
   width: 28px;
   height: 28px;
@@ -448,12 +598,29 @@ function handleSubmit() {
   background: transparent;
   padding: 0;
 }
-.img-resize {
+.image-control-bar {
+  margin-top: 8px;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 10px;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel);
   font-size: 12px;
   color: var(--text-sub);
+}
+.image-control-bar input[type="range"] {
+  width: 160px;
+}
+.image-control-title {
+  color: var(--text-main);
+  font-weight: 600;
+}
+.image-control-value {
+  min-width: 36px;
+  text-align: right;
+  color: var(--text-main);
 }
 .file-drop-zone {
   border: 2px dashed var(--border);
@@ -519,7 +686,7 @@ function handleSubmit() {
 }
 .btn.primary {
   background-color: var(--primary);
-  color: var(--text-on-primary);
+  color: #ffffff;
 }
 .btn.secondary {
   background-color: var(--panel);

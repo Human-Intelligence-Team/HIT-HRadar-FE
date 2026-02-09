@@ -2,13 +2,20 @@ import { EventSourcePolyfill } from 'event-source-polyfill'
 
 let eventSource = null
 let listeners = []
+let reconnectTimer = null
+let reconnectAttempts = 0
+let lastToken = null
 
-export function connectSSE(onMessage) {
+export function connectSSE(onMessage, options = {}) {
   if (onMessage && !listeners.includes(onMessage)) {
     listeners.push(onMessage)
   }
 
-  if (eventSource) return
+  if (eventSource) {
+    if (!options.force) return
+    eventSource.close()
+    eventSource = null
+  }
 
   const token = localStorage.getItem('accessToken')
 
@@ -17,6 +24,7 @@ export function connectSSE(onMessage) {
     console.warn('No access token - skipping SSE connection')
     return
   }
+  lastToken = token
 
   const baseURL = import.meta.env.VITE_API_BASE_URL.replace(/\/$/, '')
 
@@ -27,9 +35,17 @@ export function connectSSE(onMessage) {
         Authorization: `Bearer ${token}`
       },
       withCredentials: true,
-      heartbeatTimeout: 60_000
+      heartbeatTimeout: 180_000
     }
   )
+
+  eventSource.onopen = () => {
+    reconnectAttempts = 0
+    if (reconnectTimer) {
+      clearTimeout(reconnectTimer)
+      reconnectTimer = null
+    }
+  }
 
   eventSource.addEventListener('notification', (event) => {
     const data = JSON.parse(event.data)
@@ -50,13 +66,32 @@ export function connectSSE(onMessage) {
     // ✅ 재연결 전 토큰 확인 - 토큰이 없으면 재연결하지 않음
     const currentToken = localStorage.getItem('accessToken')
     if (currentToken) {
-      setTimeout(() => {
+      const delay = Math.min(30_000, 1000 * Math.pow(2, reconnectAttempts))
+      reconnectAttempts += 1
+      reconnectTimer = setTimeout(() => {
         connectSSE()
-      }, 5000)
+      }, delay)
     } else {
       console.warn('No token available - not reconnecting SSE')
     }
   }
+}
+
+export function reconnectSSE() {
+  if (eventSource) {
+    eventSource.close()
+    eventSource = null
+  }
+  if (reconnectTimer) {
+    clearTimeout(reconnectTimer)
+    reconnectTimer = null
+  }
+  reconnectAttempts = 0
+  connectSSE()
+}
+
+export function getSseToken() {
+  return lastToken
 }
 
 export function disconnectSSE(onMessage) {
@@ -68,5 +103,10 @@ export function disconnectSSE(onMessage) {
       eventSource.close()
       eventSource = null
     }
+    if (reconnectTimer) {
+      clearTimeout(reconnectTimer)
+      reconnectTimer = null
+    }
+    reconnectAttempts = 0
   }
 }

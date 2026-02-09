@@ -38,7 +38,7 @@
         ></textarea>
       </div>
 
-      <DepartmentEmployeeSelector label="결재자" v-model="form.approverIds" hint="결재자를 검색하여 추가하세요." :maxItems="5" />
+      <DepartmentEmployeeSelector label="결재자" v-model="form.approverIds" hint="결재자를 검색하여 추가하세요." />
       
       <DepartmentEmployeeSelector label="참조자 (선택 사항)" v-model="form.referenceIds" hint="참조자를 검색하여 추가하세요. (선택 사항)" :allowDeptSelection="true" />
 
