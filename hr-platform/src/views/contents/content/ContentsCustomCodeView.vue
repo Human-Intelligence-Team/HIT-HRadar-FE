@@ -40,7 +40,6 @@ const getGroupCodes = async () => {
 
       // 첫 번째 그룹 자동 선택
       if (groups.value.length > 0) {
-        console.log(groups.value[0].groupCode)
         selectedGroupCode.value = groups.value[0].groupCode
       }
     }
@@ -126,7 +125,6 @@ const createCode = async (code) => {
     isDeleted: code.isDeleted,
   }
 
-  console.log('createCode', payload)
   submitting.value = true
 
   try {
@@ -199,7 +197,6 @@ const deleteCodes = async (customCodeIds) => {
       await getCustomCodeByGroupCode(selectedGroupCode.value);
     }
 
-    console.log("deleteCodes" + data);
   } catch (e) {
     errorMessage.value = e.message || '하위 코드 조회 중 오류 발생'
     alert(errorMessage.value)
@@ -236,9 +233,6 @@ function goListPage() {
 // 그룹 변경 감지
 watch(selectedGroupCode, (groupCode) => {
   if (groupCode) {
-    console.log("#####" + groupCode);
-    console.log("#####" + groups.value.find(item => item.groupCode === groupCode).customCodeId);
-
     getCustomCodeByGroupCode(groupCode)
   }
 })

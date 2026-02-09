@@ -174,6 +174,7 @@ onMounted(() => {
         v-for="item in reports"
         :key="item.competencyReportId"
         :value="item.competencyReportId"
+        @click="goDetailPage(item.competencyReportId)"
       >
         <tr>
           <td>{{ item.year }}</td>
@@ -182,7 +183,7 @@ onMounted(() => {
           <td>{{ item.positionName }}</td>
           <td>{{ item.employeeNo }}</td>
           <td>{{ item.employeeName }}</td>
-          <td @click="goDetailPage(item.competencyReportId)">
+          <td >
             {{ item.cycleName }}
           </td>
         </tr>

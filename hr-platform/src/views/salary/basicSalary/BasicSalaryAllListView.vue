@@ -203,7 +203,10 @@ onMounted(() => {
             </tr>
           </thead>
           <tbody class="tbl-bd">
-            <tr v-for="item in basic" :key="item.docId">
+            <tr v-for="item in basic"
+                :key="item.docId"
+                @click="goEmployeeListPage(item.docId)"
+            >
               <td>{{ item.year }}</td>
               <td>
                 <span v-for="type in BASIC_OPTIONS" :key="type.value">
@@ -212,7 +215,7 @@ onMounted(() => {
                   </template>
                 </span>
               </td>
-              <td @click="goEmployeeListPage(item.docId)">{{ item.title }}</td>
+              <td >{{ item.title }}</td>
               <td>{{ formatComma(item.totalSalary) }}</td>
               <td>{{ item.empCount }}</td>
               <td>

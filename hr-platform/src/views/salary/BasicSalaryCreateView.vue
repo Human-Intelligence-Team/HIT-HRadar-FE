@@ -160,7 +160,6 @@ function draftValid() {
     };
   }
 
-  console.log("최종 전달 데이터:", payload);
  draftApproval(payload)
 }
 
