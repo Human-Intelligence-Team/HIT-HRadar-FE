@@ -41,43 +41,27 @@
 
             <div class="info-row">
               <span class="info-label">근무 장소</span>
-              <span class="info-value">{{ mapLocation(attendance?.workPlace || attendance?.workplace || attendance?.location) }}</span>
+              <span class="info-value">{{ mapLocation(attendance?.location || attendance?.workPlace || attendance?.workplace) }}</span>
             </div>
 
             <div class="info-row">
               <span class="info-label">근무 유형</span>
-              <span class="info-value">{{ mapWorkType(attendance?.workType || attendance?.workingType) }}</span>
+              <span class="info-value">{{ mapWorkType(attendance?.workType) }}</span>
             </div>
 
             <div class="info-row">
               <span class="info-label">출근 시간</span>
-              <span class="info-value">{{ formatTime(attendance?.clockInTime || attendance?.checkInTime) }}</span>
+              <span class="info-value">{{ formatTime(attendance?.checkInTime || attendance?.clockInTime) }}</span>
             </div>
 
             <div class="info-row">
               <span class="info-label">퇴근 시간</span>
-              <span class="info-value">{{ formatTime(attendance?.clockOutTime || attendance?.checkOutTime) }}</span>
-            </div>
-            <div class="info-row" v-if="attendance?.reason">
-              <span class="info-label">사유</span>
-              <span class="info-value">{{ attendance.reason }}</span>
-            </div>
-
-            <div class="info-row" v-if="attendance?.totalWorkTime">
-              <span class="info-label">총 근무시간</span>
-              <span class="info-value">{{ attendance.totalWorkTime }}</span>
+              <span class="info-value">{{ formatTime(attendance?.checkOutTime || attendance?.clockOutTime) }}</span>
             </div>
 
             <div class="info-row" v-if="attendance?.overtimeMinutes > 0">
               <span class="info-label">인정된 초과근무</span>
               <span class="info-value highlight-red">{{ attendance.overtimeMinutes }}분</span>
-            </div>
-
-            <div class="info-row" v-if="attendance?.overtimeStatus">
-              <span class="info-label">초과근무 여부</span>
-              <span class="info-value" :class="{'highlight-red': attendance.overtimeStatus === '발생'}">
-                  {{ attendance.overtimeStatus }}
-              </span>
             </div>
 
           </div>
@@ -127,7 +111,7 @@ const mapWorkType = (type) => {
     'TRIP': '출장',
     'VACATION': '휴가'
   };
-  return mapper[type] || type;
+  return mapper[type.toUpperCase()] || type;
 };
 
 const mapLocation = (loc) => {
@@ -139,18 +123,16 @@ const mapLocation = (loc) => {
     'TRIP': '출장지',
     'NONE': '-'
   };
-  return mapper[loc] || loc;
+  return mapper[loc.toUpperCase()] || loc;
 };
 
 const formatTime = (timeStr) => {
   if (!timeStr) return '-';
-  // Check if it's already a simple time format HH:mm
   if (/^\d{2}:\d{2}$/.test(timeStr)) return timeStr + ':00';
 
   try {
     const d = new Date(timeStr);
     if (isNaN(d.getTime())) {
-      // If not a valid date, try regex extraction
       const match = String(timeStr).match(/(\d{2}:\d{2}:\d{2})/);
       return match ? match[1] : timeStr;
     }
@@ -168,10 +150,10 @@ const formatTime = (timeStr) => {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.6); /* 조금 더 진한 배경 */
-  backdrop-filter: blur(8px);      /* 블러 효과 강화 */
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
   display: flex;
-  align-items: center; /* 중앙 정렬 (PC 기준) */
+  align-items: center;
   justify-content: center;
   z-index: 2000;
   padding: 20px;
@@ -180,8 +162,8 @@ const formatTime = (timeStr) => {
 .modal-card {
   background: #ffffff;
   width: 100%;
-  max-width: 380px; /* 모바일 친화적인 폭 */
-  border-radius: 28px; /* 더 둥글게 */
+  max-width: 380px;
+  border-radius: 28px;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
   overflow: hidden;
   padding: 32px 28px;
@@ -200,7 +182,7 @@ const formatTime = (timeStr) => {
 .modal-header h3 {
   font-size: 22px;
   font-weight: 800;
-  color: #191f28; /* Toss Black */
+  color: #191f28;
   margin: 0;
   letter-spacing: -0.5px;
 }
@@ -229,12 +211,11 @@ const formatTime = (timeStr) => {
   flex-direction: column;
   gap: 20px;
   overflow-y: auto;
-  max-height: 70vh; /* Increased from 60vh for more vertical space */
-  padding-right: 12px; /* More space between content and scrollbar */
-  padding-bottom: 20px; /* Extra room at the bottom */
+  max-height: 70vh;
+  padding-right: 12px;
+  padding-bottom: 20px;
 }
 
-/* 프로필 영역 강조 */
 .profile-section {
   display: flex;
   flex-direction: column;
@@ -244,18 +225,20 @@ const formatTime = (timeStr) => {
 }
 
 .profile-icon {
-  width: 60px;
-  height: 60px;
+  width: 66px;
+  height: 66px;
   background: #e8f3ff;
   color: #3182f6;
   border-radius: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px; /* Text size */
+  font-size: 20px;
   font-weight: 700;
   margin-bottom: 16px;
   overflow: hidden;
+  border: 4px solid white;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
 }
 
 .profile-img {
@@ -283,7 +266,6 @@ const formatTime = (timeStr) => {
   margin: 10px 0;
 }
 
-/* 정보 그리드 */
 .info-row {
   display: flex;
   justify-content: space-between;
@@ -307,7 +289,6 @@ const formatTime = (timeStr) => {
   color: #e94949;
 }
 
-/* 상태 뱃지 스타일 개선 */
 .status-badge {
   padding: 6px 12px;
   border-radius: 14px;
@@ -316,9 +297,9 @@ const formatTime = (timeStr) => {
   display: inline-block;
 }
 
-.status-badge.working { background: #e8f3ff; color: #3182f6; } /* Toss Blue */
-.status-badge.leave { background: #fff1f1; color: #e94949; }   /* Toss Red-ish */
-.status-badge.sick { background: #fffcf0; color: #ffb121; }    /* Warning */
+.status-badge.working { background: #e8f3ff; color: #3182f6; }
+.status-badge.leave { background: #fff1f1; color: #e94949; }
+.status-badge.sick { background: #fffcf0; color: #ffb121; }
 .status-badge.half-leave { background: #f3f0ff; color: #7f52ff; }
 .status-badge.default { background: #f2f4f6; color: #4e5968; }
 
@@ -348,7 +329,6 @@ const formatTime = (timeStr) => {
   transform: scale(0.98);
 }
 
-/* Animation */
 .fade-enter-active, .fade-leave-active { transition: opacity 0.2s ease; }
 .fade-enter-from, .fade-leave-to { opacity: 0; }
 
