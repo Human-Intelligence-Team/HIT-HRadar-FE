@@ -935,6 +935,27 @@ p { font-size: 1.125rem; line-height: 1.7; color: #475569; }
   box-shadow: 0 4px 12px rgba(0,0,0,0.05);
 }
 .btn-lg-white:hover { border-color: #cbd5e1; transform: translateY(-2px); }
+
+.btn-lg-primary {
+  background: linear-gradient(135deg, #2563eb, #1e40af);
+  color: white;
+  padding: 16px 32px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 1.1rem;
+  box-shadow: 0 10px 20px rgba(37, 99, 235, 0.2);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-lg-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 15px 30px rgba(37, 99, 235, 0.3);
+  filter: brightness(1.1);
+}
+
+.btn-lg-primary:active {
+  transform: translateY(0);
+}
 .cta-buttons { display: flex; gap: 20px; justify-content: center; }
 
 /* --- Footer --- */

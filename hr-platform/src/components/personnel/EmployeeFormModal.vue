@@ -13,7 +13,7 @@
 
       <div class="modal-body">
         <form @submit.prevent="handleSubmit" class="form-grid">
-          
+
           <!-- 공통 필수 정보 -->
           <div class="form-group">
             <label for="employeeNo">사번 <span class="required" v-if="!isViewMode">*</span></label>
@@ -42,7 +42,17 @@
 
           <div class="form-group">
             <label for="phoneNo">휴대전화</label>
-            <input id="phoneNo" name="phoneNo" type="tel" v-model="form.phoneNo" class="input" :disabled="isViewMode" placeholder="010-0000-0000" />
+            <input
+              id="phoneNo"
+              name="phoneNo"
+              type="tel"
+              v-model="form.phoneNo"
+              class="input"
+              :disabled="isViewMode"
+              placeholder="010-0000-0000"
+              @input="onPhoneInput"
+              maxlength="13"
+            />
           </div>
 
           <!-- 소속/직책 정보 -->
@@ -83,7 +93,7 @@
               <option value="FEMALE">여성</option>
             </select>
           </div>
-          
+
           <div class="form-group">
             <label for="birth">생년월일</label>
             <input id="birth" name="birth" type="date" v-model="form.birth" class="input" :disabled="isViewMode" />
@@ -93,16 +103,16 @@
             <label for="hireDate">입사일</label>
             <input id="hireDate" name="hireDate" type="date" v-model="form.hireDate" class="input" :disabled="isViewMode" />
           </div>
-          
+
           <div class="form-group" v-if="isEditMode || isViewMode">
             <label for="employmentType">고용 형태 (상태)</label>
-            <ModernSelect 
+            <ModernSelect
               v-if="isEditMode"
-              v-model="form.employmentType" 
+              v-model="form.employmentType"
               :options="statusOptions"
               :class="['status-select', getStatusClass(form.employmentType)]"
             />
-            <input 
+            <input
               v-else
               type="text"
               class="input"
@@ -132,7 +142,7 @@
                  {{ isViewMode ? '닫기' : '취소' }}
                </button>
                <button v-if="!isViewMode" type="submit" class="btn primary" :disabled="loading">
-                 {{ loading ? '처리중...' : (isEditMode ? '수정 저장' : '등록 완료') }}
+                 {{ loading ? '처리중...' : (isEditMode ? '저장' : '등록 완료') }}
                </button>
              </div>
            </div>
@@ -174,7 +184,6 @@ const form = ref({
   positionId: null,
   gender: '',
   birth: '',
-  hireDate: '',
   hireDate: '',
   exitDate: '',
   extNo: '',
@@ -237,6 +246,16 @@ watch(() => props.visible, (val) => {
   }
 })
 
+const onPhoneInput = (e) => {
+  let val = e.target.value.replace(/[^0-9]/g, '')
+  if (val.length > 3 && val.length <= 7) {
+    val = val.replace(/(\d{3})(\d{1,4})/, '$1-$2')
+  } else if (val.length >= 8) {
+    val = val.replace(/(\d{3})(\d{3,4})(\d{4})/, '$1-$2-$3')
+  }
+  form.value.phoneNo = val
+}
+
 const close = () => {
   emit('close')
 }
@@ -267,11 +286,11 @@ const handleSubmit = async () => {
     if (isEditMode.value) {
       // 1. 프로필 정보 수정 (기본 정보)
       const profilePromise = updateEmployeeProfile(props.targetEmp.empId, form.value)
-      
+
       // 2. 인사 정보 수정 (부서, 직위, 사번) - 변경된 경우만
       let assignmentPromise = null
       const t = props.targetEmp
-      const hasAssignmentChanges = 
+      const hasAssignmentChanges =
         form.value.deptId !== (t.deptId || null) ||
         form.value.positionId !== (t.positionId || null) ||
         form.value.employeeNo !== (t.employeeNo || t.empNo)
@@ -294,7 +313,7 @@ const handleSubmit = async () => {
       ])
 
       const allSuccess = results.every(res => res.data && res.data.success)
-      
+
       if (allSuccess) {
         alert('사원 정보가 성공적으로 수정되었습니다.')
         emit('success')
@@ -396,6 +415,12 @@ const handleSubmit = async () => {
   gap: 6px;
 }
 
+.required {
+  color: #ef4444;
+  margin-left: 2px;
+  font-weight: bold;
+}
+
 /* ... inputs ... */
 
 .input {
@@ -494,8 +519,8 @@ select.input {
 .btn:disabled { opacity: 0.7; cursor: not-allowed; }
 
 .roles-display { display: flex; flex-wrap: wrap; gap: 6px; padding: 4px 0; }
-.role-badge { 
-    background: #f1f5f9; color: #475569; font-size: 12px; padding: 4px 8px; 
+.role-badge {
+    background: #f1f5f9; color: #475569; font-size: 12px; padding: 4px 8px;
     border-radius: 4px; border: 1px solid #e2e8f0; font-weight: 500;
 }
 
@@ -509,20 +534,20 @@ select.input {
 }
 /* Working - Green */
 .status-select.status-working :deep(.select-trigger) {
-    background-color: #dcfce7; 
-    color: #15803d; 
+    background-color: #dcfce7;
+    color: #15803d;
     border-color: #bbf7d0;
 }
 /* Leave - Yellow */
 .status-select.status-leave :deep(.select-trigger) {
-    background-color: #fef9c3; 
-    color: #a16207; 
+    background-color: #fef9c3;
+    color: #a16207;
     border-color: #fde047;
 }
 /* Resigned - Red */
 .status-select.status-resigned :deep(.select-trigger) {
-    background-color: #fee2e2; 
-    color: #b91c1c; 
+    background-color: #fee2e2;
+    color: #b91c1c;
     border-color: #fecaca;
 }
 </style>

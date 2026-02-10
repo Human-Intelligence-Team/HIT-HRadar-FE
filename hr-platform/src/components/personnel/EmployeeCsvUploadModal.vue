@@ -43,7 +43,7 @@
                   :disabled="!selectedFile || loading" 
                   @click="handlePreview"
                 >
-                  <i class="pi pi-search"></i> 데이터 검증
+                  <i class="pi pi-search"></i> 미리보기
                 </button>
               </div>
             </div>

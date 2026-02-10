@@ -94,7 +94,6 @@
              <div class="action-buttons centered">
                 <!-- 역할 배정 -->
                 <button class="btn-action role" @click.stop="$emit('role', emp)" title="역할 부여">
-                  <i class="pi pi-shield"></i>
                   <span>역할</span>
                 </button>
                 <!-- 수정 -->
@@ -232,15 +231,16 @@ const getStatusLabel = (status) => {
   letter-spacing: 0.5px;
 }
 
-/* 직위 배지 */
+/* 직위 배지 - 프리미엄 블루 */
 .position-badge {
   display: inline-flex;
   padding: 4px 10px;
   border-radius: 20px;
   font-size: 12px;
-  font-weight: 500;
-  background: #ecfdf5;
-  color: #059669; /* Emerald */
+  font-weight: 600;
+  background: #e8f3ff;
+  color: #3182f6;
+  border: 1px solid #dbeafe;
 }
 
 /* 액션 버튼 */
@@ -252,24 +252,25 @@ const getStatusLabel = (status) => {
 
 /* 모던 액션 버튼 스타일 */
 .btn-action {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  justify-content: center; /* Center content */
+  justify-content: center;
   gap: 6px;
-  padding: 6px 12px;
+  padding: 0 12px;
+  height: 32px;
   border-radius: 8px;
   border: 1px solid transparent;
   background: white;
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
   white-space: nowrap;
+  line-height: 1;
 }
 .btn-action span {
   display: inline-block;
-  line-height: 1; /* Ensure vertical centering */
-  padding-top: 1px; /* Optical adjustment */
+  line-height: 1;
 }
 
 .btn-action.edit {
@@ -297,12 +298,12 @@ const getStatusLabel = (status) => {
 .status-badge {
   font-size: 12px;
   font-weight: 600;
-  padding: 4px 8px;
-  border-radius: 6px;
+  padding: 4px 10px;
+  border-radius: 99px;
 }
-.status-badge.active { background: #dcfce7; color: #15803d; } /* Green */
-.status-badge.leave { background: #fef9c3; color: #a16207; } /* Yellow */
-.status-badge.resigned { background: #fee2e2; color: #b91c1c; } /* Red */
+.status-badge.active { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; } /* Green */
+.status-badge.leave { background: #fef9c3; color: #a16207; border: 1px solid #fcf299; } /* Yellow */
+.status-badge.resigned { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; } /* Red */
 
 .action-buttons.centered {
   justify-content: center;
@@ -310,7 +311,19 @@ const getStatusLabel = (status) => {
 }
 
 .roles-tags { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; }
-.role-tag { font-size: 11px; background: #f1f5f9; color: #475569; padding: 2px 6px; border-radius: 4px; border: 1px solid #e2e8f0; }
+.role-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  background: #f1f5f9;
+  color: #475569;
+  padding: 0 8px;
+  height: 20px;
+  border-radius: 4px;
+  border: 1px solid #e2e8f0;
+  line-height: 1;
+}
 
 .btn-action.role {
   color: #8b5cf6;
@@ -318,9 +331,9 @@ const getStatusLabel = (status) => {
   border-color: #ede9fe;
 }
 .btn-action.role:hover {
-  background: #8b5cf6;
+  background: var(--primary);
   color: white;
-  border-color: #8b5cf6;
+  border-color: var(--primary);
 }
 
 </style>

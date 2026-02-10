@@ -3,7 +3,6 @@
     <div class="section-title">
       <div>
         <h1>직위 조회</h1>
-        <div class="sub">등록된 직위 정보를 조회합니다. (읽기 전용)</div>
       </div>
     </div>
 
@@ -59,5 +58,11 @@ section {
   border-radius: var(--radius-md);
   border: 1px solid var(--border);
   margin-top: 16px;
+}
+
+.section-title h1 {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--primary);
 }
 </style>

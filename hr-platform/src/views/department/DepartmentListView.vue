@@ -1,9 +1,10 @@
 <template>
   <div class="dept-list-page">
-    <header class="page-header">
-      <h1 class="page-title">부서 조회</h1>
-      <p class="page-desc">회사의 전체 부서 정보를 확인합니다.</p>
-    </header>
+    <div class="section-title">
+      <div>
+        <h1>부서 조회</h1>
+      </div>
+    </div>
 
     <div class="content-container">
       <!-- List Table Section -->
@@ -62,7 +63,7 @@
               <span class="value">{{ selectedDept.deptPhone || '-' }}</span>
             </div>
           </div>
-          
+
           <div class="divider"></div>
 
           <div class="detail-item">
@@ -73,7 +74,7 @@
             <span class="label">부서장</span>
             <span class="value">{{ selectedDept.managerName || selectedDept.managerEmpName || '-' }}</span>
           </div>
-          
+
           <div class="divider"></div>
 
           <div class="detail-item">
@@ -150,31 +151,8 @@ const ensureArray = (data) => {
   return []
 }
 
-// 부서 이름 찾기 (parentDeptId -> deptName)
-const getParentName = (parentId) => {
-  if (!parentId) return '-'
-  const parent = departments.value.find(d => d.deptId === parentId)
-  return parent ? parent.deptName : '-'
-}
 
-// 부서장 이름 찾기 (managerEmpId -> ??)
-// *주의: 목록 조회 시 managerName이 이미 있으면 그걸 쓰고, 없으면 로직 필요.
-// 현재 API 응답에 managerName이 있다면 그걸 우선 사용.
-const getManagerName = (empId) => {
-  // 1. departments 배열 내에서 해당 부서의 managerName 확인 (비효율적일 수 있음)
-  // 하지만 view에서는 parameter가 dept.managerEmpId로 넘어오니...
-  // 사실 template에서 dept.managerName을 바로 쓰는게 낫습니다.
-  // 여기서는 단순히 template 호출을 지원하기 위해 구현.
-  
-  if (!empId) return '-'
-  
-  // 현재 조회된 부서 목록에서 부서장이 누구인지 찾기는 어렵습니다 (Employee 정보가 아님).
-  // 따라서 API Response에 있는 managerName을 사용하는 것이 권장됩니다.
-  // Template을 수정하여 getManagerName(dept.managerEmpId) 대신 {{ dept.managerName }}을 쓰도록 유도하거나,
-  // 여기서 억지로 찾는다면...
-  const dept = departments.value.find(d => d.managerEmpId === empId)
-  return dept ? dept.managerName : '-' 
-}
+
 
 const formatDate = (dateString) => {
   if (!dateString) return '-'
@@ -292,5 +270,17 @@ const formatDate = (dateString) => {
 @keyframes slideUp {
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+.section-title h1 {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--primary);
+}
+
+.card-hd h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--primary);
 }
 </style>

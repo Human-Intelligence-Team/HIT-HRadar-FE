@@ -3,7 +3,6 @@
     <div class="section-title">
       <div>
         <h1>인사 발령 수행</h1>
-        <div class="sub">선택된 사원의 부서, 직위 또는 사번을 변경합니다.</div>
       </div>
     </div>
 
@@ -243,5 +242,17 @@ const submitAppointment = async () => {
 .textarea:-webkit-autofill, .textarea:-webkit-autofill:hover, .textarea:-webkit-autofill:focus {
   -webkit-box-shadow: 0 0 0px 1000px white inset !important;
   transition: background-color 5000s ease-in-out 0s;
+}
+
+.section-title h1 {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--primary);
+}
+
+.card-hd h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--primary);
 }
 </style>

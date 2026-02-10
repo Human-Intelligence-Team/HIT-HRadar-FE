@@ -3,7 +3,6 @@
     <div class="section-title">
       <div>
         <h1>직위 관리</h1>
-        <div class="sub">회사의 직위 체계와 서열(Rank)을 효율적으로 관리하세요.</div>
       </div>
     </div>
 
@@ -192,5 +191,17 @@ section {
 
 .content-wrapper {
   margin-bottom: 24px;
+}
+
+.section-title h1 {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--primary);
+}
+
+.card-hd h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--primary);
 }
 </style>

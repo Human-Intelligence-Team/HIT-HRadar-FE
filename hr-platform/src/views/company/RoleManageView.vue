@@ -3,7 +3,6 @@
     <div class="section-title">
       <div>
         <h1>역할 및 권한 관리</h1>
-        <div class="sub">우리 회사에 필요한 역할을 정의하고, 상세 권한을 안전하게 설정하세요.</div>
       </div>
     </div>
 
@@ -26,7 +25,7 @@
             >
               <div class="role-info">
                 <span class="role-name">{{ role.name }}</span>
-                <span v-if="role.isSystem === 'Y'" class="status-badge gray">시스템</span>
+                <span v-if="role.isSystem === 'Y'" class="status-badge system">시스템</span>
               </div>
               <i class="pi pi-chevron-right arrow-icon"></i>
             </li>
@@ -413,8 +412,16 @@ onMounted(loadData)
   margin-bottom: 2px;
 }
 
-.checkbox-container input:checked ~ .check-ui::after {
-  display: block;
+.status-badge {
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.status-badge.system {
+  background: #f1f5f9;
+  color: #64748b;
+  border: 1px solid #e2e8f0;
 }
 
 .perm-info {
@@ -427,6 +434,7 @@ onMounted(loadData)
 .form-actions {
   display: flex;
   gap: 12px;
+  justify-content: flex-end;
 }
 
 .btn {
@@ -442,8 +450,8 @@ onMounted(loadData)
   gap: 8px;
   border: 1px solid transparent;
 }
-.btn.primary { background: #3b82f6; color: white; }
-.btn.primary:hover { background: #2563eb; }
+.btn.primary { background: var(--primary); color: white; }
+.btn.primary:hover { background: #1b64da; }
 .btn.outline { background: white; border-color: #e2e8f0; color: #64748b; }
 .btn.outline:hover { background: #f8fafc; border-color: #cbd5e1; }
 .btn.danger.outline { border-color: #fee2e2; color: #ef4444; }
@@ -466,4 +474,16 @@ onMounted(loadData)
 
 .mb-6 { margin-bottom: 24px; }
 .mt-8 { margin-top: 32px; }
+
+.section-title h1 {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--primary);
+}
+
+.card-hd h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--primary);
+}
 </style>

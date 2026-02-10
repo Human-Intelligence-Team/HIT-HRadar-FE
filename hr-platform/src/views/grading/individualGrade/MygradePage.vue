@@ -83,7 +83,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted } from 'vue'
 
 // API
 import { fetchCycles } from '@/api/cycleApi.js'
@@ -240,10 +240,11 @@ onMounted(async () => {
 }
 
 .title {
-  font-size: 20px;
+  font-size: 24px;
   font-weight: 800;
   margin: 0;
   color: #111827;
+  letter-spacing: -0.02em;
 }
 
 .sub {
@@ -262,10 +263,10 @@ onMounted(async () => {
 }
 
 .card-title {
-  font-size: 14px;
+  font-size: 20px;
   font-weight: 700;
   margin-bottom: 12px;
-  color: #111827;
+  color: var(--primary);
 }
 
 /* ===== Grade Box ===== */

@@ -3,7 +3,6 @@
     <div class="section-title">
       <div>
         <h1>내 회사 정보</h1>
-        <div class="sub">내가 소속된 회사의 기본 정보를 확인합니다.</div>
       </div>
     </div>
 
@@ -17,24 +16,18 @@
             <h2>기본 정보</h2>
           </div>
           <div class="card-bd info-list">
-            <div class="info-item full-width">
+            <div class="info-item">
               <span class="label">회사명</span>
-              <span class="value" style="font-size: 18px;">{{ company.companyName }}</span>
+              <span class="value">{{ company.companyName }}</span>
             </div>
-            <div class="info-item full-width">
+            <div class="info-item">
+              <span class="label">회사코드</span>
+              <span class="value">{{ company.comCode || '-' }}</span>
+            </div>
+            <div class="info-item">
               <span class="label">주소</span>
               <span class="value">{{ company.address || '-' }}</span>
             </div>
-            
-            <div class="info-item">
-              <span class="label">회사코드</span>
-              <span class="value font-mono">{{ company.comCode || '-' }}</span>
-            </div>
-            <div class="info-item">
-              <span class="label">대표자명</span>
-              <span class="value">{{ company.ceoName || '-' }}</span>
-            </div>
-            
             <div class="info-item">
               <span class="label">설립일</span>
               <span class="value">{{ company.foundDate || '-' }}</span>
@@ -43,7 +36,10 @@
               <span class="label">사업자 등록번호</span>
               <span class="value">{{ company.bizNo || '-' }}</span>
             </div>
-
+            <div class="info-item">
+              <span class="label">대표자명</span>
+              <span class="value">{{ company.ceoName || '-' }}</span>
+            </div>
             <div class="info-item">
               <span class="label">대표 전화</span>
               <span class="value">{{ company.comTel || '-' }}</span>
@@ -52,17 +48,13 @@
               <span class="label">이메일</span>
               <span class="value">{{ company.comEmail || '-' }}</span>
             </div>
-
-            <div class="info-item full-width">
-              <span class="label">상태</span>
-              <span class="value">
-                <span class="status-badge good" v-if="!company.isDeleted || company.isDeleted === 'N'">
-                   정상
-                </span>
-                <span class="status-badge bad" v-else>
-                   정지
-                </span>
-              </span>
+            <div class="info-item">
+              <span class="label">등록일</span>
+              <span class="value">{{ company.createdAt?.split('T')[0] || '-' }}</span>
+            </div>
+            <div class="info-item">
+              <span class="label">최근 수정일</span>
+              <span class="value">{{ company.updatedAt?.split('T')[0] || '-' }}</span>
             </div>
           </div>
         </BaseCard>
@@ -103,61 +95,39 @@ onMounted(loadCompany)
 
 <style scoped>
 .narrow-container {
-  max-width: 1000px;
+  max-width: 720px;
   margin: 0 auto;
   padding-bottom: 40px;
 }
 
-.info-list {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 0;
-  border-top: 1px solid var(--border);
+.company-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 }
 
+.info-list {
+  display: flex;
+  flex-direction: column;
+}
 .info-item {
   display: flex;
-  flex-direction: row;
+  justify-content: space-between;
   align-items: center;
-  gap: 16px;
-  min-height: 52px;
-  padding: 0 20px;
+  padding: 14px 0;
   border-bottom: 1px solid var(--border);
 }
-
-.info-item.full-width {
-  grid-column: span 2;
+.info-item:last-child {
+  border-bottom: none;
 }
-
 .label {
   font-size: 13px;
   font-weight: 600;
   color: #64748b;
-  min-width: 130px;
-  flex-shrink: 0;
 }
-
 .value {
-  font-size: 14px;
   font-weight: 500;
   color: #1e293b;
-  word-break: break-all;
-}
-
-.status-badge {
-  font-size: 12px;
-  font-weight: 600;
-  padding: 4px 10px;
-  border-radius: 6px;
-  display: inline-flex;
-  align-items: center;
-}
-.status-badge.good { background: #dcfce7; color: #15803d; }
-.status-badge.bad { background: #fee2e2; color: #b91c1c; }
-
-.font-mono {
-  font-family: var(--font-mono, monospace);
-  letter-spacing: 0px;
 }
 
 .loading-state, .empty-state {
@@ -171,5 +141,17 @@ onMounted(loadCompany)
 .empty-state i {
   font-size: 32px;
   margin-bottom: 12px;
+}
+
+.section-title h1 {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--primary);
+}
+
+.card-hd h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--primary);
 }
 </style>

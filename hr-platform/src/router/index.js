@@ -105,6 +105,7 @@ const routes = [
       { path: 'company-applications', component: AdminComAppList },
       { path: 'user-accounts', component: AdminUserAccountList },
       { path: 'permissions', component: () => import('@/views/admin/PermissionRegistryView.vue') },
+      { path: 'company/manage', component: () => import('@/views/company/CompanyManageView.vue') },
     ],
   },
 
@@ -177,14 +178,13 @@ const routes = [
       }, // Read-Only Position List
 
       // 인사 발령 및 이력
-      { path: 'personnel/appointment', component: () => import('@/views/personnel/PersonnelAppointmentView.vue'), },
+      { path: 'personnel/appointment', component: () => import('@/views/personnel/PersonnelAppointmentView.vue'), },//사용하는 곳 없음
       { path: 'personnel/history', component: () => import('@/views/personnel/PersonnelAppointmentHistoryView.vue'), },
 
       // 회사 관리
       { path: 'company/my', component: () => import('@/views/company/MyCompanyView.vue') },
       { path: 'company/my-manage', component: () => import('@/views/company/MyCompanyManageView.vue'), },
       { path: 'company/roles', component: () => import('@/views/company/RoleManageView.vue') },
-      { path: 'company/manage', component: () => import('@/views/company/CompanyManageView.vue') },
 
 
       //성과평가-목표관리
@@ -373,6 +373,11 @@ router.beforeEach((to, from) => {
   }
 
   // 3. Dynamic Permission Check (from Backend DB)
+  // [Fix] 관리자 전용 경로나 이미 관리자 권한인 경우 동적 권한 체크를 건너뜀
+  if (to.path.startsWith('/admin') || auth.isAdmin) {
+    return
+  }
+
   let requiredPerm = null
 
   // Check from specific to general (child to parent)

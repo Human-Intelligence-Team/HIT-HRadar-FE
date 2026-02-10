@@ -3,7 +3,6 @@
     <div class="section-title">
       <div>
         <h1>사원 관리</h1>
-        <div class="sub">소속 사원 명단을 확인하고 실시간 인사를 관리합니다.</div>
       </div>
     </div>
 
@@ -448,4 +447,52 @@ const handleSuccess = () => {
   font-weight: 600;
 }
 .mb-4 { margin-bottom: 16px; }
+
+.section-title h1 {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--primary);
+}
+
+/* Unified Toolbar Buttons */
+.btn {
+  padding: 8px 16px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 42px;
+}
+.btn.primary {
+  background: var(--primary);
+  color: white;
+  border: 1px solid var(--primary);
+}
+.btn.primary:hover {
+  background: #1b64da;
+  border-color: #1b64da;
+}
+.btn.outline {
+  background: white;
+  color: #64748b;
+  border: 1px solid #e2e8f0;
+}
+.btn.outline:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+.btn.primary.outline {
+  background: #eff6ff;
+  color: var(--primary);
+  border: 1px solid #bfdbfe;
+}
+.btn.primary.outline:hover {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
 </style>

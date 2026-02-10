@@ -1,9 +1,8 @@
 <template>
-  <section class="page-container">
-    <div class="page-header">
+  <section class="narrow-container">
+    <div class="section-title">
       <div class="header-content">
         <h1>내 부서 조회</h1>
-        <p class="subtitle">소속된 부서의 정보와 함께 근무하는 동료들을 확인합니다.</p>
       </div>
     </div>
 
@@ -232,20 +231,26 @@ onMounted(loadData)
 </script>
 
 <style scoped>
-.page-container {
-    max-width: 1100px;
+/* Page Layout */
+.narrow-container {
+    max-width: 1000px;
     margin: 0 auto;
     padding: 32px 20px;
 }
 
-.page-header {
+.section-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     margin-bottom: 32px;
 }
-.page-header h1 {
-    font-size: 26px;
-    font-weight: 700;
-    color: #0f172a;
-    margin-bottom: 4px;
+
+.section-title h1 {
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--primary);
+    margin: 0;
+    letter-spacing: -0.02em;
 }
 .subtitle {
     font-size: 14px;
@@ -299,9 +304,9 @@ onMounted(loadData)
     padding-bottom: 20px;
 }
 .dept-header h2 {
-    font-size: 24px;
+    font-size: 20px;
     font-weight: 700;
-    color: #0f172a;
+    color: var(--primary);
     margin: 0;
 }
 .dept-code {
@@ -362,9 +367,9 @@ onMounted(loadData)
     background: #fcfcfc;
 }
 .members-card h3 {
-    font-size: 16px;
+    font-size: 20px;
     font-weight: 700;
-    color: #334155;
+    color: var(--primary);
     margin: 0;
     display: flex; align-items: center; gap: 8px;
 }
@@ -408,9 +413,9 @@ onMounted(loadData)
 .font-medium { font-weight: 600; color: #0f172a; }
 .text-secondary { color: #64748b; }
 
-.badge { padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: 600; }
-.badge.position { background: #eff6ff; color: #2563eb; }
-.badge.dept { background: #f5f3ff; color: #7c3aed; }
+.badge { padding: 4px 10px; border-radius: 99px; font-size: 12px; font-weight: 600; }
+.badge.position { background: #e8f3ff; color: #3182f6; border: 1px solid #dbeafe; }
+.badge.dept { background: #f5f3ff; color: #7c3aed; border: 1px solid #ede9fe; }
 
 .status-badge {
     display: inline-flex;
@@ -426,6 +431,7 @@ onMounted(loadData)
 .status-badge.active {
     background: #ecfdf5;
     color: #059669;
+    border: 1px solid #bbf7d0;
 }
 
 .empty-message { text-align: center; padding: 48px; color: #94a3b8; }

@@ -3,14 +3,13 @@
     <div class="section-title">
       <div>
         <h1>회사 정보 관리</h1>
-        <div class="sub">회사의 기본 정보를 조회하고 시스템 설정을 관리합니다.</div>
       </div>
     </div>
 
     <div v-if="loading" class="loading-state">데이터를 불러오는 중...</div>
 
     <div v-else-if="company" class="company-detail">
-      <div class="grid cols-2">
+      <div class="grid cols-1">
         <!-- Basic Info Card -->
         <BaseCard>
           <div class="card-hd">
@@ -20,6 +19,10 @@
             <div class="info-item">
               <span class="label">회사명</span>
               <span class="value">{{ company.companyName }}</span>
+            </div>
+            <div class="info-item">
+              <span class="label">회사코드</span>
+              <span class="value">{{ company.comCode || '-' }}</span>
             </div>
             <div class="info-item">
               <span class="label">주소</span>
@@ -37,30 +40,6 @@
               <span class="label">대표자명</span>
               <span class="value">{{ company.ceoName || '-' }}</span>
             </div>
-             <div class="info-item">
-              <span class="label">상태</span>
-              <span class="value">
-                <span class="status-badge good" v-if="!company.isDeleted || company.isDeleted === 'N'">
-                   정상
-                </span>
-                <span class="status-badge bad" v-else>
-                   정지
-                </span>
-              </span>
-            </div>
-          </div>
-        </BaseCard>
-
-        <!-- System Info Card -->
-        <BaseCard>
-          <div class="card-hd">
-            <h2>시스템 정보</h2>
-          </div>
-          <div class="card-bd info-list">
-            <div class="info-item">
-              <span class="label">회사코드</span>
-              <span class="value font-mono">{{ company.comCode || '-' }}</span>
-            </div>
             <div class="info-item">
               <span class="label">대표 전화</span>
               <span class="value">{{ company.comTel || '-' }}</span>
@@ -71,11 +50,11 @@
             </div>
             <div class="info-item">
               <span class="label">등록일</span>
-              <span class="value">{{ company.createdAt || '-' }}</span>
+              <span class="value">{{ company.createdAt?.split('T')[0] || '-' }}</span>
             </div>
             <div class="info-item">
               <span class="label">최근 수정일</span>
-              <span class="value">{{ company.updatedAt || '-' }}</span>
+              <span class="value">{{ company.updatedAt?.split('T')[0] || '-' }}</span>
             </div>
           </div>
         </BaseCard>
@@ -197,7 +176,7 @@ const handleDelete = async () => {
 
 <style scoped>
 .narrow-container {
-  max-width: 1000px;
+  max-width: 720px;
   margin: 0 auto;
   padding-bottom: 40px;
 }
@@ -232,20 +211,7 @@ const handleDelete = async () => {
   color: #1e293b;
 }
 
-.status-badge {
-  font-size: 12px;
-  font-weight: 600;
-  padding: 4px 10px;
-  border-radius: 6px;
-}
-.status-badge.good { background: #dcfce7; color: #15803d; }
-.status-badge.bad { background: #fee2e2; color: #b91c1c; }
 
-.font-mono {
-  font-family: var(--font-mono, monospace);
-  color: #4f46e5;
-  font-weight: 700;
-}
 
 .action-footer {
   display: flex;
@@ -278,4 +244,16 @@ const handleDelete = async () => {
 
 .grid { display: grid; gap: 24px; }
 .cols-2 { grid-template-columns: 1fr 1fr; }
+
+.section-title h1 {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--primary);
+}
+
+.card-hd h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--primary);
+}
 </style>

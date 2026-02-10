@@ -1,9 +1,8 @@
 <template>
-  <section class="page-container">
-    <div class="page-header">
+  <section class="narrow-container">
+    <div class="section-title">
       <div class="header-content">
         <h1>내 정보 조회</h1>
-        <p class="subtitle">나의 프로필 정보를 확인하고 수정할 수 있습니다.</p>
       </div>
       <div class="actions">
         <template v-if="!isEditMode">
@@ -55,24 +54,57 @@
           <div class="basic-info">
             <h2 v-if="!isEditMode" class="emp-name">{{ employee.name }}</h2>
             <input v-else v-model="form.name" class="input name-input" placeholder="이름 입력" maxlength="50" />
-            <div class="badges">
-              <span v-if="employee.positionName" class="badge position">{{ employee.positionName }}</span>
-              <span v-if="employee.deptName" class="badge dept">{{ employee.deptName }}</span>
-              <span class="badge role">{{ roleMap[employee.role] || employee.role || '일반 사용자' }}</span>
-              <span v-if="!isEditMode" :class="['badge status', getStatusClass(employee.employmentType)]">
-                {{ employmentTypeMap[employee.employmentType] || employee.employmentType || '상태미정' }}
-              </span>
-              <ModernSelect 
-                v-else 
-                v-model="form.employmentType" 
-                :options="statusOptions"
-                :class="['status-select', getStatusClass(form.employmentType)]"
-              />
-            </div>
+            <!-- 사번 및 입사일 (위로 이동) -->
             <div class="emp-meta">
-              <span v-if="employee.employeeNo">사번: {{ employee.employeeNo }}</span>
-              <span v-if="employee.employeeNo && employee.hireDate" class="separator">|</span>
-              <span v-if="employee.hireDate">입사일: {{ employee.hireDate }}</span>
+              <span v-if="employee.employeeNo">{{ employee.employeeNo }}</span>
+              <span v-if="employee.employeeNo && employee.hireDate" class="separator">·</span>
+              <span v-if="employee.hireDate">입사일 {{ employee.hireDate }}</span>
+            </div>
+
+            <!-- 메타 정보 그리드 (자로 잰 듯한 정렬) -->
+            <div class="profile-meta-grid">
+              <div :class="['meta-item', { readonly: isEditMode }]">
+                <span class="meta-label">직위</span>
+                <div class="meta-value">
+                  <span v-if="employee.positionName" class="badge position">{{ employee.positionName }}</span>
+                  <span v-else class="text-gray">-</span>
+                </div>
+              </div>
+              
+              <div :class="['meta-item', { readonly: isEditMode }]">
+                <span class="meta-label">부서</span>
+                <div class="meta-value">
+                  <span v-if="employee.deptName" class="badge dept">{{ employee.deptName }}</span>
+                  <span v-else class="text-gray">-</span>
+                </div>
+              </div>
+
+              <div class="meta-item">
+                <span class="meta-label">상태</span>
+                <div class="meta-value">
+                   <span v-if="!isEditMode" :class="['badge status', getStatusClass(employee.employmentType)]">
+                     {{ employmentTypeMap[employee.employmentType] || employee.employmentType || '상태미정' }}
+                   </span>
+                   <ModernSelect 
+                     v-else 
+                     v-model="form.employmentType" 
+                     :options="statusOptions"
+                     :class="['status-select', getStatusClass(form.employmentType)]"
+                   />
+                </div>
+              </div>
+
+              <div :class="['meta-item', { readonly: isEditMode }]">
+                <span class="meta-label">권한</span>
+                <div class="meta-value role-badges">
+                  <template v-if="employee.roles && employee.roles.length > 0">
+                    <span v-for="role in employee.roles" :key="role" class="badge role">
+                      {{ role }}
+                    </span>
+                  </template>
+                  <span v-else class="badge role">일반 사용자</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -80,61 +112,64 @@
         <div class="divider"></div>
 
         <div class="detail-grid">
-          <div class="grid-section">
-            <h3><i class="pi pi-id-card"></i> 연락처 정보</h3>
-            <div class="field-item">
-              <div class="label">로그인 ID</div>
-              <div class="value">{{ employee.loginId || '-' }}</div>
-            </div>
-            <div class="field-item">
-              <div :class="['label', { required: isEditMode }]">이메일</div>
-              <div v-if="!isEditMode" class="value">{{ employee.email || '-' }}</div>
-              <input v-else type="email" v-model="form.email" class="input" placeholder="example@company.com" maxlength="150" />
-            </div>
-            <div class="field-item">
-              <label for="phoneNo" :class="{ required: isEditMode }">휴대전화</label>
-              <div v-if="!isEditMode" class="value">{{ employee.phoneNo || '-' }}</div>
-              <input v-else id="phoneNo" name="phoneNo" v-model="form.phoneNo" class="input" placeholder="010-0000-0000" maxlength="15" />
-            </div>
-            <div class="field-item">
-              <label for="extNo">내선번호</label>
-              <div v-if="!isEditMode" class="value">{{ employee.extNo || '-' }}</div>
-              <input v-else id="extNo" name="extNo" v-model="form.extNo" class="input" placeholder="내선번호 입력" maxlength="15" />
-            </div>
-          </div>
-
-          <div class="grid-section">
-            <h3><i class="pi pi-user"></i> 개인 정보</h3>
-            <div class="field-item">
-              <label for="birth" :class="{ required: isEditMode }">생년월일</label>
-              <div v-if="!isEditMode" class="value">{{ employee.birth || '-' }}</div>
-              <input v-else id="birth" name="birth" v-model="form.birth" class="input" placeholder="YYYYMMDD" maxlength="8" />
-            </div>
-            <div class="field-item">
-              <label for="gender" :class="{ required: isEditMode }">성별</label>
-              <div v-if="!isEditMode" class="value">{{ genderMap[employee.gender] || employee.gender || '-' }}</div>
-              <select v-else id="gender" name="gender" v-model="form.gender" class="input">
-                <option value="" disabled>선택하세요</option>
-                <option value="MALE">남성</option>
-                <option value="FEMALE">여성</option>
-              </select>
-            </div>
-          </div>
-
           <div class="grid-section full-width-section">
-            <h3><i class="pi pi-file"></i> 비고</h3>
-            <div class="field-item full-width">
-              <div v-if="!isEditMode" class="value note-value">{{ employee.note || '-' }}</div>
-              <div v-else class="w-full">
-                <textarea 
-                  id="note" 
-                  name="note" 
-                  v-model="form.note" 
-                  class="input note-input" 
-                  placeholder="비고 사항 입력 (최대 1000자)" 
-                  maxlength="1000"
-                ></textarea>
-                <div class="char-count">{{ form.note ? form.note.length : 0 }} / 1000</div>
+            <h3><i class="pi pi-info-circle"></i> 상세 정보</h3>
+            
+            <div class="field-grid-container">
+              <!-- Row 1 -->
+              <div :class="['field-item', { readonly: isEditMode }]">
+                <div class="label">로그인 ID</div>
+                <div class="value">{{ employee.loginId || '-' }}</div>
+              </div>
+              <div class="field-item">
+                <div :class="['label', { required: isEditMode }]">이메일</div>
+                <div v-if="!isEditMode" class="value">{{ employee.email || '-' }}</div>
+                <input v-else type="email" v-model="form.email" class="input" placeholder="example@company.com" maxlength="150" />
+              </div>
+
+              <!-- Row 2 -->
+              <div class="field-item">
+                <label for="phoneNo" :class="{ required: isEditMode }">휴대전화</label>
+                <div v-if="!isEditMode" class="value">{{ employee.phoneNo || '-' }}</div>
+                <input v-else id="phoneNo" name="phoneNo" v-model="form.phoneNo" class="input" placeholder="010-0000-0000" maxlength="15" />
+              </div>
+              <div class="field-item">
+                <label for="extNo">내선번호</label>
+                <div v-if="!isEditMode" class="value">{{ employee.extNo || '-' }}</div>
+                <input v-else id="extNo" name="extNo" v-model="form.extNo" class="input" placeholder="내선번호 입력" maxlength="15" />
+              </div>
+
+              <!-- Row 3 -->
+              <div class="field-item">
+                <label for="birth" :class="{ required: isEditMode }">생년월일</label>
+                <div v-if="!isEditMode" class="value">{{ employee.birth || '-' }}</div>
+                <input v-else id="birth" name="birth" v-model="form.birth" class="input" placeholder="YYYYMMDD" maxlength="8" />
+              </div>
+              <div class="field-item">
+                <label for="gender" :class="{ required: isEditMode }">성별</label>
+                <div v-if="!isEditMode" class="value">{{ genderMap[employee.gender] || employee.gender || '-' }}</div>
+                <select v-else id="gender" name="gender" v-model="form.gender" class="input">
+                  <option value="" disabled>선택하세요</option>
+                  <option value="MALE">남성</option>
+                  <option value="FEMALE">여성</option>
+                </select>
+              </div>
+
+              <!-- Memo (Full Width) -->
+              <div class="field-item full-width">
+                <div class="label">비고</div>
+                <div v-if="!isEditMode" class="value note-value">{{ employee.note || '-' }}</div>
+                <div v-else class="w-full">
+                  <textarea 
+                    id="note" 
+                    name="note" 
+                    v-model="form.note" 
+                    class="input note-input" 
+                    placeholder="비고 사항 입력 (최대 1000자)" 
+                    maxlength="1000"
+                  ></textarea>
+                  <div class="char-count">{{ form.note ? form.note.length : 0 }} / 1000</div>
+                </div>
               </div>
             </div>
           </div>
@@ -211,13 +246,6 @@ const getStatusClass = (status) => {
   if (status === 'LEAVE') return 'status-leave'
   if (status === 'RESIGNED') return 'status-resigned'
   return ''
-}
-
-const roleMap = {
-  'USER': '일반 사용자',
-  'ADMIN': '관리자',
-  'HR_MANAGER': '인사 담당자',
-  'DEPT_MANAGER': '부서장'
 }
 
 const form = reactive({
@@ -399,28 +427,28 @@ onMounted(loadData)
   --toss-grey-900: #191f28;
 }
 
-.page-container {
-    max-width: 1000px; /* Increased from 720px for better usability */
+/* Page Layout */
+.narrow-container {
+    max-width: 1000px;
     margin: 0 auto;
-    padding: 40px 20px 80px;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    color: #333d4b;
+    padding: 32px 20px;
 }
 
-/* Header */
-.page-header {
+.section-title {
     display: flex;
-    align-items: center;
     justify-content: space-between;
+    align-items: center;
     margin-bottom: 24px;
 }
-.page-header h1 {
-    font-size: 26px;
-    font-weight: 700;
-    color: #191f28;
+
+.section-title h1 {
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--primary);
     margin: 0;
-    letter-spacing: -0.5px;
+    letter-spacing: -0.02em;
 }
+
 .subtitle {
     display: none; /* Minimalist header, hide subtitle */
 }
@@ -502,11 +530,86 @@ onMounted(loadData)
     margin-bottom: 8px;
 }
 
-.badges {
+.profile-meta-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); /* 4 Equal Columns */
+    width: 100%;
+    max-width: 800px; /* Constrain width for readability */
+    margin: 20px auto 0;
+    background: #ffffff;
+    border: 1px solid #e5e8eb;
+    border-radius: 12px;
+    overflow: hidden; /* For border radius */
+}
+
+/* On mobile, stack them */
+@media (max-width: 768px) {
+    .profile-meta-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+.meta-item {
     display: flex;
-    gap: 6px;
+    flex-direction: column;
+    align-items: center;
     justify-content: center;
-    margin-bottom: 12px;
+    padding: 16px;
+    border-right: 1px solid #e5e8eb;
+    background: #f9fafb;
+    position: relative;
+    transition: all 0.2s;
+}
+
+.meta-item.readonly {
+    opacity: 0.6;
+    background-color: #f2f4f6;
+}
+.meta-item.readonly::after {
+    content: '\e93c'; /* pi-lock */
+    font-family: 'primeicons';
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    font-size: 10px;
+    color: #b1b8c0;
+}
+
+.meta-item:last-child {
+    border-right: none;
+}
+
+/* Mobile border adjustment */
+@media (max-width: 768px) {
+    .meta-item:nth-child(2) { border-right: none; }
+    .meta-item:nth-child(n+3) { border-top: 1px solid #e5e8eb; }
+}
+
+
+.meta-label {
+    font-size: 13px;
+    color: #6b7684;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.meta-value {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 28px;
+}
+
+.role-badges {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.text-gray {
+    color: #b1b8c0;
+    font-size: 14px;
 }
 .badge {
     padding: 4px 8px;
@@ -516,10 +619,10 @@ onMounted(loadData)
     background: #f2f4f6;
     color: #4e5968;
 }
-.badge.position { background: #e8f3ff; color: #3182f6; }
-.badge.status.status-working { background: #dcfce7; color: #15803d; }
-.badge.status.status-leave { background: #fef9c3; color: #a16207; }
-.badge.status.status-resigned { background: #fee2e2; color: #b91c1c; }
+.badge.position { background: #e8f3ff; color: #3182f6; border: 1px solid #dbeafe; font-weight: 600; }
+.badge.status.status-working { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; font-weight: 600; }
+.badge.status.status-leave { background: #fef9c3; color: #a16207; border: 1px solid #fcf299; font-weight: 600; }
+.badge.status.status-resigned { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; font-weight: 600; }
 
 /* Colored Status Select */
 .status-select { min-width: 160px; }
@@ -549,50 +652,58 @@ onMounted(loadData)
 }
 
 .emp-meta {
-    font-size: 14px;
-    color: #8b95a1;
+    font-size: 15px;
+    color: #4e5968;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+.emp-meta .separator {
+    color: #d1d6db;
+    font-weight: bold;
 }
 
 /* Detail Grid */
 .detail-grid { 
-    display: grid; 
-    grid-template-columns: 1fr 1fr; /* Two columns */
-    gap: 32px; 
-}
-@media (max-width: 768px) {
-    .detail-grid { grid-template-columns: 1fr; }
+    display: block; /* Removed grid split */
 }
 
 .grid-section {
     background: #f9fafb;
-    padding: 20px;
+    padding: 24px;
     border-radius: 16px;
     height: 100%;
 }
 
-.grid-section.full-width-section {
-    grid-column: 1 / -1;
+.field-grid-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 32px; /* Column gap only, rows handle their padding */
+}
+@media (max-width: 768px) {
+    .field-grid-container { grid-template-columns: 1fr; }
 }
 
 .grid-section h3 {
-    font-size: 16px;
+    font-size: 18px;
     font-weight: 700;
-    color: #333d4b;
-    margin-bottom: 12px;
+    color: var(--primary);
+    margin-bottom: 16px;
     display: flex; align-items: center; gap: 8px;
     padding-bottom: 12px;
     border-bottom: 2px solid #e5e8eb;
 }
-.grid-section h3 i { color: #3182f6; font-size: 18px; }
+.grid-section h3 i { font-size: 18px; }
 
 .field-item { 
     display: flex; 
     align-items: center; 
-    padding: 12px 0;
+    padding: 14px 0;
     border-bottom: 1px solid #e5e8eb;
-    height: 48px; /* Fixed height for consistency */
+    min-height: 52px;
 }
-.field-item:last-child { border-bottom: none; }
 .field-item.full-width { 
     grid-column: 1 / -1; 
     flex-direction: column; 
@@ -600,7 +711,7 @@ onMounted(loadData)
     gap: 8px; 
     height: auto;
     border-bottom: none;
-    margin-top: 0;
+    margin-top: 12px;
 }
 
 .field-item .label, .field-item label {
@@ -628,6 +739,27 @@ onMounted(loadData)
     font-weight: 500;
     text-align: left;
     flex: 1;
+}
+
+/* Read-only field styling in Edit Mode */
+.field-item.readonly {
+    opacity: 0.6;
+    background-color: rgba(242, 244, 246, 0.5); /* Light grey bg */
+    border-radius: 8px;
+    padding-left: 12px;
+    padding-right: 12px;
+}
+.field-item.readonly .value {
+    color: #8b95a1;
+    font-weight: 500;
+    cursor: not-allowed;
+}
+.field-item.readonly::after {
+    content: '\e93c'; /* pi-lock icon code */
+    font-family: 'primeicons';
+    font-size: 14px;
+    color: #b1b8c0;
+    margin-left: 8px;
 }
 
 .field-item.full-width .value {

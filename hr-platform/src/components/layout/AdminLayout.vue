@@ -21,6 +21,10 @@
       <aside class="admin-sidebar">
         <div class="section-title">시스템 관리</div>
         <nav class="nav">
+          <RouterLink to="/admin/company/manage" class="nav-item" active-class="active">
+            <span>회사 정보 관리</span>
+            <span class="arrow">›</span>
+          </RouterLink>
           <RouterLink to="/admin/company-applications" class="nav-item" active-class="active">
             <span>회사 신청 관리</span>
             <span class="arrow">›</span>
@@ -43,17 +47,13 @@
       </main>
     </div>
 
-    <!-- Chatbot Components (Temporarily disabled for debugging clicks) -->
-    <!-- <ChatbotButton /> -->
-    <!-- <ChatbotModal /> -->
+    <!-- Chatbot Components (Removed unused) -->
   </div>
 </template>
 
 <script setup>
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
-import ChatbotButton from '@/components/chatbot/ChatbotButton.vue'
-import ChatbotModal from '@/components/chatbot/ChatbotModal.vue'
 import BrandLogo from '@/components/common/BrandLogo.vue'
 
 const router = useRouter()

@@ -150,8 +150,7 @@ const menuConfig = computed(() => {
           children: [
             { text: '내 회사 정보', to: '/company/my' },
             { text: '내 회사 관리', to: '/company/my-manage' },
-            { text: '역할/권한 관리', to: '/company/roles' },
-            ...(auth.isAdmin ? [{ text: '회사 정보 관리 (전체)', to: '/company/manage' }] : [])
+            { text: '역할/권한 관리', to: '/company/roles' }
           ]
         }
       ]
