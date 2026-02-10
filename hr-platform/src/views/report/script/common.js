@@ -3,7 +3,7 @@ import {fetchPositions} from "@/api/positionApi.js";
 
 
 /* 이번 년도 기준 - 10년*/
-export const YEAR_OPTIONS = async () => {
+export const YEAR_OPTIONS = () => {
 
   const currentYear = new Date().getFullYear(); // 2026
   const years = 10;
