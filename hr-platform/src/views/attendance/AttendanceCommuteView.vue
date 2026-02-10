@@ -40,12 +40,12 @@
             <!-- Action Area: Split Buttons -->
             <div class="action-buttons-grid">
               <!-- Left: Clock In -->
-              <button 
+              <button
                 class="split-btn btn-in"
-                :class="{ 
-                  'active': clockInInfo, 
+                :class="{
+                  'active': clockInInfo,
                   'inactive': !clockInInfo
-                }" 
+                }"
                 @click="handleClockIn"
                 :disabled="!!clockInInfo"
               >
@@ -56,10 +56,10 @@
               </button>
 
               <!-- Right: Clock Out -->
-              <button 
+              <button
                 class="split-btn btn-out"
-                :class="{ 
-                  'active': !clockInInfo && lastClockOutTime, 
+                :class="{
+                  'active': !clockInInfo && lastClockOutTime,
                   'inactive': clockInInfo || (!clockInInfo && !lastClockOutTime)
                 }"
                 @click="handleClockOut"
@@ -71,32 +71,32 @@
                 </span>
               </button>
             </div>
-            
+
             <!-- My Weekly History (Mon-Sat) -->
-             <div class="weekly-history-list">
-                <div class="list-header">
-                  <h4>{{ getWeekRangeString() }}</h4>
-                  <span class="total-hours" v-if="weeklyTotalHours">{{ weeklyTotalHours }} / {{ standardWeeklyHours }}시간</span>
-                </div>
-                <ul>
-                  <li v-for="day in weeklyHistory" :key="day.dateStr" :class="{ 'today': day.isToday }">
-                    <div class="day-info">
-                      <span class="day-name">{{ day.dayName }}</span>
-                      <span class="day-date">{{ day.dayNum }}</span>
+            <div class="weekly-history-list">
+              <div class="list-header">
+                <h4>{{ getWeekRangeString() }}</h4>
+                <span class="total-hours" v-if="weeklyTotalHours">{{ weeklyTotalHours }} / {{ standardWeeklyHours }}시간</span>
+              </div>
+              <ul>
+                <li v-for="day in weeklyHistory" :key="day.dateStr" :class="{ 'today': day.isToday }">
+                  <div class="day-info">
+                    <span class="day-name">{{ day.dayName }}</span>
+                    <span class="day-date">{{ day.dayNum }}</span>
+                  </div>
+                  <div class="work-status">
+                    <span :class="['status-dot', day.statusClass]"></span>
+                    <div class="work-times">
+                      <span v-if="day.checkIn">{{ day.checkIn }} - {{ day.checkOut || '' }}</span>
+                      <span v-else>-</span>
                     </div>
-                    <div class="work-status">
-                      <span :class="['status-dot', day.statusClass]"></span>
-                      <div class="work-times">
-                        <span v-if="day.checkIn">{{ day.checkIn }} - {{ day.checkOut || '' }}</span>
-                        <span v-else>-</span>
-                      </div>
-                    </div>
-                    <div class="work-duration">
-                      {{ day.duration || '00:00' }}
-                    </div>
-                  </li>
-                </ul>
-             </div>
+                  </div>
+                  <div class="work-duration">
+                    {{ day.duration || '00:00' }}
+                  </div>
+                </li>
+              </ul>
+            </div>
 
           </div>
         </div>
@@ -110,18 +110,18 @@
           <h3>근태 캘린더</h3>
         </div>
         <div class="calendar-body">
-           <div v-if="loading.calendar" class="calendar-loading-overlay">
-              <div class="spinner"></div>
-              <span>캘린더 로딩 중...</span>
-           </div>
-           <FullCalendar ref="fullCalendar" :options="calendarOptions">
-             <template #eventContent="arg">
-               <div class="custom-event-content">
-                 <div class="dot" :style="{ backgroundColor: getWorkTypeColor(arg.event.extendedProps.workType, arg.event.extendedProps.status) }"></div>
-                 <div class="event-title">{{ arg.event.title }}</div>
-               </div>
-             </template>
-           </FullCalendar>
+          <div v-if="loading.calendar" class="calendar-loading-overlay">
+            <div class="spinner"></div>
+            <span>캘린더 로딩 중...</span>
+          </div>
+          <FullCalendar ref="fullCalendar" :options="calendarOptions">
+            <template #eventContent="arg">
+              <div class="custom-event-content">
+                <div class="dot" :style="{ backgroundColor: getWorkTypeColor(arg.event.extendedProps.workType, arg.event.extendedProps.status) }"></div>
+                <div class="event-title">{{ arg.event.title }}</div>
+              </div>
+            </template>
+          </FullCalendar>
         </div>
       </div>
     </div>
@@ -169,7 +169,7 @@ const clockInInfo = ref(null);
 const lastClockInTime = ref(null); // 출근 시간 저장 (퇴근 후에도 유지)
 const lastClockOutTime = ref(null); // 퇴근 시간 저장
 const initialWorkInfo = ref({ workType: '-', workplace: '-' });
-const weeklyHistory = ref([]); 
+const weeklyHistory = ref([]);
 const weeklyTotalHours = ref('');
 const standardWeeklyHours = ref(40); // SaaS-style dynamic policy
 
@@ -215,7 +215,7 @@ const getWeekRangeString = () => {
   // 이번 주 월요일 ~ 일요일 구하기 (토요일까지)
   const d = new Date();
   const day = d.getDay();
-  const diff = d.getDate() - day + (day === 0 ? -6 : 1); 
+  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
   const monday = new Date(d);
   monday.setDate(diff); // needs copy?
   // Actually simpler:
@@ -231,27 +231,27 @@ const extractTime = (v) => {
 };
 
 const mapWorkType = (type) => {
-    if (!type || type === '-' || type === 'WORK') return '내근';
-    const mapper = {
-        'WORK': '내근',
-        'REMOTE': '재택',
-        'FIELD': '외근',
-        'TRIP': '출장',
-        'VACATION': '휴가'
-    };
-    return mapper[type] || type;
+  if (!type || type === '-' || type === 'WORK') return '내근';
+  const mapper = {
+    'WORK': '내근',
+    'REMOTE': '재택',
+    'FIELD': '외근',
+    'TRIP': '출장',
+    'VACATION': '휴가'
+  };
+  return mapper[type] || type;
 };
 
 const mapLocation = (loc) => {
-    if (!loc || loc === '-') return '-';
-    const mapper = {
-        'OFFICE': '사무실',
-        'HOME': '재택(자택)',
-        'FIELD': '현장(외근)',
-        'TRIP': '출장지',
-        'NONE': '-'
-    };
-    return mapper[loc] || loc;
+  if (!loc || loc === '-') return '-';
+  const mapper = {
+    'OFFICE': '사무실',
+    'HOME': '재택(자택)',
+    'FIELD': '현장(외근)',
+    'TRIP': '출장지',
+    'NONE': '-'
+  };
+  return mapper[loc] || loc;
 };
 
 /* =====================
@@ -292,7 +292,7 @@ const calendarOptions = ref({
     currentToDate.value = dateInfo.endStr.substring(0, 10);
 
     if (departmentId.value) {
-       await fetchCalendarData(currentFromDate.value, currentToDate.value);
+      await fetchCalendarData(currentFromDate.value, currentToDate.value);
     }
   }
 });
@@ -304,19 +304,19 @@ const calendarOptions = ref({
 const fetchMyStatus = async (showLoading = true) => {
   if (!employeeId.value) return;
   if (showLoading) loading.value.myStatus = true;
-  
+
   try {
     const targetId = Number(employeeId.value);
     // [FIX] Use standard YYYY-MM-DD format for API
     const response = await fetchMyTodayAttendance(targetId, getApiDateString());
     const responseData = response.data?.data || response.data;
-    
+
     if (responseData && (responseData.checkInTime || responseData.workType)) {
       lastClockInTime.value = extractTime(responseData.checkInTime);
-      
+
       if (!responseData.checkOutTime) {
-         // 출근 중
-         clockInInfo.value = {
+        // 출근 중
+        clockInInfo.value = {
           clockInTime: extractTime(responseData.checkInTime),
           name: userInfo.value?.name || '-',
           department: userInfo.value?.department || '-',
@@ -338,7 +338,7 @@ const fetchMyStatus = async (showLoading = true) => {
       initialWorkInfo.value.workType = responseData?.workType || '-';
       initialWorkInfo.value.workplace = responseData?.workPlace || '-';
     }
-    
+
     await fetchWeeklyHistory(); // Status fetch 후 주간 기록 갱신
 
   } catch (e) {
@@ -351,95 +351,95 @@ const fetchMyStatus = async (showLoading = true) => {
 
 // 2. 주간 기록 (Mon-Sat)
 const fetchWeeklyHistory = async () => {
-    if (!employeeId.value) return;
-    
-    // Calculate Mon-Sun of current week (Fetch full week)
-    const d = new Date();
-    const day = d.getDay();
-    const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Mon
-    
-    const monday = new Date(d);
-    monday.setDate(diff);
-    
-    const sunday = new Date(monday);
-    sunday.setDate(monday.getDate() + 6);
-    
-    const fromDate = monday.toISOString().substring(0, 10);
-    const toDate = sunday.toISOString().substring(0, 10);
+  if (!employeeId.value) return;
 
-    try {
-        const response = await fetchAttendanceCalendar({
-            targetEmpId: employeeId.value,
-            fromDate: fromDate,
-            toDate: toDate
-        });
-        
-        const data = response.data?.data || response.data || [];
-        
-        // Map to Days (Mon-Sat only)
-        const days = ['월', '화', '수', '목', '금', '토']; // 일요일 제거
-        const history = [];
-        let totalMinutes = 0;
+  // Calculate Mon-Sun of current week (Fetch full week)
+  const d = new Date();
+  const day = d.getDay();
+  const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Mon
 
-        for (let i = 0; i < 6; i++) {
-            const currentDay = new Date(monday);
-            currentDay.setDate(monday.getDate() + i);
-            const dateStr = currentDay.toISOString().substring(0, 10);
-            const dayNum = String(currentDay.getDate()).padStart(2, '0');
-            
-            const record = data.find(r => r.workDate === dateStr);
-            const isToday = dateStr === getApiDateString();
-            
-            let statusClass = '';
-            let checkIn = null;
-            let checkOut = null;
-            let duration = null;
+  const monday = new Date(d);
+  monday.setDate(diff);
 
-            if (record) {
-                checkIn = extractTime(record.checkInTime);
-                checkOut = extractTime(record.checkOutTime);
-                
-                if (record.totalWorkMinutes > 0) {
-                     const h = Math.floor(record.totalWorkMinutes / 60);
-                     const m = record.totalWorkMinutes % 60;
-                     duration = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
-                     totalMinutes += record.totalWorkMinutes;
-                }
-                
-                // Dot Color Logic
-                if (record.status === '출근' || (checkIn && !checkOut)) statusClass = 'blue'; // Working
-                else if (checkIn && checkOut) statusClass = 'blue'; // Completed
-                else if (['지각', '조퇴', '결근'].includes(record.status)) statusClass = 'orange'; // Warning
-                else statusClass = 'gray'; // Default/Day off
-            } else {
-                statusClass = 'gray';
-            }
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
 
-            history.push({
-                dayName: days[i],
-                dayNum: dayNum,
-                dateStr: dateStr,
-                isToday: isToday,
-                checkIn: checkIn,
-                checkOut: checkOut,
-                duration: duration,
-                statusClass: statusClass
-            });
-        }
-        
-        weeklyHistory.value = history;
-        if (totalMinutes > 0) {
-             const th = Math.floor(totalMinutes / 60);
-             const tm = totalMinutes % 60;
-             weeklyTotalHours.value = `${th}시간 ${tm}분`;
-        } else {
-             // 0시간이어도 표시? "0시간 0분"
-            weeklyTotalHours.value = '0시간 0분';
+  const fromDate = monday.toISOString().substring(0, 10);
+  const toDate = sunday.toISOString().substring(0, 10);
+
+  try {
+    const response = await fetchAttendanceCalendar({
+      targetEmpId: employeeId.value,
+      fromDate: fromDate,
+      toDate: toDate
+    });
+
+    const data = response.data?.data || response.data || [];
+
+    // Map to Days (Mon-Sat only)
+    const days = ['월', '화', '수', '목', '금', '토']; // 일요일 제거
+    const history = [];
+    let totalMinutes = 0;
+
+    for (let i = 0; i < 6; i++) {
+      const currentDay = new Date(monday);
+      currentDay.setDate(monday.getDate() + i);
+      const dateStr = currentDay.toISOString().substring(0, 10);
+      const dayNum = String(currentDay.getDate()).padStart(2, '0');
+
+      const record = data.find(r => r.workDate === dateStr);
+      const isToday = dateStr === getApiDateString();
+
+      let statusClass = '';
+      let checkIn = null;
+      let checkOut = null;
+      let duration = null;
+
+      if (record) {
+        checkIn = extractTime(record.checkInTime);
+        checkOut = extractTime(record.checkOutTime);
+
+        if (record.totalWorkMinutes > 0) {
+          const h = Math.floor(record.totalWorkMinutes / 60);
+          const m = record.totalWorkMinutes % 60;
+          duration = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+          totalMinutes += record.totalWorkMinutes;
         }
 
-    } catch (e) {
-        console.error("Weekly fetch error", e);
+        // Dot Color Logic
+        if (record.status === '출근' || (checkIn && !checkOut)) statusClass = 'blue'; // Working
+        else if (checkIn && checkOut) statusClass = 'blue'; // Completed
+        else if (['지각', '조퇴', '결근'].includes(record.status)) statusClass = 'orange'; // Warning
+        else statusClass = 'gray'; // Default/Day off
+      } else {
+        statusClass = 'gray';
+      }
+
+      history.push({
+        dayName: days[i],
+        dayNum: dayNum,
+        dateStr: dateStr,
+        isToday: isToday,
+        checkIn: checkIn,
+        checkOut: checkOut,
+        duration: duration,
+        statusClass: statusClass
+      });
     }
+
+    weeklyHistory.value = history;
+    if (totalMinutes > 0) {
+      const th = Math.floor(totalMinutes / 60);
+      const tm = totalMinutes % 60;
+      weeklyTotalHours.value = `${th}시간 ${tm}분`;
+    } else {
+      // 0시간이어도 표시? "0시간 0분"
+      weeklyTotalHours.value = '0시간 0분';
+    }
+
+  } catch (e) {
+    console.error("Weekly fetch error", e);
+  }
 }
 
 // 3. 캘린더 데이터 (부서원)
@@ -458,48 +458,44 @@ const fetchCalendarData = async (startDate, endDate) => {
     ]);
 
     let events = [];
-    
+
     // 1. Process Attendance Data
     const attData = attResponse.data?.data || attResponse.data || [];
     if (Array.isArray(attData)) {
       attData.forEach(record => {
-        const date = record.workDate;
+        const start = record.startDate || record.workDate;
+        const end = record.endDate || record.workDate;
         const status = record.status || (record.totalWorkMinutes > 0 ? '퇴근' : '미출근');
-        
+
         let title = record.empName;
-        if (title.length > 8) title = title.substring(0, 8); 
-        
+        if (title.length > 8) title = title.substring(0, 8);
+
         if (status === '퇴근') {
-            title += ` (퇴근)`;
-        } else if (status !== '미출근' && status !== '휴가') {
-            const typeLabel = (record.workType === 'WORK' || !record.workType || record.workType === '내근') ? '내근' : mapWorkType(record.workType);
-            title += ` (${typeLabel})`;
+          title += ` (퇴근)`;
+        } else if (status !== '미출근' && !status.includes('휴가') && !status.includes('반차')) {
+          const typeLabel = (record.workType === 'WORK' || !record.workType || record.workType === '내근') ? '내근' : mapWorkType(record.workType);
+          title += ` (${typeLabel})`;
+        } else if (status.includes('휴가') || status.includes('반차') || status.includes('병가')) {
+          title = `[${status}] ${title}`;
         }
-    
+
         let durationStr = '';
         if (record.totalWorkMinutes > 0) {
-           const h = Math.floor(record.totalWorkMinutes/60);
-           const m = record.totalWorkMinutes%60;
-           durationStr = `${h}h ${m}m`;
+          const h = Math.floor(record.totalWorkMinutes/60);
+          const m = record.totalWorkMinutes%60;
+          durationStr = `${h}h ${m}m`;
         }
 
         events.push({
-          id: `dept-${record.empId}-${date}`,
+          id: record.attendanceId > 0 ? `att-${record.attendanceId}` : `plan-${record.empId}-${start}`,
           title: title,
-          date: date,
+          start: start,
+          end: end,
           allDay: true,
           extendedProps: {
+            ...record,
             type: 'attendance',
-            employeeId: record.empId,
-            employeeName: record.empName,
-            deptName: record.departmentName || 'HIT',
-            status: status,
-            workType: record.workType,
-            workPlace: record.location,
-            overtimeStatus: record.overtimeStatus || '없음',
-            totalWorkTime: durationStr,
-            checkInTime: record.checkInTime,
-            checkOutTime: record.checkOutTime
+            totalWorkTime: durationStr
           }
         });
       });
@@ -512,13 +508,13 @@ const fetchCalendarData = async (startDate, endDate) => {
         // Robust date iteration
         let current = new Date(leave.startDate);
         const end = new Date(leave.endDate);
-        
+
         while (current <= end) {
           const y = current.getFullYear();
           const m = String(current.getMonth() + 1).padStart(2, '0');
           const d = String(current.getDate()).padStart(2, '0');
           const dateStr = `${y}-${m}-${d}`;
-          
+
           events.push({
             id: `leave-${leave.leaveId}-${dateStr}`,
             title: `${userInfo.value?.name} (휴가)`,
@@ -551,7 +547,7 @@ const fetchCalendarData = async (startDate, endDate) => {
    출퇴근 액션
 ===================== */
 const handleClockIn = async () => {
-  if (clockInInfo.value) return; 
+  if (clockInInfo.value) return;
   if (lastClockOutTime.value) {
     alert('이미 금일 퇴근 처리가 완료되었습니다.');
     return;
@@ -562,7 +558,7 @@ const handleClockIn = async () => {
 };
 
 const handleClockOut = async () => {
-  if (!clockInInfo.value) return; 
+  if (!clockInInfo.value) return;
   if (confirm('퇴근하시겠습니까?')) {
     await clockInOut();
   }
@@ -570,9 +566,9 @@ const handleClockOut = async () => {
 
 
 const refreshCalendar = async () => {
-    if (departmentId.value && currentFromDate.value && currentToDate.value) {
-        await fetchCalendarData(currentFromDate.value, currentToDate.value);
-    }
+  if (departmentId.value && currentFromDate.value && currentToDate.value) {
+    await fetchCalendarData(currentFromDate.value, currentToDate.value);
+  }
 };
 
 /* =====================
@@ -590,10 +586,10 @@ watch([employeeId, departmentId], ([newEmp, newDept]) => {
 const onNotification = (data) => {
   if (data.type === 'ATTENDANCE_CHANGED') {
     console.log('Real-time attendance update received:', data);
-    
+
     // Refresh current user's status
     fetchMyStatus(false);
-    
+
     // Refresh calendar
     refreshCalendar();
   }
@@ -615,7 +611,7 @@ const clockInOut = async () => {
 
     // Refresh Status
     await fetchMyStatus(false);
-    
+
     // [FIX] Refresh calendar immediately after action
     await refreshCalendar();
 
@@ -721,55 +717,55 @@ const clockInOut = async () => {
 
 /* Action Buttons Grid */
 .action-buttons-grid {
-    display: flex;
-    gap: 12px;
-    margin-bottom: 20px;
-    height: 120px;
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+  height: 120px;
 }
 
 .split-btn {
-    flex: 1;
-    border: none;
-    border-radius: 16px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    padding: 16px;
-    position: relative;
-    overflow: hidden;
+  flex: 1;
+  border: none;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 16px;
+  position: relative;
+  overflow: hidden;
 }
 
 .btn-content {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    align-items: center;
-    width: 100%;
-    z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+  width: 100%;
+  z-index: 2;
 }
 
 .btn-title {
-    font-size: 16px;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    gap: 6px;
+  font-size: 16px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .btn-time {
-    font-size: 20px;
-    font-weight: 400;
-    opacity: 0.9;
+  font-size: 20px;
+  font-weight: 400;
+  opacity: 0.9;
 }
 
 /* Styles based on User Request Logic */
-/* 
+/*
    - Before Clock In: Both Inactive
    - Clocked In: Left Active, Right Inactive (but clickable)
    - Clocked Out: Left Inactive, Right Active (showing Out time)
-   
+
    CSS Classes:
    .btn-in.active (Blue)
    .btn-in.inactive (Gray, default)
@@ -778,19 +774,19 @@ const clockInOut = async () => {
 */
 
 .split-btn.active {
-    background-color: #3b82f6; 
-    color: white;
-    box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+  background-color: #3b82f6;
+  color: white;
+  box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
 }
 
 .split-btn.inactive {
-    background-color: #f1f5f9; /* Light Gray */
-    color: #94a3b8; /* Dim text */
-    box-shadow: none;
+  background-color: #f1f5f9; /* Light Gray */
+  color: #94a3b8; /* Dim text */
+  box-shadow: none;
 }
 .split-btn.inactive:hover:not(:disabled) {
-    background-color: #e2e8f0;
-    color: #64748b;
+  background-color: #e2e8f0;
+  color: #64748b;
 }
 
 /* User asked for "Left bright if In, Right inactive" */
@@ -798,77 +794,77 @@ const clockInOut = async () => {
 
 /* Weekly History List */
 .weekly-history-list {
-    margin-top: auto;
-    border-top: 1px solid #f1f5f9;
-    padding-top: 20px;
-    padding-bottom: 24px; /* Prevent bottom cutoff */
-    flex-grow: 1;
+  margin-top: auto;
+  border-top: 1px solid #f1f5f9;
+  padding-top: 20px;
+  padding-bottom: 24px; /* Prevent bottom cutoff */
+  flex-grow: 1;
 }
 
 .list-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
 }
 .list-header h4 {
-    font-size: 14px;
-    font-weight: 700;
-    color: #334155;
-    margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: #334155;
+  margin: 0;
 }
 .total-hours {
-    font-size: 12px;
-    color: #3b82f6;
-    font-weight: 600;
+  font-size: 12px;
+  color: #3b82f6;
+  font-weight: 600;
 }
 
 .weekly-history-list ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
+  list-style: none;
+  padding: 0;
+  margin: 0;
 }
 
 .weekly-history-list li {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 4px;
-    border-bottom: 1px solid #f8fafc;
-    font-size: 13px;
-    color: #475569;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 4px;
+  border-bottom: 1px solid #f8fafc;
+  font-size: 13px;
+  color: #475569;
 }
 
 .weekly-history-list li.today {
-    background-color: #f8faff;
-    border-radius: 12px;
-    padding: 12px;
-    margin: 4px 0;
-    box-shadow: inset 0 0 0 1px rgba(59, 130, 246, 0.1);
+  background-color: #f8faff;
+  border-radius: 12px;
+  padding: 12px;
+  margin: 4px 0;
+  box-shadow: inset 0 0 0 1px rgba(59, 130, 246, 0.1);
 }
 
 .day-info {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 30px;
 }
 .day-name { font-size: 12px; color: #334155; font-weight: 700; }
 .day-date { font-size: 14px; color: #1e293b; font-weight: 700; margin-top: 2px; }
 
 .work-status {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 0 12px;
-    min-width: 0; /* Allow shrinking */
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  min-width: 0; /* Allow shrinking */
 }
 .status-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
 }
 /* Explicitly link to status-dot to satisfy linter and preserve dynamic classes */
 .status-dot.blue { background-color: #3b82f6; }
@@ -876,21 +872,21 @@ const clockInOut = async () => {
 .status-dot.gray { background-color: #e2e8f0; }
 
 .work-times {
-    font-size: 13px;
-    color: #475569;
-    font-weight: 500;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  font-size: 13px;
+  color: #475569;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .work-duration {
-    font-size: 13px;
-    color: #3182f6;
-    font-weight: 700;
-    width: 60px;
-    text-align: right;
-    flex-shrink: 0;
+  font-size: 13px;
+  color: #3182f6;
+  font-weight: 700;
+  width: 60px;
+  text-align: right;
+  flex-shrink: 0;
 }
 
 
@@ -964,9 +960,9 @@ const clockInOut = async () => {
 }
 
 :deep(.fc-toolbar-chunk) {
-    display: flex;
-    align-items: center;
-    gap: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 :deep(.fc-toolbar-title) {
@@ -1019,41 +1015,41 @@ const clockInOut = async () => {
 }
 
 :deep(.fc-daygrid-event-harness) {
-    margin-bottom: 2px;
+  margin-bottom: 2px;
 }
 
 /* Hide default dot if any */
 :deep(.fc-daygrid-event-dot) {
-    display: none;
+  display: none;
 }
 
 /* Custom Event Content */
 .custom-event-content {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 2px 4px;
-    border-radius: 4px;
-    transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 4px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
 }
 
 .custom-event-content:hover {
-    background-color: #f1f5f9;
+  background-color: #f1f5f9;
 }
 
 .dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
 }
 
 .event-title {
-    font-size: 12px;
-    font-weight: 800; /* Extra Bold as requested */
-    color: #1e293b; /* Dark Slate */
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  font-size: 12px;
+  font-weight: 800; /* Extra Bold as requested */
+  color: #1e293b; /* Dark Slate */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 </style>
