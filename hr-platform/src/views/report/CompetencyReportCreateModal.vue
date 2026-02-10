@@ -30,7 +30,7 @@ const createReport = async (params) => {
 
   } catch (e) {
     errorMessage.value = e.message || '컨텐츠 조회 중 오류 발생'
-    alert(errorMessage.value)
+    // alert(errorMessage.value)
   } finally {
     submitting.value = false
     isModalOpen()
@@ -108,7 +108,7 @@ onMounted(() => {
   <div class="overlay">
     <div class="modal">
       <div class="modal-head">
-        <div class="modal-title">역량강화 리포트 생성</div>
+        <div class="modal-title"><strong>역량강화 리포트 생성</strong></div>
         <button class="btn ghost" @click="isModalOpen">닫기</button>
       </div>
 

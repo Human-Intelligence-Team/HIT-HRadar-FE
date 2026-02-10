@@ -79,7 +79,6 @@ const basicHistory = async () => {
     const data = result.data
 
     if (data.success) {
-      console.log('성공!!!!!')
       let history = data.data.salaryHistory
       /*
       * const basic = reactive({
@@ -146,11 +145,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="sub">연봉 상세 조회</div>
-
-  <div class="section-btn">
-    <button class="btn" @click="goListPage()" type="button">목록</button>
-  </div>
+  <div class="sub"><strong>연봉 상세 조회</strong></div>
 
   <div class="salary-section">
     <div class="card">
@@ -184,7 +179,25 @@ onMounted(() => {
       <h3>기본급 정보</h3>
       <div class="basic-section">
         <div class="card-history">
-          <table class="table-card">
+          <div class="content-empty-state" v-if="!basic">
+            <table class="table-card">
+              <thead class="tbl-hd">
+              <tr>
+                <th style="width: 10%">년도</th>
+                <th style="width: 10%">인상사유</th>
+                <th style="width: 10%">전 년도 연봉</th>
+                <th style="width: 10%">변경 연봉</th>
+                <th style="width: 10%">인상률(%)</th>
+                <th style="width: 10%">인상금액</th>
+              </tr>
+              </thead>
+            </table>
+            <div class="empty-content">
+              <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="empty-icon"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+              <p>등록된 변동보상 히스토리가 없습니다.</p>
+            </div>
+          </div>
+          <table class="table-card" v-else>
             <tr>
               <th style="width: 10%">년도</th>
               <th style="width: 10%">인상사유</th>
@@ -221,7 +234,27 @@ onMounted(() => {
         </div>
 
         <div class="card-history">
-          <table class="table-card">
+          <div class="content-empty-state" v-if="!compensation || compensation.length === 0">
+            <table class="table-card">
+              <thead class="tbl-hd">
+              <tr>
+                <th style="width: 10%">년도</th>
+                <th style="width: 10%">제목</th>
+                <th style="width: 10%">유형</th>
+                <th style="width: 10%">비고</th>
+                <th style="width: 10%">결재상태</th>
+                <th style="width: 10%">결재일</th>
+                <th style="width: 10%">금액</th>
+                <th style="width: 10%">퍼센트(%)</th>
+              </tr>
+              </thead>
+            </table>
+            <div class="empty-content">
+              <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="empty-icon"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+              <p>등록된 변동보상 히스토리가 없습니다.</p>
+            </div>
+          </div>
+          <table class="table-card" v-else>
             <tr>
               <th style="width: 10%">년도</th>
               <th style="width: 10%">제목</th>
@@ -251,6 +284,9 @@ onMounted(() => {
           </table>
         </div>
       </div>
+    </div>
+    <div class="section-btn">
+      <button class="btn" @click="goListPage()" type="button">목록</button>
     </div>
   </div>
 </template>

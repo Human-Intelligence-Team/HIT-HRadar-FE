@@ -132,8 +132,33 @@ watch(
 
 /* ================= methods ================= */
 const fetchDepartments = async () => {
-  const res = await getAllDepartmentsByCompany();
-  departments.value = res.data.data.departments || [];
+  try {
+    const res = await getAllDepartmentsByCompany(authStore.user?.companyId);
+    const rawData = res.data?.data?.departments || res.data?.data || [];
+    
+    const flattenDepts = (data) => {
+      if (!data) return [];
+      if (Array.isArray(data)) {
+        let result = [];
+        data.forEach(item => {
+          result.push(item);
+          if (item.children && Array.isArray(item.children)) {
+            result = result.concat(flattenDepts(item.children));
+          }
+        });
+        return result;
+      }
+      return [data];
+    };
+
+    const flatList = flattenDepts(rawData);
+    departments.value = flatList.map(d => ({
+        deptId: d.deptId || d.id || d.departmentId,
+        deptName: d.deptName || d.name || d.departmentName
+    })).filter(d => d.deptId);
+  } catch (error) {
+    console.error('Failed to fetch departments:', error);
+  }
 };
 
 const fetchEmployeesByDepartment = async (deptId) => {

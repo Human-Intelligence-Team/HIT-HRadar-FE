@@ -102,7 +102,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="sub">역량강화 리포트 조회(팀장)</div>
+  <div class="sub"><strong>역량강화 리포트 조회</strong></div>
 
   <div class="card">
     <div class="card-head">

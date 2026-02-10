@@ -268,8 +268,8 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="sub" v-if="page === 'update'">학습컨텐츠 수정</div>
-  <div class="sub" v-else>학습컨텐츠 등록</div>
+  <div class="sub" v-if="page === 'update'"><strong>학습컨텐츠 수정</strong></div>
+  <div class="sub" v-else><strong>학습컨텐츠 등록</strong></div>
   <div class="card">
     <div class="section">
       <div class="card-bd">

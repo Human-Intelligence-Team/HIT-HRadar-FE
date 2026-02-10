@@ -6,13 +6,16 @@ import { getToday, getYear, BASIC_OPTIONS, COMPENSATION_OPTIONS } from '@/views/
 import { createSalaryApprover } from '@/api/salaryApi.js'
 import { useAuthStore } from '@/stores/authStore.js'
 import { storeToRefs } from 'pinia'
+import { fetchEmployeeDetail } from '@/api/employeeApi.js'
 const router = useRouter()
 const route = useRoute()
 
 const authStore = useAuthStore();
 const { user} = storeToRefs(authStore);
 
-
+// 기본 데이터
+const year = route.query.year
+const employeeId = user.value.employeeId
 
 // 화면
 const pageName = ref('')
@@ -39,7 +42,7 @@ const basicData = reactive({
 })
 
 const employeeData = reactive({
-  name : user.value.name
+  name : user.value.employeeId
   , deptName :user.value.department
   , positionName : user.value.position
 })
@@ -99,17 +102,18 @@ const draftApproval = async (payload) => {
 
       if (payload.approvalSaveMode === 'SUBMIT') {
         alert("결재되었습니다.")
+
       } else if (payload.approvalSaveMode === 'DRAFT') {
         alert("임시 저장되었습니다.");
       }
-
+      goListPage()
     }
   } catch (e) {
-    errorMessage.value = e.message || '컨텐츠 조회 중 오류 발생'
+    errorMessage.value = e.message || '연봉 결재 중 오류 발생'
     alert(errorMessage.value)
   } finally {
     submitting.value = false
-    goListPage()
+
   }
 
 }
@@ -231,7 +235,9 @@ function approvalValid() {
     }
 
 
-    if (target.salary && isNaN(target.salary)) {
+    // 콤마를 제거한 순수 숫자 문자열 추출
+    const rawSalary = target.salary.toString().replace(/,/g, '');
+    if (rawSalary !== '' && isNaN(Number(rawSalary))) {
       alert(`${target.name} 님의 금액은 숫자만 입력 가능합니다.`);
       return;
     }
@@ -253,7 +259,7 @@ function approvalValid() {
       salaryIncreaseType: basicData.type,
       salaries: targets.value.map(item => ({
         empId: item.empId,
-        basicSalary: Number(item.salary),
+        basicSalary: Number(item.salary.replace(/,/g, '')),
       })),
     };
 
@@ -262,16 +268,16 @@ function approvalValid() {
       ...payload,
       compensationSalaries: targets.value.map(item => ({
         empId: item.empId,
-        amount :  Number(item.salary),
+        amount :  Number(item.salary.replace(/,/g, '')),
         compensationType : basicData.type,
         remark : item.remark,
       })),
     };
   }
 
+
   // 결재 API 호출
-  draftApproval(payload);
-  console.log("전송될 payload: ", payload);
+ draftApproval(payload);
 }
 /*
 
@@ -300,9 +306,41 @@ const getMyEmployee = () => {
   }
 }
 */
+// 스크립트 부분에 추가
+const formatSalary = (item) => {
+  let value = item.salary.replace(/[^0-9]/g, '');
+  item.salary = value.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
 
+// 사원정보 가져오기
+const getEmployee = async () => {
+  submitting.value = true
+
+  try {
+    const result = await fetchEmployeeDetail(employeeId)
+    const data = result.data
+
+    if (data.success) {
+      let emp = data.data
+      employeeData.name = emp.name
+      employeeData.deptName = emp.deptName
+      employeeData.positionName = emp.positionName
+    }
+
+  } catch (e) {
+    errorMessage.value = e.message || '연봉 결재 중 오류 발생'
+    alert(errorMessage.value)
+  } finally {
+    submitting.value = false
+
+  }
+
+
+
+}
 
 onMounted(() => {
+
   // 화면 구분
   if (type == 'basic') {
     pageName.value = '기본급 생성'
@@ -317,18 +355,13 @@ onMounted(() => {
   }
 
   // 사원정보
+  getEmployee()
 
 })
 </script>
 
 <template>
-  <div>{{ pageName }}</div>
-
-  <div class="section-btn">
-    <button class="btn" @click="goListPage()" type="button">목록</button>
-    <button class="btn" @click="draftValid()" type="button">임시저장</button>
-    <button class="btn primary" @click="approvalValid()" type="button">결재</button>
-  </div>
+  <div><strong>{{ pageName }}</strong></div>
 
   <div class="card">
     <div class="card-section">
@@ -337,7 +370,7 @@ onMounted(() => {
         <tr>
           <th>이름</th>
           <td>{{employeeData.name}}</td>
-          <th>결재일</th>
+          <th>기안일</th>
           <td>{{ getToday() }}</td>
         </tr>
         <tr>
@@ -365,7 +398,7 @@ onMounted(() => {
           </td>
         </tr>
         <tr>
-          <th>결제 제목<span class="color-red">*</span></th>
+          <th>결재 제목<span class="color-red">*</span></th>
           <td colspan="3">
             <input
               class="input-tbl"
@@ -387,7 +420,23 @@ onMounted(() => {
           + 결재선 추가
         </button>
       </div>
-      <table class="table">
+      <div class="content-empty-state" v-if="!approvers || approvers.length === 0">
+        <table class="table">
+          <thead class="tbl-hd">
+          <tr>
+            <!--            <th style="width: 10%">순서</th>-->
+            <th style="width: 20%">부서</th>
+            <th style="width: 20%">직위</th>
+            <th style="width: 20%">사원명</th>
+          </tr>
+          </thead>
+        </table>
+        <div class="empty-content">
+          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="empty-icon"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+          <p>등록된 결재선이 없습니다.</p>
+        </div>
+      </div>
+      <table class="table" v-else>
         <thead class="tbl-hd">
           <tr>
 <!--            <th style="width: 10%">순서</th>-->
@@ -426,7 +475,22 @@ onMounted(() => {
           + 참조자 추가
         </button>
       </div>
-      <table class="table">
+      <div class="content-empty-state" v-if="!references || references.length === 0">
+        <table class="table">
+          <thead class="tbl-hd">
+          <tr>
+            <th style="width: 20%">부서</th>
+            <th style="width: 20%">직위</th>
+            <th style="width: 20%">사원명</th>
+          </tr>
+          </thead>
+        </table>
+        <div class="empty-content">
+          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="empty-icon"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+          <p>등록된 참조자가 없습니다.</p>
+        </div>
+      </div>
+      <table class="table" v-else>
         <thead class="tbl-hd">
           <tr>
             <th style="width: 20%">부서</th>
@@ -455,13 +519,28 @@ onMounted(() => {
           + 결재 대상 추가
         </button>
       </div>
-      <table class="table">
+      <div class="content-empty-state" v-if="!targets || targets.length === 0">
+        <table class="table">
+          <thead class="tbl-hd">
+          <tr>
+            <th style="width: 20%">부서</th>
+            <th style="width: 20%">직위</th>
+            <th style="width: 20%">사원명</th>
+          </tr>
+          </thead>
+        </table>
+        <div class="empty-content">
+          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="empty-icon"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+          <p>등록된 결재 대상이 없습니다.</p>
+        </div>
+      </div>
+      <table class="table" v-else>
         <thead class="tbl-hd">
           <tr>
             <th style="width: 15%">부서</th>
             <th style="width: 15%">직위</th>
             <th style="width: 15%">사원명</th>
-            <th style="width: 25%">금액</th>
+            <th style="width: 15%">금액</th>
             <th style="width: 40%"
                 v-if="type == 'compensation'"
             >비고</th>
@@ -478,11 +557,12 @@ onMounted(() => {
             <td style="width: 10%">{{ item.deptName }}</td>
             <td style="width: 10%">{{ item.positionName }}</td>
             <td style="width: 10%">{{ item.name}}</td>
-            <td style="width: 30%">
+            <td style="width: 10%">
               <input type="text"
                      class="input"
                      v-model="item.salary"
-                     @input="item.salary = item.salary.replace(/[^0-9]/g, '')"
+                     @input="item.salary = item.salary.replace(/[^0-9]/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, ',')"
+                     placeholder="금액"
               />
             </td>
             <td style="width: 30%"
@@ -491,6 +571,7 @@ onMounted(() => {
               <input type="text"
                      class="input"
                      v-model="item.remark"
+                     placeholder="비고"
               />
             </td>
           </tr>
@@ -509,6 +590,11 @@ onMounted(() => {
       @close="closeEmployeeModal"
       @confirm="onEmployeeConfirm"
     />
+    <div class="section-btn">
+      <button class="btn" @click="goListPage()" type="button">목록</button>
+<!--      <button class="btn" @click="draftValid()" type="button">임시저장</button>-->
+      <button class="btn primary" @click="approvalValid()" type="button">결재</button>
+    </div>
 
   </div>
 </template>
@@ -523,6 +609,7 @@ onMounted(() => {
 
 .card {
   padding: 20px;
+  margin: 10px;
 }
 .section-btn {
   display: flex;

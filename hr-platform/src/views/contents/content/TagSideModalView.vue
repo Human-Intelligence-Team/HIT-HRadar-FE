@@ -88,31 +88,31 @@ onMounted(() => {
 
     <div class="side-content">
       <span class="total-span">총 {{ tagCount }} 개</span>
-      <div>
-        <div class="btn-box" style="float: right; margin-bottom: 10px;">
-        <button type="button"
-                class="btn primary"
-                @click="selectTags"
-        >선택</button>
-      </div>
-      </div>
 
-      <table class="table">
-        <thead class="tbl-hd">
+      <div class="table-container">
+        <table class="table">
+          <thead class="tbl-hd">
           <tr>
             <th style="width: 10%"></th>
             <th style="width: 40%">태그 명</th>
             <th style="width: 40%">사용 개수</th>
           </tr>
-        </thead>
-        <tbody class="tbl-bd">
+          </thead>
+          <tbody class="tbl-bd">
           <tr v-for="tag in tags" :key="tag.tagId">
             <td><input type="checkbox" v-model="tag.checked"></td>
             <td>{{ tag.tagName }}</td>
             <td>{{ tag.tagCount }}</td>
           </tr>
-        </tbody>
-      </table>
+          </tbody>
+        </table>
+      </div>
+      <div class="btn-box" style="float: right; margin-bottom: 10px;">
+        <button type="button"
+                class="btn primary"
+                @click="selectTags"
+        >선택</button>
+      </div>
     </div>
   </div>
 </template>
@@ -144,10 +144,15 @@ th {
 }
 
 .side-content {
-  height: 300px;
-  overflow-y: scroll;
+  padding: 10px;
 }
 
+.table-container {
+  max-height: 250px; /* 원하는 높이 */
+  overflow-y: auto;  /* 내용이 넘칠 때만 스크롤 생성 */
+  margin-top: 10px;
+  border-bottom: 1px solid var(--border);
+}
 .total-span {
   font-weight: bold;
   font-size: 13px;

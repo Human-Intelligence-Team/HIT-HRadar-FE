@@ -28,8 +28,13 @@
           </select>
         </div>
         <div class="filter-item">
-          <label for="searchDeptId">부서 ID</label>
-          <input type="number" id="searchDeptId" v-model="searchParams.deptId" placeholder="부서 ID" />
+          <label for="searchDeptId">부서</label>
+          <select id="searchDeptId" v-model="searchParams.deptId">
+            <option :value="null">전체</option>
+            <option v-for="dept in departments" :key="dept.deptId" :value="dept.deptId">
+              {{ dept.deptName }}
+            </option>
+          </select>
         </div>
         <div class="filter-item">
           <label for="searchEmpId">사원 ID</label>
@@ -83,9 +88,13 @@
 import { ref, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { fetchAdminAllDocuments } from '@/api/approvalApi';
+import { getAllDepartmentsByCompany } from '@/api/departmentApi';
+import { useAuthStore } from '@/stores/authStore';
 
+const authStore = useAuthStore();
 const router = useRouter();
 const documents = ref([]);
+const departments = ref([]);
 const searchParams = ref({
   docType: '',
   status: '',
@@ -102,8 +111,40 @@ const fetchDocuments = async () => {
     const response = await fetchAdminAllDocuments(params);
     documents.value = response.data.data;
   } catch (error) {
-    alert('결재 문서 목록을 불러오는 데 실패했습니다.');
     console.error('Failed to fetch admin documents:', error);
+  }
+};
+
+const fetchDepartments = async () => {
+  try {
+    const res = await getAllDepartmentsByCompany(authStore.user?.companyId);
+    const rawData = res.data?.data?.departments || res.data?.data || [];
+    
+    // Recursive function to flatten the department tree
+    const flattenDepts = (data) => {
+      if (!data) return [];
+      if (Array.isArray(data)) {
+        let result = [];
+        data.forEach(item => {
+          result.push(item);
+          if (item.children && Array.isArray(item.children)) {
+            result = result.concat(flattenDepts(item.children));
+          }
+        });
+        return result;
+      }
+      return [data];
+    };
+
+    const flatList = flattenDepts(rawData);
+    
+    departments.value = flatList.map(d => ({
+      deptId: d.deptId || d.id || d.departmentId,
+      deptName: d.deptName || d.name || d.departmentName
+    })).filter(d => d.deptId);
+
+  } catch (error) {
+    console.error('Failed to fetch departments:', error);
   }
 };
 
@@ -126,6 +167,7 @@ const formatDate = (datetime) => {
 };
 
 onMounted(() => {
+  fetchDepartments();
   fetchDocuments();
 });
 </script>

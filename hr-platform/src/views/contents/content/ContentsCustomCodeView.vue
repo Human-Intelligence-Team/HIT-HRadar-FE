@@ -60,7 +60,6 @@ const getCustomCodeByGroupCode = async (groupCode) => {
     customCodeId : groups.value.find(item => item.groupCode === groupCode)?.customCodeId,
   }
 
-  console.log('getCustomCodeByGroupCode: ' + groupCode)
   submitting.value = true
   try {
     const result = await fetchCustomCodeByGroupCode( payload )
@@ -177,7 +176,6 @@ const toggleOne = () => {
 
 const deleteCodes = async (customCodeIds) => {
 
-  console.log('삭제 대상:', customCodeIds)
 // customCodeId
   submitting.value = true
 
@@ -243,30 +241,39 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="sub">유형/레벨 관리</div>
-
-  <div class="section-btn">
-    <button class="btn" @click="goListPage()" type="button">목록</button>
-  </div>
-
-
+  <div class="sub"><strong>유형/레벨 관리</strong></div>
   <div class="grid">
     <div class="card">
-      <div class="search-section">
-        <select class="select" v-model="selectedGroupCode">
-          <option v-for="group in groups" :key="group.groupCode" :value="group.groupCode">
-            {{ group.groupName }}
-          </option>
-        </select>
-      </div>
-    </div>
-
-    <div class="card">
       <div class="section-tag">
+        <div class="search-section">
+          <select class="select" v-model="selectedGroupCode">
+            <option v-for="group in groups" :key="group.groupCode" :value="group.groupCode">
+              {{ group.groupName }}
+            </option>
+          </select>
+        </div>
         <button class="btn" type="button" @click="deleteRow">삭제</button>
         <button class="btn primary" type="button" @click="addRow">추가</button>
       </div>
       <div class="card-bd">
+        <div class="content-empty-state" v-if="!customCodes || customCodes.length === 0">
+          <table class="table">
+            <thead class="tbl-hd">
+            <tr>
+              <th style="width: 10%">
+              </th>
+              <th style="width: 30%">코드</th>
+              <th style="width: 30%">코드명</th>
+              <th style="width: 10%"></th>
+            </tr>
+            </thead>
+          </table>
+          <div class="empty-content">
+            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="empty-icon"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+            <p>등록된 태그가 없습니다.</p>
+          </div>
+        </div>
+        <div class="table-scroll-container" v-else>
         <table class="table">
           <thead class="tbl-hd">
             <tr>
@@ -328,21 +335,30 @@ onMounted(() => {
             </tr>
           </tbody>
         </table>
+        </div>
+      </div>
+      <div class="section-btn">
+        <button class="btn" @click="goListPage()" type="button">목록</button>
       </div>
     </div>
   </div>
+
 </template>
 
 <style scoped>
+
+.card {
+  margin: 25px;
+}
 .search-section .select {
   width: 200px;
-  margin: 20px;
 }
 
 .section-btn {
   display: flex;
   justify-content: flex-end;
   padding: 5px;
+  width: 100%;
 }
 
 .section-tag {
@@ -375,4 +391,11 @@ onMounted(() => {
   display: table-cell;     /* Flex 방해 방지 */
   text-align: center;
 }
+
+.table-scroll-container {
+  max-height: 500px; /* 원하는 리스트 높이로 조절 */
+  overflow-y: auto;
+  border-bottom: 1px solid #eee;
+}
+
 </style>

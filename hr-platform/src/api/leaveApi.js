@@ -71,3 +71,21 @@ export const getLeaveGrant = (grantId) => {
 export const getMyLeaveGrants = () => {
   return api.get('/api/v1/leave/grants');
 };
+/**
+ * 휴가 정책을 수정합니다.
+ * @param {number} policyId - 정책 ID
+ * @param {object} policyData - 수정할 정책 데이터
+ * @returns {Promise<any>}
+ */
+export const updateLeavePolicy = (policyId, policyData) => {
+  return api.patch(`/api/v1/admin/leave-policies/${policyId}`, policyData);
+};
+
+/**
+ * 휴가 정책을 삭제합니다.
+ * @param {number} policyId - 정책 ID
+ * @returns {Promise<any>}
+ */
+export const deleteLeavePolicy = (policyId) => {
+  return api.delete(`/api/v1/admin/leave-policies/${policyId}`);
+};
