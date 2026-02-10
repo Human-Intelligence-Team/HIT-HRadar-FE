@@ -390,7 +390,15 @@ function handleDrop(e) {
 }
 
 function handleFileDrop(e) {
-  form.value.attachments.push(...e.dataTransfer.files)
+  const files = Array.from(e.dataTransfer.files || [])
+  if (!files.length) return
+  const now = Date.now()
+  files.forEach((file, idx) => {
+    form.value.attachments.push({
+      id: `${now}-drop-${idx}-${Math.random().toString(16).slice(2)}`,
+      file,
+    })
+  })
 }
 
 
