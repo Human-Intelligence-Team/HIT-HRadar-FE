@@ -1,9 +1,8 @@
 <template>
   <div class="dept-manage-page">
-    <div class="header-action">
+    <div class="section-title">
       <div>
-        <h1 class="page-title">부서 관리</h1>
-        <p class="page-desc">부서를 생성, 수정, 삭제할 수 있습니다.</p>
+        <h1>부서 관리</h1>
       </div>
       <button class="btn-primary" @click="openCreateModal">
         + 부서 생성
@@ -299,7 +298,7 @@ const confirmDelete = async (dept) => {
 }
 .data-table th, .data-table td {
   padding: 16px 20px;
-  text-align: left;
+  text-align: center;
   border-bottom: 1px solid #f1f5f9;
 }
 .data-table th {
@@ -312,9 +311,10 @@ const confirmDelete = async (dept) => {
 .py-4 { padding-top: 1rem; padding-bottom: 1rem; }
 
 .btn-primary {
-  background: #0f172a; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s;
+  background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s;
+  display: inline-flex; align-items: center; gap: 8px;
 }
-.btn-primary:hover { background: #334155; }
+.btn-primary:hover { background: #1b64da; }
 .btn-primary:disabled { background: #cbd5e1; cursor: not-allowed; }
 
 .btn-secondary {
@@ -322,12 +322,12 @@ const confirmDelete = async (dept) => {
 }
 .btn-secondary:hover { background: #f8fafc; }
 
-.action-buttons { display: flex; gap: 8px; }
-.btn-sm { padding: 6px 12px; font-size: 0.85rem; border-radius: 6px; cursor: pointer; border: none; font-weight: 500; }
-.btn-edit { background: #e0f2fe; color: #0284c7; }
-.btn-edit:hover { background: #bae6fd; }
-.btn-delete { background: #fee2e2; color: #ef4444; }
-.btn-delete:hover { background: #fecaca; }
+.action-buttons { display: flex; gap: 8px; justify-content: center; }
+.btn-sm { padding: 6px 14px; font-size: 0.85rem; border-radius: 8px; cursor: pointer; border: 1px solid transparent; font-weight: 600; transition: all 0.2s; }
+.btn-edit { background: #eff6ff; color: #3b82f6; border-color: #dbeafe; }
+.btn-edit:hover { background: #3b82f6; color: white; border-color: #3b82f6; }
+.btn-delete { background: #fef2f2; color: #ef4444; border-color: #fee2e2; }
+.btn-delete:hover { background: #ef4444; color: white; border-color: #ef4444; }
 
 /* Modal */
 .modal-backdrop {
@@ -385,5 +385,17 @@ const confirmDelete = async (dept) => {
 @keyframes slideUp {
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+.section-title h1 {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--primary);
+}
+
+.card-hd h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--primary);
 }
 </style>

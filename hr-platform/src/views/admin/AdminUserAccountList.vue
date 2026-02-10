@@ -2,7 +2,6 @@
   <div class="page-container">
     <div class="page-header">
       <h2 class="title">사용자 계정 관리</h2>
-      <span class="subtitle">등록된 사용자 계정을 조회하고 관리합니다.</span>
     </div>
 
     <!-- Error Debug Alert -->
@@ -349,6 +348,14 @@ onMounted(async () => {
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(0,0,0,0.03); 
   z-index: 1; position: relative;
+}
+
+.title {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--primary);
+  letter-spacing: -0.02em;
+  margin: 0;
 }
 .clickable-row:active {
   transform: scale(0.995);
