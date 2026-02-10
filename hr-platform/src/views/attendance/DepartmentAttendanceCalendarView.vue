@@ -1,82 +1,64 @@
 <template>
-  <section class="attendance-dashboard">
-    <!-- Left Column: Filters and Legends (1/3) -->
-    <div class="dashboard-left">
-      <div class="filter-card card premium-card">
-        <div class="card-header">
-          <h2>부서 근태 필터</h2>
-          <button class="btn-icon-only" @click="refreshCalendar" title="새로고침">
-            <i class="icon-refresh"></i>
-          </button>
+  <div class="calendar-page">
+    <div class="header">
+      <div class="title-section">
+        <h1 class="title">부서 근태 현황 캘린더</h1>
+        <p class="subtitle">부서원들의 휴가 및 근무 상태를 한눈에 파악할 수 있습니다.</p>
+      </div>
+    </div>
+
+    <!-- 필터 및 컨트롤 섹션 -->
+    <div class="control-card card">
+      <div class="filter-layout">
+        <div class="filter-item">
+          <label>부서 선택</label>
+          <select v-model="selectedDepartmentId" class="select-field">
+            <option v-for="dept in departmentOptions" :key="dept.id" :value="dept.id">
+              {{ dept.name }}
+            </option>
+          </select>
         </div>
 
-        <div class="card-body">
-          <div class="filter-group">
-            <div class="filter-item">
-              <label>부서 선택</label>
-              <select v-model="selectedDepartmentId" class="select-field">
-                <option v-for="dept in departmentOptions" :key="dept.id" :value="dept.id">
-                  {{ dept.name }}
-                </option>
-              </select>
-            </div>
+        <div class="filter-item">
+          <label>사원 필터</label>
+          <select v-model="selectedEmployeeId" class="select-field" :disabled="!selectedDepartmentId">
+            <option value="">전체 사원</option>
+            <option v-for="emp in employeeOptions" :key="emp.id" :value="emp.id">
+              {{ emp.name }}
+            </option>
+          </select>
+        </div>
 
-            <div class="filter-item">
-              <label>사원 필터</label>
-              <select v-model="selectedEmployeeId" class="select-field" :disabled="!selectedDepartmentId">
-                <option value="">전체 사원</option>
-                <option v-for="emp in employeeOptions" :key="emp.id" :value="emp.id">
-                  {{ emp.name }}
-                </option>
-              </select>
-            </div>
+        <div class="filter-item stretch">
+          <label>근무 유형 필터</label>
+          <div class="checkbox-group">
+            <label v-for="type in workTypes" :key="type.key" class="check-item">
+              <input type="checkbox" :value="type.key" v-model="selectedFilters" />
+              <span class="check-label">{{ type.label }}</span>
+            </label>
+            <button class="btn-all" @click="toggleAllFilters">
+              {{ selectedFilters.length === workTypes.length ? '전체 해제' : '전체 선택' }}
+            </button>
           </div>
+        </div>
 
-          <div class="category-filter-section">
-            <div class="section-title">
-              <label>근무 유형 카테고리</label>
-              <button class="btn-text-only" @click="toggleAllFilters">
-                {{ selectedFilters.length === workTypes.length ? '전체 해제' : '전체 선택' }}
-              </button>
-            </div>
-
-            <div class="category-list">
-              <label v-for="type in workTypes" :key="type.key"
-                     class="category-item"
-                     :class="{ 'active': selectedFilters.includes(type.key) }">
-                <input type="checkbox" :value="type.key" v-model="selectedFilters" class="hidden-checkbox" />
-                <span class="category-dot" :style="{ backgroundColor: type.color }"></span>
-                <span class="category-label">{{ type.label }}</span>
-                <span class="check-mark" v-if="selectedFilters.includes(type.key)">✓</span>
-              </label>
-            </div>
-          </div>
-
-          <!-- Summary Info or Tips can go here -->
-          <div class="info-tips">
-            <p class="tip-text">부서원들의 근태 현황을 한눈에 파악하고 필터를 통해 상세 조회가 가능합니다.</p>
-          </div>
+        <div class="filter-actions">
+          <button class="btn-refresh" @click="refreshCalendar">
+            <i class="icon-refresh"></i> 새로고침
+          </button>
         </div>
       </div>
     </div>
 
-    <!-- Right Column: Calendar (2/3) -->
-    <div class="dashboard-right">
-      <div class="calendar-card card">
-        <div class="calendar-body">
-          <div v-if="loading" class="calendar-loading-overlay">
-            <div class="spinner"></div>
-            <span>캘린더 로딩 중...</span>
-          </div>
-          <FullCalendar ref="fullCalendar" :options="calendarOptions">
-            <template #eventContent="arg">
-              <div class="custom-event-content">
-                <div class="dot" :style="{ backgroundColor: getEventColor(arg.event.extendedProps.workType) }"></div>
-                <div class="event-title">{{ arg.event.title }}</div>
-              </div>
-            </template>
-          </FullCalendar>
-        </div>
+    <div class="calendar-container card">
+      <FullCalendar ref="fullCalendar" :options="calendarOptions" />
+    </div>
+
+    <!-- 범례 섹션 -->
+    <div class="legend-card">
+      <div v-for="type in workTypes" :key="type.key" class="legend-item">
+        <span class="dot" :style="{ backgroundColor: type.color }"></span>
+        <span class="label">{{ type.label }}</span>
       </div>
     </div>
 
@@ -86,7 +68,7 @@
       :attendance-detail="selectedAttendance"
       @close="isModalOpen = false"
     />
-  </section>
+  </div>
 </template>
 
 <script setup>
@@ -107,7 +89,6 @@ const companyId = computed(() => auth.user?.companyId);
 const fullCalendar = ref(null);
 const isModalOpen = ref(false);
 const selectedAttendance = ref(null);
-const loading = ref(false);
 
 const departmentOptions = ref([]);
 const employeeOptions = ref([]);
@@ -190,7 +171,6 @@ const fetchEmployees = async (deptId) => {
 const fetchCalendarEvents = async (startDate, endDate) => {
   if (!selectedDepartmentId.value) return;
 
-  loading.value = true;
   try {
     const [attResponse, leaveResponse] = await Promise.all([
       fetchAttendanceCalendar({
@@ -219,10 +199,14 @@ const fetchCalendarEvents = async (startDate, endDate) => {
           extendedProps: {
             employeeId: r.empId,
             employeeName: r.empName,
+            deptName: r.departmentName,
             workType: r.workType || 'OFFICE',
             status: r.status,
-            checkIn: r.checkInTime,
-            checkOut: r.checkOutTime
+            location: r.location,
+            checkInTime: r.checkInTime,
+            checkOutTime: r.checkOutTime,
+            overtimeMinutes: r.overtimeMinutes,
+            profileImage: r.profileImage
           }
         });
       });
@@ -257,8 +241,6 @@ const fetchCalendarEvents = async (startDate, endDate) => {
     updateFilteredEvents();
   } catch (error) {
     console.error("Failed to fetch calendar data:", error);
-  } finally {
-    loading.value = false;
   }
 };
 
@@ -335,349 +317,177 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.attendance-dashboard {
-  min-height: 100%;
-  display: flex;
-  gap: 24px;
-  background-color: #f8fafc;
-  padding: 0;
-}
-
-/* ===============================
-   Left Column: Filters (1/3)
-   =============================== */
-.dashboard-left {
-  flex: 1;
-  min-width: 320px;
-  max-width: 400px;
-}
-
-.filter-card {
-  min-height: 100%;
-  border-radius: 20px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-  display: flex;
-  flex-direction: column;
-}
-
-.premium-card {
-  background: #ffffff;
-  border: 1px solid rgba(0,0,0,0.02);
-  overflow: visible;
-}
-
-.card-header {
+.calendar-page {
   padding: 24px;
-  border-bottom: 1px solid #f1f5f9;
-  background: linear-gradient(to bottom, #ffffff, #fafafa);
-  border-radius: 20px 20px 0 0;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  background-color: #f8fafc;
+  min-height: 100vh;
 }
 
-.card-header h2 {
-  font-size: 18px;
-  font-weight: 700;
+.header {
+  margin-bottom: 24px;
+}
+
+.title {
+  font-size: 24px;
+  font-weight: 800;
   color: #1e293b;
   margin: 0;
 }
 
-.btn-icon-only {
-  background: none;
-  border: none;
-  cursor: pointer;
+.subtitle {
+  font-size: 14px;
   color: #64748b;
-  font-size: 18px;
-  padding: 4px;
-  border-radius: 4px;
-  transition: all 0.2s;
+  margin-top: 4px;
 }
 
-.btn-icon-only:hover {
-  background-color: #f1f5f9;
-  color: #3b82f6;
-}
-
-.card-body {
+.card {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   padding: 24px;
-  flex-grow: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
+  margin-bottom: 24px;
+  border: 1px solid #e2e8f0;
 }
 
-.filter-group {
+.filter-layout {
   display: flex;
-  flex-direction: column;
-  gap: 16px;
+  flex-wrap: wrap;
+  gap: 24px;
+  align-items: flex-end;
 }
 
 .filter-item {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  min-width: 180px;
+}
+
+.filter-item.stretch {
+  flex: 1;
+  min-width: 300px;
 }
 
 .filter-item label {
   font-size: 12px;
   font-weight: 600;
-  color: #94a3b8;
+  color: #64748b;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
 .select-field {
   padding: 10px 12px;
-  border-radius: 12px;
+  border-radius: 8px;
   border: 1px solid #e2e8f0;
   font-size: 14px;
   color: #1e293b;
-  background-color: #f8fafc;
-  transition: all 0.2s;
-}
-
-.select-field:focus {
-  outline: none;
-  border-color: #3b82f6;
   background-color: #fff;
 }
 
-.category-filter-section {
+.checkbox-group {
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
   gap: 12px;
-}
-
-.section-title {
-  display: flex;
-  justify-content: space-between;
   align-items: center;
+  padding: 8px 0;
 }
 
-.section-title label {
-  font-size: 12px;
-  font-weight: 600;
-  color: #94a3b8;
-  text-transform: uppercase;
-}
-
-.btn-text-only {
-  background: none;
-  border: none;
-  color: #3b82f6;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  padding: 0;
-}
-
-.category-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.category-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  border-radius: 12px;
-  cursor: pointer;
-  transition: all 0.2s;
-  background-color: #f8fafc;
-  border: 1px solid transparent;
-}
-
-.category-item:hover {
-  background-color: #f1f5f9;
-}
-
-.category-item.active {
-  background-color: #eff6ff;
-  border-color: rgba(59, 130, 246, 0.2);
-}
-
-.hidden-checkbox {
-  display: none;
-}
-
-.category-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-}
-
-.category-label {
-  font-size: 13px;
-  font-weight: 500;
-  color: #334155;
-  flex-grow: 1;
-}
-
-.check-mark {
-  color: #3b82f6;
-  font-weight: 700;
-  font-size: 14px;
-}
-
-.info-tips {
-  margin-top: auto;
-  padding: 16px;
-  background-color: #f0f9ff;
-  border-radius: 12px;
-  border: 1px dashed #bae6fd;
-}
-
-.tip-text {
-  font-size: 12px;
-  color: #0369a1;
-  line-height: 1.5;
-  margin: 0;
-}
-
-/* ===============================
-   Right Column: Calendar (2/3)
-   =============================== */
-.dashboard-right {
-  flex: 2;
-  min-width: 0;
-}
-
-.calendar-card {
-  height: 100%;
-  background-color: #ffffff;
-  border-radius: 20px;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-  display: flex;
-  flex-direction: column;
-}
-
-.calendar-body {
-  padding: 24px;
-  flex-grow: 1;
-  position: relative;
-}
-
-.calendar-loading-overlay {
-  position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(255,255,255,0.8);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  z-index: 10;
-  gap: 10px;
-  color: #64748b;
-  font-size: 14px;
-}
-
-.spinner {
-  width: 24px; height: 24px;
-  border: 3px solid #e2e8f0;
-  border-top-color: #3b82f6;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin { to { transform: rotate(360deg); } }
-
-/* FullCalendar Customization */
-:deep(.fc-header-toolbar) {
-  margin-bottom: 24px !important;
-  display: flex;
-  justify-content: flex-start;
-  gap: 20px;
-}
-
-:deep(.fc-toolbar-chunk) {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-:deep(.fc-toolbar-title) {
-  font-size: 1.25rem !important;
-  font-weight: 700;
-  color: #334155;
-}
-
-:deep(.fc-button-primary) {
-  background-color: #f1f5f9;
-  border: none;
-  color: #475569;
-  font-weight: 600;
-  box-shadow: none;
-  padding: 8px 16px;
-  border-radius: 8px !important;
-}
-
-:deep(.fc-button-primary):hover {
-  background-color: #e2e8f0;
-  color: #1e293b;
-}
-
-:deep(.fc-button-active) {
-  background-color: #e2e8f0 !important;
-  color: #1e293b !important;
-}
-
-:deep(.fc-daygrid-day-number) {
-  color: #64748b;
-  font-size: 13px;
-  text-decoration: none;
-  padding: 8px !important;
-}
-
-:deep(.fc-col-header-cell-cushion) {
-  color: #334155;
-  font-size: 13px;
-  font-weight: 700;
-  text-transform: uppercase;
-  padding: 12px 0 !important;
-}
-
-:deep(.fc-event) {
-  border: none;
-  border-radius: 4px;
-  margin-bottom: 2px;
-  cursor: pointer;
-  background-color: transparent !important;
-  padding: 0;
-}
-
-/* Custom Event Content */
-.custom-event-content {
+.check-item {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 2px 6px;
-  border-radius: 4px;
+  cursor: pointer;
+}
+
+.check-label {
+  font-size: 13px;
+  color: #334155;
+}
+
+.btn-all {
+  font-size: 12px;
+  color: #3b82f6;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  margin-left: 8px;
+}
+
+.btn-refresh {
+  padding: 10px 16px;
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
   transition: background-color 0.2s;
 }
 
-.custom-event-content:hover {
-  background-color: #f1f5f9;
+.btn-refresh:hover {
+  background-color: #2563eb;
+}
+
+.calendar-container {
+  padding: 30px;
+}
+
+:deep(.fc) {
+  --fc-border-color: #e2e8f0;
+  --fc-button-bg-color: #ffffff;
+  --fc-button-border-color: #e2e8f0;
+  --fc-button-text-color: #1e293b;
+  --fc-button-hover-bg-color: #f1f5f9;
+  --fc-button-active-bg-color: #e2e8f0;
+  --fc-today-bg-color: #f1f7ff;
+}
+
+:deep(.fc .fc-toolbar-title) {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+:deep(.fc-event) {
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  border: none;
+}
+
+.legend-card {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: center;
+  margin-top: -8px;
+  padding-bottom: 40px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .dot {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
-  flex-shrink: 0;
 }
 
-.event-title {
+.label {
   font-size: 12px;
-  font-weight: 600;
-  color: #1e293b;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  color: #64748b;
+  font-weight: 500;
 }
 
+/* Modal and Icons stub */
 .icon-refresh::before { content: "↺"; }
 </style>
