@@ -2,7 +2,6 @@
   <div class="page-container">
     <div class="page-header">
       <h2 class="title">권한(기능) 레지스트리</h2>
-      <span class="subtitle">시스템의 모든 권한을 등록하고 관리합니다. (플랫폼 관리자 전용)</span>
       
       <div class="header-actions">
         <button class="btn-primary" @click="openCreateModal">
@@ -171,7 +170,7 @@ onMounted(loadPermissions)
   display: flex; align-items: center; justify-content: space-between;
 }
 .title {
-  font-size: 24px; font-weight: 700; color: #111827;
+  font-size: 24px; font-weight: 800; color: var(--primary);
   letter-spacing: -0.02em; margin: 0; display: inline-block; margin-right: 12px;
 }
 .subtitle { font-size: 14px; color: #6b7280; font-weight: 500; }

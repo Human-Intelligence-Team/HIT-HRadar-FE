@@ -8,7 +8,6 @@
 
       <div class="modal-body">
         <div class="search-bar">
-          <i class="pi pi-search search-icon"></i>
           <input 
             v-model="searchQuery" 
             class="input-search" 
@@ -114,7 +113,7 @@ watch(() => props.isVisible, (val) => {
 .search-bar { padding: 16px; border-bottom: 1px solid #f1f5f9; position: relative; }
 .search-icon { position: absolute; left: 28px; top: 28px; color: #94a3b8; }
 .input-search {
-  width: 100%; padding: 12px 12px 12px 40px;
+  width: 100%; padding: 12px;
   border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px;
   outline: none; transition: all 0.2s;
 }

@@ -6,7 +6,7 @@
           <div class="bot-badge">
             <i class="pi pi-building"></i>
           </div>
-          <span>회사 정보 수정</span>
+          <span>회사 상세 정보</span>
         </div>
         <button class="btn-close ghost" @click="$emit('close')">
           <i class="pi pi-times"></i>
@@ -22,7 +22,6 @@
               type="text" 
               v-model="modelValue.comName" 
               placeholder="회사 이름을 입력하세요" 
-              required 
               class="input"
             />
           </div>
@@ -32,8 +31,7 @@
               type="text" 
               v-model="modelValue.bizNo" 
               placeholder="000-00-00000" 
-              class="input disabled-input"
-              disabled
+              class="input"
             />
           </div>
 
@@ -90,12 +88,17 @@
       </div>
 
       <div class="modal-ft">
-        <button type="button" class="btn outline" style="flex: 1" @click="$emit('close')" :disabled="submitting">
-          취소
+        <button v-if="showDelete" type="button" class="btn danger" @click="$emit('delete')" :disabled="submitting">
+          데이터 삭제
         </button>
-        <button type="submit" form="companyForm" class="btn primary" style="flex: 2" :disabled="submitting">
-          {{ submitting ? '저장 중...' : '변경사항 저장' }}
-        </button>
+        <div class="right-actions">
+          <button type="button" class="btn outline" @click="$emit('close')" :disabled="submitting">
+            취소
+          </button>
+          <button type="submit" class="btn primary" :disabled="submitting" form="companyForm">
+            저장
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -105,13 +108,21 @@
 defineProps({
   show: Boolean,
   submitting: Boolean,
+  showSave: {
+    type: Boolean,
+    default: true
+  },
+  showDelete: {
+    type: Boolean,
+    default: false
+  },
   modelValue: {
     type: Object,
     required: true
   }
 })
 
-defineEmits(['close', 'submit', 'update:modelValue'])
+defineEmits(['close', 'submit', 'delete', 'update:modelValue'])
 </script>
 
 <style scoped>
@@ -221,19 +232,24 @@ defineEmits(['close', 'submit', 'update:modelValue'])
 }
 .input.disabled-input {
   background: #f8fafc;
-  color: #94a3b8;
+  color: #475569;
 }
 
 .modal-ft {
   padding: 16px 24px 24px;
   display: flex;
-  gap: 12px;
+  justify-content: space-between;
   border-top: 1px solid #f1f5f9;
+}
+.right-actions {
+  display: flex;
+  gap: 12px;
 }
 
 .btn {
   height: 46px;
   border-radius: 12px;
+  padding: 0 24px;
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
@@ -244,9 +260,11 @@ defineEmits(['close', 'submit', 'update:modelValue'])
   justify-content: center;
 }
 
-.btn.primary { background: #3b82f6; color: white; }
-.btn.primary:hover:not(:disabled) { background: #2563eb; }
 .btn.outline { background: white; border-color: #e2e8f0; color: #64748b; }
 .btn.outline:hover:not(:disabled) { background: #f8fafc; border-color: #cbd5e1; }
+.btn.danger { background: #fee2e2; border-color: #fecaca; color: #ef4444; }
+.btn.danger:hover:not(:disabled) { background: #fecaca; }
+.btn.primary { background: #3b82f6; border-color: #3b82f6; color: white; }
+.btn.primary:hover:not(:disabled) { background: #2563eb; border-color: #2563eb; }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 </style>
