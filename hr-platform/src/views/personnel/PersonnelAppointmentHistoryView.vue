@@ -3,7 +3,6 @@
     <div class="section-title">
       <div>
         <h1>인사 이력 상세</h1>
-        <div class="sub">전체 사원의 인사 발령 및 변동 이력을 조회합니다.</div>
       </div>
     </div>
 
@@ -262,5 +261,17 @@ watch(searchQuery, () => { currentPage.value = 1 })
   color: #3b82f6;
   border-color: #bfdbfe;
   font-weight: 600;
+}
+
+.section-title h1 {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--primary);
+}
+
+.card-hd h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--primary);
 }
 </style>

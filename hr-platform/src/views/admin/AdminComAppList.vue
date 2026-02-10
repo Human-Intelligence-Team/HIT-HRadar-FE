@@ -2,7 +2,6 @@
   <div class="page-container">
     <div class="page-header">
       <h2 class="title">회사 신청 관리</h2>
-      <span class="subtitle">신청된 회사 정보를 확인하고 승인/반려를 관리합니다.</span>
     </div>
 
     <!-- Filter Card -->
@@ -469,4 +468,12 @@ const handleReject = async (id, event) => {
 
 @keyframes spin { 100% { transform: rotate(360deg); } }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+.title {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--primary);
+  letter-spacing: -0.02em;
+  margin: 0;
+}
 </style>

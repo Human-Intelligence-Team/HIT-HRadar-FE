@@ -4,7 +4,6 @@
     <div class="section-title">
       <div>
         <h1>조직도</h1>
-        <div class="sub">회사의 조직 구조를 한눈에 확인합니다.</div>
       </div>
       <!-- Toolbar removed as per user request -->
     </div>
@@ -247,5 +246,11 @@ onMounted(loadOrgChart)
 .empty-state i {
   font-size: 32px;
   margin-bottom: 12px;
+}
+
+.section-title h1 {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--primary);
 }
 </style>
