@@ -321,7 +321,7 @@ const routes = [
         children: [
           { path: 'my-history', component: () => import('@/views/leave/MyLeaveHistoryView.vue') },
           { path: 'policy', component: () => import('@/views/leave/LeavePolicyAdminView.vue') },
-          { path: 'admin/department-history', component: () => import('@/views/leave/DepartmentLeaveHistoryView.vue'), meta: { requiresAdmin: true } },
+          { path: 'admin/department-history', component: () => import('@/views/leave/DepartmentLeaveHistoryView.vue'),},
         ],
       },
 
@@ -393,7 +393,7 @@ router.beforeEach((to, from) => {
   if (requiredPerm && !auth.hasPermission(requiredPerm)) {
     alert('해당 메뉴에 대한 접근 권한이 없습니다.')
 
-    // 만약 초기 진입(새로고침 등)에서 권한이 막힌 경우라면, 
+    // 만약 초기 진입(새로고침 등)에서 권한이 막힌 경우라면,
     // 무한 루프 방지를 위해 게이트웨이로 보내거나 로그아웃 처리
     if (from.matched.length === 0) {
       // 1. 단순 게이트웨이 이동

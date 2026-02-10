@@ -7,12 +7,13 @@
             <h3>근무 상세 정보</h3>
             <button class="btn-close" @click="close">✕</button>
           </div>
-          
+
           <div class="modal-body">
             <!-- 프로필 섹션 -->
             <div class="profile-section">
               <div class="profile-icon">
-                {{ getProfileIconText(attendance) }}
+                <img v-if="attendance?.profileImage" :src="attendance.profileImage" class="profile-img" alt="Profile">
+                <span v-else>{{ getProfileIconText(attendance) }}</span>
               </div>
               <div class="name-value">{{ attendance?.employeeName }}</div>
               <div class="dept-value">{{ attendance?.deptName || 'HIT' }}</div>
@@ -61,7 +62,7 @@
               <span class="info-label">사유</span>
               <span class="info-value">{{ attendance.reason }}</span>
             </div>
-            
+
             <div class="info-row" v-if="attendance?.totalWorkTime">
               <span class="info-label">총 근무시간</span>
               <span class="info-value">{{ attendance.totalWorkTime }}</span>
@@ -71,7 +72,7 @@
               <span class="info-label">인정된 초과근무</span>
               <span class="info-value highlight-red">{{ attendance.overtimeMinutes }}분</span>
             </div>
-            
+
             <div class="info-row" v-if="attendance?.overtimeStatus">
               <span class="info-label">초과근무 여부</span>
               <span class="info-value" :class="{'highlight-red': attendance.overtimeStatus === '발생'}">
@@ -104,8 +105,8 @@ const close = () => {
   emit('close');
 };
 
-const getProfileIconText = () => {
-    return 'HIT';
+const getProfileIconText = (attendance) => {
+  return attendance?.employeeName?.[0] || 'H';
 };
 
 const getStatusClass = (status) => {
@@ -118,34 +119,34 @@ const getStatusClass = (status) => {
 };
 
 const mapWorkType = (type) => {
-    if (!type) return '-';
-    const mapper = {
-        'WORK': '내근',
-        'REMOTE': '재택',
-        'FIELD': '외근',
-        'TRIP': '출장',
-        'VACATION': '휴가'
-    };
-    return mapper[type] || type;
+  if (!type) return '-';
+  const mapper = {
+    'WORK': '내근',
+    'REMOTE': '재택',
+    'FIELD': '외근',
+    'TRIP': '출장',
+    'VACATION': '휴가'
+  };
+  return mapper[type] || type;
 };
 
 const mapLocation = (loc) => {
-    if (!loc) return '-';
-    const mapper = {
-        'OFFICE': '사무실',
-        'HOME': '재택(자택)',
-        'FIELD': '현장(외근)',
-        'TRIP': '출장지',
-        'NONE': '-'
-    };
-    return mapper[loc] || loc;
+  if (!loc) return '-';
+  const mapper = {
+    'OFFICE': '사무실',
+    'HOME': '재택(자택)',
+    'FIELD': '현장(외근)',
+    'TRIP': '출장지',
+    'NONE': '-'
+  };
+  return mapper[loc] || loc;
 };
 
 const formatTime = (timeStr) => {
   if (!timeStr) return '-';
   // Check if it's already a simple time format HH:mm
   if (/^\d{2}:\d{2}$/.test(timeStr)) return timeStr + ':00';
-  
+
   try {
     const d = new Date(timeStr);
     if (isNaN(d.getTime())) {
@@ -254,6 +255,13 @@ const formatTime = (timeStr) => {
   font-size: 20px; /* Text size */
   font-weight: 700;
   margin-bottom: 16px;
+  overflow: hidden;
+}
+
+.profile-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .name-value {
@@ -296,7 +304,7 @@ const formatTime = (timeStr) => {
 }
 
 .highlight-red {
-    color: #e94949;
+  color: #e94949;
 }
 
 /* 상태 뱃지 스타일 개선 */
